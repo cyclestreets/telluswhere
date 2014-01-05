@@ -26,8 +26,27 @@ class telluswhere
 		$actions = array (
 			'home' => array (
 				'description' => false,
-				'url' => '',
-				'template' => '/index.html',
+				'url' => '/',
+			),
+			'current' => array (
+				'description' => false,
+				'url' => '/current/',
+			),
+			'suggest' => array (
+				'description' => false,
+				'url' => '/suggest/',
+			),
+			'about' => array (
+				'description' => false,
+				'url' => '/about/',
+			),
+			'terms' => array (
+				'description' => false,
+				'url' => '/terms/',
+			),
+			'contacts' => array (
+				'description' => false,
+				'url' => '/contacts/',
 			),
 		);
 		
@@ -266,9 +285,11 @@ class telluswhere
 	# Function to render the page
 	private function renderPage ()
 	{
+		# Determine the location of the template
+		$templateLocation = $this->actions[$this->action]['url'] . (substr ($this->actions[$this->action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
+		
 		# Obtain the template
-		$page = $this->actions[$this->action]['template'];
-		$html = $this->getHtmlPage ($page);
+		$html = $this->getHtmlPage ($templateLocation);
 		
 		# Convert to Smarty-format placeholders
 		$substitutions = array ();
@@ -294,7 +315,7 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		
+		// #!# TODO
 		$this->template['find'] = '<p>Replace</p>';		// Expects a placeholder {$find} in the HTML
 		
 		
@@ -303,7 +324,74 @@ class telluswhere
 	}
 	
 	
+	# Suggest a location page
+	private function suggest ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		// #!# TODO
+		
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Page for auditing of current locations
+	private function current ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		// #!# TODO
+		
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# About page
+	private function about ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		// #!# TODO
+		
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Terms and conditions page
+	private function terms ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		// #!# TODO
+		
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Contacts page
+	private function contacts ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		// #!# TODO
+		
+		
+		# Return the HTML
+		return $html;
+	}
 }
-
 
 ?>

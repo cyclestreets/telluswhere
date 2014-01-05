@@ -100,10 +100,70 @@ class telluswhere
 	# 404 page
 	private function page404 ()
 	{
-		# End here
+		# Send the header
 		application::sendHeader (404);
-		include ($this->styleDirectory . '/404.html');
-		return false;
+		
+		# Get the HTML
+		$html = $this->getHtmlPage ($page);
+		
+		# Echo the HTML
+		echo $html;
+	}
+	
+	
+	# Function to load a templatised HTML page; the htmlClean.. functions are present to enable a template to be dropped in from a designer without making changes first
+	private function getHtmlPage ($page)
+	{
+		# Determine the location
+		$path = $this->styleDirectory . $page;
+		$file = $_SERVER['DOCUMENT_ROOT'] . $path;
+		
+		# Load the file
+		$html = file_get_contents ($file);
+		
+		# Chop trailing directory index; e.g. "/path/index.html" becomes "/path/"
+		$html = $this->htmlCleanChopDirectoryIndex ($html);
+		
+		# Make HTML paths absolute; e.g. "css/" becomes "/css/"
+		$html = $this->htmlCleanPathsAbsolute ($html, $path);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to chop directory indexes from links
+	private function htmlCleanChopDirectoryIndex ($html)
+	{
+		# Define directory index filename(s)
+		$supported = array ('index.html', );		// More can be added if found necessary, e.g. index.php
+		$supportedDirectoryIndexesRegexp = implode ('|', $supported);
+		
+		# HTML href links
+		$html = preg_replace ('@(\s+)(href)="(' . $supportedDirectoryIndexesRegexp . ')"@', '$1$2="./"', $html);			// Special case: href="index.html" becomes href="./"
+		$html = preg_replace ('@(\s+)(href)="([^"]*)/(' . $supportedDirectoryIndexesRegexp . ')"@', '$1$2="$3/"', $html);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to rewrite HTML paths to be absolute
+	private function htmlCleanPathsAbsolute ($html, $path)
+	{
+		# Determine the path prefix that needs to be inserted
+		$path = dirname ($path . '.bogus') . '/';	// .bogus ensures that dirname doesn't convert "/foo/bar" (which should not be supplied anyway) to /foo
+		$delimiter = '@';
+		$path = preg_replace ($delimiter . '^' . addcslashes ($this->styleDirectory, $delimiter) . $delimiter, '', $path);	// i.e. convert /style/default/ to /
+		
+		# HTML href links
+		$html = preg_replace ('@(\s+)(href|src)="([^/"])([^"]+)"@', sprintf ('$1$2="%s$3$4"', $path), $html);
+		
+		# Replace special-case of '/./' => '/'
+		$html = preg_replace ('@(\s+)(href|src)="/./"@', sprintf ('$1$2="/"', $path), $html);
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -134,7 +194,7 @@ class telluswhere
 		$etag = md5_file ($file);
 		header ('Last-Modified: ' . gmdate ('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
 		header ('Etag: ' . $etag);
-	    if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) || isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
+	    if (isset ($_SERVER['HTTP_IF_MODIFIED_SINCE']) || isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
 			if (strtotime ($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime || trim ($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
 				header ('HTTP/1.1 304 Not Modified');
 				return;
@@ -148,7 +208,7 @@ class telluswhere
 			return false;
 		}
 		
-		# Set a header for the MIMEtype of the file
+		# Set a header for the MIME type of the file
 		$mimeType = $this->getMimeType ($file);
 		header ('Content-Type: ' . $mimeType);
 		
@@ -179,6 +239,8 @@ class telluswhere
 		# Return the MIME type
 		return $mimeType;
 	}
+	
+	
 	
 	
 	/* Content pages */

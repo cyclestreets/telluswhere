@@ -11,8 +11,11 @@ AcceptPathInfo Off
 # Disable output buffering
 php_value output_buffering Off 
 
-# Pass all requests through the web application
+# Run application pages
 RewriteEngine On
+RewriteRule ^$ index.html?action=home [L,QSA]
+
+# If no match above, serve files directly, via the web application, for the configured style
 RewriteCond %{REQUEST_FILENAME} !/index\.html$
 RewriteCond %{REQUEST_FILENAME} !/robots.txt$
 RewriteRule ^(.*)$ index.html?page=/$1 [L]

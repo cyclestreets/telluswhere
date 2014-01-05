@@ -4,13 +4,32 @@
 class telluswhere
 {
 	# Settings
-	private $defaults = array (
-		'style'		=> 'default',
+	function defaults ()
+	{
+		# Specify available arguments as defaults or as NULL (to represent a required argument)
+		$defaults = array (
+			'style'		=> 'default',
+		);
 		
-	);
+		# Return the defaults
+		return $defaults;
+	}
 	
-	# Class properties
-	var $html = '';
+	
+	# Register actions
+	private function actions ()
+	{
+		# Specify available actions
+		$actions = array (
+			'home' => array (
+				'description' => false,
+				'url' => '',
+			),
+		);
+		
+		# Return the actions
+		return $actions;
+	}
 	
 	
 	# Constructor
@@ -26,7 +45,7 @@ class telluswhere
 		$this->baseUrl = application::getBaseUrl ();
 		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
-		if (!$this->settings = application::assignArguments ($errors, $settings, $this->defaults, __CLASS__, NULL, $handleErrors = true)) {
+		if (!$this->settings = application::assignArguments ($errors, $settings, $this->defaults (), __CLASS__, NULL, $handleErrors = true)) {
 			return false;
 		}
 		
@@ -37,13 +56,25 @@ class telluswhere
 			return false;
 		}
 		
+		# If an action is not specified, serve the file directly
+		if (!isSet ($_GET['action'])) {
+			$this->serveFile ();
+			return;
+		}
 		
+		# Ensure the action is valid
+		$this->action = $_GET['action'];
+		$this->actions = $this->actions ();
+		if (!isSet ($this->actions[$this->action])) {
+			$this->page404 ();
+			return false;
+		}
+		
+		# Perform the action, obtaining the HTML
+		$html = $this->{$this->action} ();
 		
 		// # Show the HTML
-		// echo $this->html;
-		
-		# If no other action has been set, pass through file requests and serve directly
-		$this->serveFile ();
+		echo $html;
 	}
 	
 	
@@ -123,6 +154,26 @@ class telluswhere
 		# Serve the file
 		readfile ($file);
 	}
+	
+	
+	/* Content pages */
+	
+	
+	# Home page
+	private function home ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		
+		echo __METHOD__;
+		
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
 }
 
 

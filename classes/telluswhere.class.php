@@ -149,8 +149,7 @@ class telluswhere
 		}
 		
 		# Set a header for the MIMEtype of the file
-		$finfo = finfo_open (FILEINFO_MIME_TYPE);
-		$mimeType = finfo_file ($finfo, $file);
+		$mimeType = $this->getMimeType ($file);
 		header ('Content-Type: ' . $mimeType);
 		
 		# Set a header for the length of the file
@@ -158,6 +157,27 @@ class telluswhere
 		
 		# Serve the file
 		readfile ($file);
+	}
+	
+	
+	# Function to get the MIME type; this is basically a wrapper to finfo_file because of a PHP bug; see: http://stackoverflow.com/a/17736797/180733
+	private function getMimeType ($file)
+	{
+		# Workaround for bug with finfo_file(); see http://bugs.php.net/53035
+		$extension = pathinfo ($file, PATHINFO_EXTENSION);
+		switch ($extension) {
+			case 'css':
+				return 'text/css';
+			case 'js':
+				return 'application/javascript';
+		}
+		
+		# Get the MIME type
+		$finfo = finfo_open (FILEINFO_MIME_TYPE);
+		$mimeType = finfo_file ($finfo, $file);
+		
+		# Return the MIME type
+		return $mimeType;
 	}
 	
 	

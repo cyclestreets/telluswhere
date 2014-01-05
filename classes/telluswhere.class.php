@@ -270,8 +270,15 @@ class telluswhere
 		$page = $this->actions[$this->action]['template'];
 		$html = $this->getHtmlPage ($page);
 		
+		# Convert to Smarty-format placeholders
+		$substitutions = array ();
+		foreach ($this->template as $find => $replace) {
+			$find = '{$' . $find . '}';
+			$substitutions[$find] = $replace;
+		}
+		
 		# Perform substitutions
-		$html = strtr ($html, $this->template);
+		$html = strtr ($html, $substitutions);
 		
 		# Return the HTML
 		return $html;
@@ -288,7 +295,7 @@ class telluswhere
 		$html = '';
 		
 		
-		$this->template['{find}'] = '<p>Replace</p>';
+		$this->template['find'] = '<p>Replace</p>';		// Expects a placeholder {$find} in the HTML
 		
 		
 		# Return the HTML

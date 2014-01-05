@@ -18,6 +18,6 @@ RewriteRule ^$ index.html?action=home [L,QSA]
 # If no match above, serve files directly, via the web application, for the configured style
 RewriteCond %{REQUEST_FILENAME} !/index\.html$
 RewriteCond %{REQUEST_FILENAME} !/robots.txt$
-RewriteRule ^(.*)$ index.html?page=/$1 [L]
+RewriteRule ^(.*)$ index.html?file=/$1 [L]
 
 

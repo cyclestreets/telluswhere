@@ -56,10 +56,16 @@ class telluswhere
 			return false;
 		}
 		
-		# If an action is not specified, serve the file directly
-		if (!isSet ($_GET['action'])) {
-			$this->serveFile ();
+		# If a file is requested, serve the file directly, then end
+		if (isSet ($_GET['file'])) {
+			$this->serveFile ($_GET['file']);
 			return;
+		}
+		
+		# End if no action specified
+		if (!isSet ($_GET['action']) || !strlen ($_GET['action'])) {
+			$this->page404 ();
+			return false;
 		}
 		
 		# Ensure the action is valid
@@ -102,23 +108,22 @@ class telluswhere
 	
 	
 	# Function to serve a file as per a standard webserver
-	private function serveFile ()
+	private function serveFile ($location)
 	{
-		# Throw 404 if no page
-		if (!isSet ($_GET['page']) || !strlen ($_GET['page'])) {
+		# Throw 404 if none
+		if (!strlen ($location)) {
 			$this->page404 ();
 			return false;
 		}
 		
 		# Prevent directory traversal attacks
-		if (substr_count ($_GET['page'], '../')) {
+		if (substr_count ($location, '../')) {
 			$this->page404 ();
 			return false;
 		}
 		
 		# Ensure page exists
-		$page = $this->styleDirectory . $_GET['page'];
-		$file = $_SERVER['DOCUMENT_ROOT'] . $page;
+		$file = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $location;
 		if (!is_file ($file) || !is_readable ($file)) {
 			$this->page404 ();
 			return false;

@@ -64,7 +64,8 @@ class telluswhere
 		
 		# End if no action specified
 		if (!isSet ($_GET['action']) || !strlen ($_GET['action'])) {
-			$this->page404 ();
+			$html = $this->page404 ();
+			echo $html;
 			return false;
 		}
 		
@@ -72,7 +73,8 @@ class telluswhere
 		$this->action = $_GET['action'];
 		$this->actions = $this->actions ();
 		if (!isSet ($this->actions[$this->action])) {
-			$this->page404 ();
+			$html = $this->page404 ();
+			echo $html;
 			return false;
 		}
 		
@@ -103,11 +105,21 @@ class telluswhere
 		# Send the header
 		application::sendHeader (404);
 		
+		# Show generic text if custom 404 not available
+		$page = '/404.html';
+		$path = $this->styleDirectory . $page;
+		$file = $_SERVER['DOCUMENT_ROOT'] . $path;
+		if (!is_readable ($file)) {
+			$html  = "\n<h1>Page not found</h1>";
+			$html .= "\n<p>Sorry, that page was not found. Please check the URL or use the menu to navigate elsewhere.</p>";
+			return $html;
+		}
+		
 		# Get the HTML
 		$html = $this->getHtmlPage ($page);
 		
-		# Echo the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -172,20 +184,23 @@ class telluswhere
 	{
 		# Throw 404 if none
 		if (!strlen ($location)) {
-			$this->page404 ();
+			$html = $this->page404 ();
+			echo $html;
 			return false;
 		}
 		
 		# Prevent directory traversal attacks
 		if (substr_count ($location, '../')) {
-			$this->page404 ();
+			$html = $this->page404 ();
+			echo $html;
 			return false;
 		}
 		
 		# Ensure page exists
 		$file = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $location;
 		if (!is_file ($file) || !is_readable ($file)) {
-			$this->page404 ();
+			$html = $this->page404 ();
+			echo $html;
 			return false;
 		}
 		

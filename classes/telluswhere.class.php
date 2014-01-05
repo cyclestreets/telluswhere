@@ -15,6 +15,9 @@ class telluswhere
 		return $defaults;
 	}
 	
+	# Class properties
+	private $template = array ();	// Associative array of fragments to be replaced
+	
 	
 	# Register actions
 	private function actions ()
@@ -24,6 +27,7 @@ class telluswhere
 			'home' => array (
 				'description' => false,
 				'url' => '',
+				'template' => '/index.html',
 			),
 		);
 		
@@ -78,10 +82,13 @@ class telluswhere
 			return false;
 		}
 		
-		# Perform the action, obtaining the HTML
-		$html = $this->{$this->action} ();
+		# Perform the action, which will write into a page template
+		$this->{$this->action} ();
 		
-		// # Show the HTML
+		# Render the page
+		$html = $this->renderPage ();
+		
+		# Show the HTML
 		echo $html;
 	}
 	
@@ -256,6 +263,19 @@ class telluswhere
 	}
 	
 	
+	# Function to render the page
+	private function renderPage ()
+	{
+		# Obtain the template
+		$page = $this->actions[$this->action]['template'];
+		$html = $this->getHtmlPage ($page);
+		
+		# Perform substitutions
+		$html = strtr ($html, $this->template);
+		
+		# Return the HTML
+		return $html;
+	}
 	
 	
 	/* Content pages */
@@ -268,7 +288,7 @@ class telluswhere
 		$html = '';
 		
 		
-		echo __METHOD__;
+		$this->template['{find}'] = '<p>Replace</p>';
 		
 		
 		# Return the HTML

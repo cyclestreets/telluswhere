@@ -1,0 +1,9 @@
+<?php
+
+# Define the configuration for this installation
+$config = array (
+	
+);
+
+
+?>

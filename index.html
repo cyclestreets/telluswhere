@@ -1,0 +1,10 @@
+<?php
+
+# Load the config
+require_once ('.config.php');
+
+# Load and run the maps program
+require_once ('classes/telluswhere.class.php');
+new telluswhere ($config);
+
+?>

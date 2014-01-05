@@ -1,0 +1,7 @@
+
+# Allow parsing of .html by PHP
+AddType application/x-httpd-php .html .php
+
+# PHP config
+php_value error_reporting -1
+

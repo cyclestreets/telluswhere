@@ -2,6 +2,19 @@
 # Allow parsing of .html by PHP
 AddType application/x-httpd-php .html .php
 
-# PHP config
+# Log all errors and warnings
 php_value error_reporting -1
+
+# Disallow pathinfo
+AcceptPathInfo Off
+
+# Disable output buffering
+php_value output_buffering Off 
+
+# Pass all requests through the web application
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !/index\.html$
+RewriteCond %{REQUEST_FILENAME} !/robots.txt$
+RewriteRule ^(.*)$ index.html?page=/$1 [L]
+
 

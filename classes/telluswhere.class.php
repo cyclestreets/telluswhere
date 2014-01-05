@@ -39,8 +39,11 @@ class telluswhere
 		
 		
 		
-		# Show the HTML
-		echo $this->html;
+		// # Show the HTML
+		// echo $this->html;
+		
+		# If no other action has been set, pass through file requests and serve directly
+		$this->serveFile ();
 	}
 	
 	
@@ -48,14 +51,78 @@ class telluswhere
 	private function getStyleDirectory ($style)
 	{
 		# Check the existence of the directory
-		$location = '/style/' . $style . '/';
+		$location = '/style/' . $style;
 		$directory = $_SERVER['DOCUMENT_ROOT'] . $location;
 		if (!is_dir ($directory)) {return false;}
 		
-		# Return the location
+		# Return the location, not slash-terminated
 		return $location;
 	}
 	
+	
+	# 404 page
+	private function page404 ()
+	{
+		# End here
+		application::sendHeader (404);
+		include ($this->styleDirectory . '/404.html');
+		return false;
+	}
+	
+	
+	# Function to serve a file as per a standard webserver
+	private function serveFile ()
+	{
+		# Throw 404 if no page
+		if (!isSet ($_GET['page']) || !strlen ($_GET['page'])) {
+			$this->page404 ();
+			return false;
+		}
+		
+		# Prevent directory traversal attacks
+		if (substr_count ($_GET['page'], '../')) {
+			$this->page404 ();
+			return false;
+		}
+		
+		# Ensure page exists
+		$page = $this->styleDirectory . $_GET['page'];
+		$file = $_SERVER['DOCUMENT_ROOT'] . $page;
+		if (!is_file ($file) || !is_readable ($file)) {
+			$this->page404 ();
+			return false;
+		}
+		
+		# Enable caching to improve browser performance; see: http://stackoverflow.com/a/1583753/180733
+		$lastModifiedTime = filemtime ($file);
+		$etag = md5_file ($file);
+		header ('Last-Modified: ' . gmdate ('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
+		header ('Etag: ' . $etag);
+	    if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) || isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
+			if (strtotime ($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime || trim ($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
+				header ('HTTP/1.1 304 Not Modified');
+				return;
+			}
+		}
+		
+		# Ensure the fileinfo extension is loaded
+		if (!function_exists ('finfo_open')) {
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error.</p>";
+			echo $this->html;
+			return false;
+		}
+		
+		# Set a header for the MIMEtype of the file
+		$finfo = finfo_open (FILEINFO_MIME_TYPE);
+		$mimeType = finfo_file ($finfo, $file);
+		header ('Content-Type: ' . $mimeType);
+		
+		# Set a header for the length of the file
+		header ('Content-Length: ' . filesize ($file));
+		
+		# Serve the file
+		readfile ($file);
+	}
 }
 
 

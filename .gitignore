@@ -1,3 +1,8 @@
 
 # Ignore the instantiated copy of the bootstrap files
 .config.php
+
+# Ignore any contents of the style folder, except the default
+style/*
+!style/readme.txt
+!style/default/

@@ -5,9 +5,12 @@ class telluswhere
 {
 	# Settings
 	private $defaults = array (
+		'style'		=> 'default',
 		
 	);
 	
+	# Class properties
+	var $html = '';
 	
 	
 	# Constructor
@@ -23,10 +26,35 @@ class telluswhere
 		$this->baseUrl = application::getBaseUrl ();
 		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
-		if (!$this->settings = application::assignArguments ($errors, $settings, $this->defaults, __CLASS__, NULL, $handleErrors = true)) {return false;}
+		if (!$this->settings = application::assignArguments ($errors, $settings, $this->defaults, __CLASS__, NULL, $handleErrors = true)) {
+			return false;
+		}
 		
+		# Determine the style directory in use
+		if (!$this->styleDirectory = $this->getStyleDirectory ($this->settings['style'])) {
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error.</p>";
+			echo $this->html;
+			return false;
+		}
+		
+		
+		
+		# Show the HTML
+		echo $this->html;
 	}
 	
+	
+	# Function to determine the style directory in use
+	private function getStyleDirectory ($style)
+	{
+		# Check the existence of the directory
+		$location = '/style/' . $style . '/';
+		$directory = $_SERVER['DOCUMENT_ROOT'] . $location;
+		if (!is_dir ($directory)) {return false;}
+		
+		# Return the location
+		return $location;
+	}
 	
 }
 

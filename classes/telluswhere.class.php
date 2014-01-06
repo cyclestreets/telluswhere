@@ -53,6 +53,7 @@ class telluswhere
 	
 	# Class properties
 	private $template = array ();	// Associative array of fragments to be replaced
+	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	
 	
 	
@@ -184,7 +185,7 @@ class telluswhere
 		$html = $this->htmlCleanPathsAbsolute ($html, $path);
 		
 		# Replace templated sections with placeholders
-		$html = $this->htmlCleanInsertPlaceholders ($html);
+		$html = $this->commentsToPlaceholders ($html, $this->replacedPlaceholders);
 		
 		# Return the HTML
 		return $html;
@@ -273,10 +274,19 @@ class telluswhere
 	
 	# Function to insert placeholders, by replacing comments in the HTML where the placeholders go; the aim here is that a designer can supply code with both sample HTML and the placeholders in
 	# This looks for "<!-- {$placeholdername} --> then lines of HTML here, then <!-- {/$placeholdername} -->"
-	private function htmlCleanInsertPlaceholders ($html)
+	private function commentsToPlaceholders ($html, &$replacedPlaceholders)
 	{
-		# Replace placeholder comments with actual placeholders; note \1 is a backreference to ensure the opening and closing tags match, and the s modifier enables multiple-line matches
-		$html = preg_replace ('|' . '<!--\s+\{\$([^}]+)\}\s+-->.+<!--\s+/\{\$\1\}\s+-->' . '|s', '{\$\1}', $html);
+		# Cache matched placeholder comments; note \1 is a backreference to ensure the opening and closing tags match, and the s modifier enables multiple-line matches
+		$replacedPlaceholders = array ();
+		$regexp = '|' . '<!--\s+\{\$([^}]+)\}\s+-->(.+)<!--\s+/\{\$\1\}\s+-->' . '|s';
+		if (preg_match_all ($regexp, $html, $matches, PREG_SET_ORDER)) {
+			foreach ($matches as $match) {
+				$replacedPlaceholders[$match[1]] = $match[2];		// placeholdername => html
+			}
+		}
+		
+		# Do the replacement of placeholder comments with actual placeholders
+		$html = preg_replace ($regexp, '{\$\1}', $html);
 		
 		# Return the HTML
 		return $html;

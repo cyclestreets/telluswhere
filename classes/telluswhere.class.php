@@ -102,11 +102,8 @@ class telluswhere
 			return false;
 		}
 		
-		# Determine the location of the template
-		$templateLocation = $this->actions[$this->action]['url'] . (substr ($this->actions[$this->action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
-		
-		# Obtain the template
-		$templateHtml = $this->getHtmlPage ($templateLocation);
+		# Load the template
+		$templateHtml = $this->getTemplateHtml ($this->action);
 		
 		# Perform the action, which will write into a page template
 		$this->{$this->action} ();
@@ -152,6 +149,20 @@ class telluswhere
 		$html = $this->getHtmlPage ($page);
 		
 		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to load the template
+	private function getTemplateHtml ($action)
+	{
+		# Determine the location of the template
+		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
+		
+		# Obtain the template
+		$html = $this->getHtmlPage ($templateLocation);
+		
+		# Return the template HTML
 		return $html;
 	}
 	

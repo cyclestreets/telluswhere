@@ -192,16 +192,61 @@ class telluswhere
 	# Function to rewrite HTML paths to be absolute
 	private function htmlCleanPathsAbsolute ($html, $path)
 	{
+		# Extract all URL references or return HTML as-is)
+		#!# No support for single-quoted (var='text') attributes quotes yet
+		#!# Will currently catch href="path"/src="path" appearing within the HTML as plain text
+		if (!preg_match_all ('@\s+(href|src)="([^"]+)"(\s|>)@', $html, $pathsOriginal, PREG_SET_ORDER)) {return $html;}
+		
 		# Determine the path prefix that needs to be inserted
 		$path = dirname ($path . '.bogus') . '/';	// .bogus ensures that dirname doesn't convert "/foo/bar" (which should not be supplied anyway) to /foo
 		$delimiter = '@';
-		$path = preg_replace ($delimiter . '^' . addcslashes ($this->styleDirectory, $delimiter) . $delimiter, '', $path);	// i.e. convert /style/default/ to /
+		$prefix = preg_replace ($delimiter . '^' . addcslashes ($this->styleDirectory, $delimiter) . $delimiter, '', $path);	// i.e. replace /style/default/ with /, leaving e.g. /contacts/
 		
-		# HTML href links
-		$html = preg_replace ('@(\s+)(href|src)="([^/"])([^"]+)"@', sprintf ('$1$2="%s$3$4"', $path), $html);
+		# Work through each path to determine the replacement path for each match
+		$paths = array ();
+		foreach ($pathsOriginal as $i => $match) {
+			$paths[$i] = $match[2];		// By default, start with unamended original
+			
+			# Full URLs should be left unchanged
+			if (preg_match ('|^https?://.+$|', $paths[$i])) {continue;}
+			
+			# Pure anchors should be left changed
+			if (preg_match ('|^#.*$|', $paths[$i])) {continue;}
+			
+			# Current-directory only URLs ( ./ or ./something ) should be substituted with the absolute equivalent
+			if ($paths[$i] == '.') {$paths[$i] = './';}	// Normalise
+			if (preg_match ('|^\./(.*)$|', $paths[$i], $matches)) {
+				$paths[$i] = $prefix . $matches[1];
+				continue;
+			}
+			
+			# Directory-traversal URLs - chop prefix for each, i.e. ../contacts/ => /prefix/../contacts/ => /contacts/
+			if ($paths[$i] == '..') {$paths[$i] = '../';}	// Normalise
+			if (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
+				$newPrefix = $prefix;
+				while (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
+					if (strlen ($newPrefix)) {	// Never traverse higher than / - if HTML of ../../ should have been ../ then treat it as such
+						$newPrefix = str_replace ('\\', '/', dirname ($newPrefix));	// Chop last component
+					}
+					$paths[$i] = $newPrefix . $matches[1];
+				}
+				continue;
+			}
+			
+			# Prefix remainder, which are "from here" paths, e.g. "path/to" becomes "/prefix/path/to"
+			$paths[$i] = $prefix . $paths[$i];
+		}
 		
-		# Replace special-case of '/./' => '/'
-		$html = preg_replace ('@(\s+)(href|src)="/./"@', sprintf ('$1$2="/"', $path), $html);
+		# Construct the find/replace entry; $match[1] is href/src; $match[2] is the original path
+		$replacements = array ();
+		foreach ($pathsOriginal as $i => $match) {
+			$find    = sprintf (' %s="%s"', $match[1], $match[2]);
+			$replace = sprintf (' %s="%s"', $match[1], $paths[$i]);
+			$replacements[$find] = $replace;
+		}
+		
+		# Perform replacements
+		$html = strtr ($html, $replacements);
 		
 		# Return the HTML
 		return $html;

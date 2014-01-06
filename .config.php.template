@@ -6,6 +6,7 @@ $config = array (
 	'style'				=> 'default',
 	'feedbackRecipient'	=> NULL,
 	'contactsPageHtml'	=> false,
+	'aboutPageHtml'		=> NULL,
 	'termsPageHtml'		=> NULL,
 	
 );

@@ -13,6 +13,7 @@ class telluswhere
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'feedbackRecipient'		=> NULL,
 			'contactsPageHtml'		=> false,
+			'aboutPageHtml'			=> NULL,
 			'termsPageHtml'			=> NULL,
 		);
 		
@@ -443,8 +444,8 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		// #!# TODO
-		
+		# Text of page
+		$this->template['text'] = $this->settings['aboutPageHtml'];
 		
 		# Return the HTML
 		return $html;
@@ -457,7 +458,7 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Contact form text
+		# Text of page
 		$this->template['text'] = $this->settings['termsPageHtml'];
 		
 		# Return the HTML

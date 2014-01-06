@@ -5,6 +5,7 @@ $config = array (
 	'applicationName'	=> 'Tell us where',
 	'style'				=> 'default',
 	'feedbackRecipient'	=> NULL,
+	'contactsPageHtml'	=> false,
 	
 );
 

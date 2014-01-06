@@ -12,6 +12,7 @@ class telluswhere
 			'style'					=> 'default',
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'feedbackRecipient'		=> NULL,
+			'contactsPageHtml'		=> false,
 		);
 		
 		# Return the defaults
@@ -469,14 +470,14 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Add in e-mail address
+		# Contact form text
+		$this->template['text'] = $this->settings['contactsPageHtml'];
+		
+		# E-mail address
 		$this->template['feedbackRecipient'] = application::encodeEmailAddress ($this->settings['feedbackRecipient']);
 		
-		# Add in contact form
+		# Contact form
 		$this->template['form'] = $this->contactForm ();
-		
-		// #!# TODO
-		
 		
 		# Return the HTML
 		return $html;

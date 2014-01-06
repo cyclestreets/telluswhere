@@ -106,7 +106,7 @@ class telluswhere
 		# Load the template
 		$templateHtml = $this->getTemplateHtml ($this->action);
 		
-		# Perform the action, which will write into a page template
+		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
 		
 		# Render the page
@@ -293,6 +293,24 @@ class telluswhere
 	}
 	
 	
+	# Function to render the page
+	private function doTemplateSubstitution ($templateHtml, $replacements)
+	{
+		# Convert to Smarty-format placeholders
+		$substitutions = array ();
+		foreach ($replacements as $find => $replace) {
+			$find = '{$' . $find . '}';
+			$substitutions[$find] = $replace;
+		}
+		
+		# Perform substitutions
+		$html = strtr ($templateHtml, $substitutions);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
 	# Function to serve a file as per a standard webserver
 	private function serveFile ($location)
 	{
@@ -367,24 +385,6 @@ class telluswhere
 		
 		# Return the MIME type
 		return $mimeType;
-	}
-	
-	
-	# Function to render the page
-	private function doTemplateSubstitution ($templateHtml, $replacements)
-	{
-		# Convert to Smarty-format placeholders
-		$substitutions = array ();
-		foreach ($replacements as $find => $replace) {
-			$find = '{$' . $find . '}';
-			$substitutions[$find] = $replace;
-		}
-		
-		# Perform substitutions
-		$html = strtr ($templateHtml, $substitutions);
-		
-		# Return the HTML
-		return $html;
 	}
 	
 	

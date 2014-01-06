@@ -102,11 +102,17 @@ class telluswhere
 			return false;
 		}
 		
+		# Determine the location of the template
+		$templateLocation = $this->actions[$this->action]['url'] . (substr ($this->actions[$this->action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
+		
+		# Obtain the template
+		$templateHtml = $this->getHtmlPage ($templateLocation);
+		
 		# Perform the action, which will write into a page template
 		$this->{$this->action} ();
 		
 		# Render the page
-		$html = $this->renderPage ();
+		$html = $this->doTemplateSubstitution ($templateHtml, $this->template);
 		
 		# Show the HTML
 		echo $html;
@@ -344,23 +350,17 @@ class telluswhere
 	
 	
 	# Function to render the page
-	private function renderPage ()
+	private function doTemplateSubstitution ($templateHtml, $replacements)
 	{
-		# Determine the location of the template
-		$templateLocation = $this->actions[$this->action]['url'] . (substr ($this->actions[$this->action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
-		
-		# Obtain the template
-		$html = $this->getHtmlPage ($templateLocation);
-		
 		# Convert to Smarty-format placeholders
 		$substitutions = array ();
-		foreach ($this->template as $find => $replace) {
+		foreach ($replacements as $find => $replace) {
 			$find = '{$' . $find . '}';
 			$substitutions[$find] = $replace;
 		}
 		
 		# Perform substitutions
-		$html = strtr ($html, $substitutions);
+		$html = strtr ($templateHtml, $substitutions);
 		
 		# Return the HTML
 		return $html;

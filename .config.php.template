@@ -2,10 +2,10 @@
 
 # Define the configuration for this installation; items marked NULL are mandatory
 $config = array (
+	'applicationName'	=> 'Tell us where',
 	'style'				=> 'default',
 	'feedbackRecipient'	=> NULL,
 	
 );
-
 
 ?>

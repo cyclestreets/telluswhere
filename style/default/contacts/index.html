@@ -1,3 +1,25 @@
 Contacts page
 
 E-mail: {$feedbackRecipient}
+
+<!-- {$form} -->
+
+<form action="#" method="post">
+	<fieldset>
+		<label><span>* </span>Your Name </label>
+		<!-- {$name} --><input type="text" name="name"/><!-- /{$name} -->
+	</fieldset>
+	<fieldset>
+		<label><span>* </span>Your Email </label>
+		<!-- {$email} --><input type="text" name="email"/><!-- /{$email} -->
+	</fieldset>
+	<fieldset>
+		<label><span>* </span>Your Message </label>
+		<!-- {$message} --><textarea name="message"></textarea><!-- /{$message} -->
+	</fieldset>
+	<fieldset>
+		<!-- {$submit} --><input type="submit" value="Send message" /><!-- /{$submit} -->
+	</fieldset>
+</form>
+
+<!-- /{$form} -->

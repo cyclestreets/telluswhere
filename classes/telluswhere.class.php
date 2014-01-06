@@ -8,7 +8,9 @@ class telluswhere
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
+			'applicationName'		=> 'Tell us where',
 			'style'					=> 'default',
+			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'feedbackRecipient'		=> NULL,
 		);
 		
@@ -274,10 +276,9 @@ class telluswhere
 	
 	# Function to insert placeholders, by replacing comments in the HTML where the placeholders go; the aim here is that a designer can supply code with both sample HTML and the placeholders in
 	# This looks for "<!-- {$placeholdername} --> then lines of HTML here, then <!-- {/$placeholdername} -->"
-	private function commentsToPlaceholders ($html, &$replacedPlaceholders)
+	private function commentsToPlaceholders ($html, &$replacedPlaceholders = array ())
 	{
 		# Cache matched placeholder comments; note \1 is a backreference to ensure the opening and closing tags match, and the s modifier enables multiple-line matches
-		$replacedPlaceholders = array ();
 		$regexp = '|' . '<!--\s+\{\$([^}]+)\}\s+-->(.+)<!--\s+/\{\$\1\}\s+-->' . '|s';
 		if (preg_match_all ($regexp, $html, $matches, PREG_SET_ORDER)) {
 			foreach ($matches as $match) {
@@ -471,8 +472,76 @@ class telluswhere
 		# Add in e-mail address
 		$this->template['feedbackRecipient'] = application::encodeEmailAddress ($this->settings['feedbackRecipient']);
 		
+		# Add in contact form
+		$this->template['form'] = $this->contactForm ();
+		
 		// #!# TODO
 		
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Contact form
+	private function contactForm ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Obtain the form template which was extracted during the template pre-processing
+		$formTemplateHtml = $this->replacedPlaceholders['form'];
+		
+		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
+		$formTemplateHtml = $this->commentsToPlaceholders ($formTemplateHtml);
+		
+		# Substitute the form template placeholders with the values required by ultimateForm, to give the final template
+		$replacements = array (
+			'name'		=> '{name}',
+			'email'		=> '{email}',
+			'message'	=> '{message}',
+			'submit'	=> '{[[SUBMIT]]}',
+		);
+		$formTemplateHtml = $this->doTemplateSubstitution ($formTemplateHtml, $replacements);
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'		=> false,
+			'formCompleteText'			=> "Many thanks for your message - we'll be in touch shortly if applicable.",
+			'display'					=> 'template',
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $formTemplateHtml,
+			'requiredFieldIndicator'	=> false,
+			'submitButtonText'			=> 'Send message',
+			'submitButtonAccesskey'		=> false,
+			'antispam'					=> true,
+		));
+		
+		# Widgets
+		$form->textarea (array (
+			'name'		=> 'message',
+			'title'		=> 'Message',
+			'required'	=> true,
+			'cols'		=> 55,
+		));
+		$form->input (array (
+			'name'		=> 'name',
+			'title'		=> 'Your name',
+			'required'	=> true,
+		));
+		$form->email (array (
+			'name'		=> 'email',
+			'title'		=> 'E-mail',
+			'required'	=> true,
+			#!# Needs to prefill e-mail address when logged in
+		));
+		
+		# Set the processing options
+		$form->setOutputEmail ($this->settings['feedbackRecipient'], $this->settings['administratorEmail'], $this->settings['applicationName'] . ' contact form', NULL, $replyToField = 'email');
+		$form->setOutputScreen ();
+		
+		# Process the form
+		$result = $form->process ($html);
 		
 		# Return the HTML
 		return $html;

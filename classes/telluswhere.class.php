@@ -401,10 +401,6 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		// #!# TODO
-		$this->template['find'] = '<p>Replace</p>';		// Expects a placeholder {$find} in the HTML
-		
-		
 		# Return the HTML
 		return $html;
 	}

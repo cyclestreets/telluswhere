@@ -8,8 +8,8 @@ class telluswhere
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
-			'style'		=> 'default',
-			'email'		=> NULL,
+			'style'					=> 'default',
+			'feedbackRecipient'		=> NULL,
 		);
 		
 		# Return the defaults
@@ -448,7 +448,7 @@ class telluswhere
 		$html = '';
 		
 		# Add in e-mail address
-		$this->template['email'] = application::encodeEmailAddress ($this->settings['email']);
+		$this->template['feedbackRecipient'] = application::encodeEmailAddress ($this->settings['feedbackRecipient']);
 		
 		// #!# TODO
 		

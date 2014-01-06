@@ -1,9 +1,9 @@
 <?php
 
-# Define the configuration for this installation
+# Define the configuration for this installation; items marked NULL are mandatory
 $config = array (
-	'style'		=> 'default',
-	'email'		=> NULL,
+	'style'				=> 'default',
+	'feedbackRecipient'	=> NULL,
 	
 );
 

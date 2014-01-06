@@ -15,10 +15,6 @@ class telluswhere
 		return $defaults;
 	}
 	
-	# Class properties
-	private $template = array ();	// Associative array of fragments to be replaced
-	
-	
 	# Register actions
 	private function actions ()
 	{
@@ -53,6 +49,10 @@ class telluswhere
 		# Return the actions
 		return $actions;
 	}
+	
+	# Class properties
+	private $template = array ();	// Associative array of fragments to be replaced
+	
 	
 	
 	# Constructor
@@ -165,6 +165,9 @@ class telluswhere
 		# Make HTML paths absolute; e.g. "css/" becomes "/css/"
 		$html = $this->htmlCleanPathsAbsolute ($html, $path);
 		
+		# Replace templated sections with placeholders
+		$html = $this->htmlCleanInsertPlaceholders ($html);
+		
 		# Return the HTML
 		return $html;
 	}
@@ -199,6 +202,18 @@ class telluswhere
 		
 		# Replace special-case of '/./' => '/'
 		$html = preg_replace ('@(\s+)(href|src)="/./"@', sprintf ('$1$2="/"', $path), $html);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to insert placeholders, by replacing comments in the HTML where the placeholders go; the aim here is that a designer can supply code with both sample HTML and the placeholders in
+	# This looks for "<!-- {$placeholdername} --> then lines of HTML here, then <!-- {/$placeholdername} -->"
+	private function htmlCleanInsertPlaceholders ($html)
+	{
+		# Replace placeholder comments with actual placeholders; note \1 is a backreference to ensure the opening and closing tags match, and the s modifier enables multiple-line matches
+		$html = preg_replace ('|' . '<!--\s+\{\$([^}]+)\}\s+-->.+<!--\s+/\{\$\1\}\s+-->' . '|s', '{\$\1}', $html);
 		
 		# Return the HTML
 		return $html;

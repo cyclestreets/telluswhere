@@ -459,9 +459,13 @@ class telluswhere
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
 		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
 		<style type="text/css">
-			#map {height: 400px; width: 590px;}
+			#map {height: 400px;}
+			#helptext {margin: 0;}
+			#helptext.display {background-color: yellow;}
+			#helptext.hide {background-color: transparent;}
 		</style>
 		
+		<p id="helptext">Zoom all the way in, then click on the map to set the marker.</p>
 		<div id="map"></div>
 		
 		';
@@ -489,6 +493,9 @@ class telluswhere
 				var minZoomLevelToSet = 18;		// Required accuracy for marker setting
 				function onMapClick(e) {
 					
+					// Show the help text
+					\$j('#helptext').addClass('display');
+					
 					// Remove any marker present
 					if(marker){
 						map.removeLayer(marker);
@@ -515,6 +522,9 @@ class telluswhere
 					
 					// Transmit the value to the form
 					setFormValues (e.latlng.lat, e.latlng.lng, map.getZoom());
+					
+					// Remove the help text
+					\$j('#helptext').removeClass('display').addClass('hide');
 				}
 				map.on('click', onMapClick);
 				
@@ -525,10 +535,17 @@ class telluswhere
 				
 				// Function to transmit the values to the form
 				function setFormValues (lat, lng, zoom){
+					
+					// Set the form values
 					\$j('input[name=lat]').val(lat);
 					\$j('input[name=lon]').val(lng);
 					\$j('input[name=zoom]').val(zoom);
 				}
+				
+				// Show the help text also if the user zooms
+				map.on('zoomstart', function() {
+					\$j('#helptext').addClass('display');
+				});
 			});
 			
 		</script>

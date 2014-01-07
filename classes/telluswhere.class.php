@@ -629,28 +629,13 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Obtain the form template which was extracted during the template pre-processing
-		$formTemplateHtml = $this->replacedPlaceholders['form'];
-		
-		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
-		$formTemplateHtml = $this->commentsToPlaceholders ($formTemplateHtml);
-		
-		# Substitute the form template placeholders with the values required by ultimateForm, to give the final template
-		$replacements = array (
-			'name'		=> '{name}',
-			'email'		=> '{email}',
-			'message'	=> '{message}',
-			'submit'	=> '{[[SUBMIT]]}',
-		);
-		$formTemplateHtml = $this->doTemplateSubstitution ($formTemplateHtml, $replacements);
-		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> "Many thanks for your message - we'll be in touch shortly if applicable.",
 			'display'					=> 'template',
-			'displayTemplate'			=> '{[[PROBLEMS]]}' . $formTemplateHtml,
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form'),
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Send message',
 			'submitButtonAccesskey'		=> false,
@@ -685,6 +670,32 @@ class telluswhere
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to take an extracted part of the template and convert to ultimateForm form template format
+	private function placeholderHtmlToFormTemplate ($placeholderName)
+	{
+		# Obtain the form template which was extracted during the template pre-processing
+		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
+		
+		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
+		$template = $this->commentsToPlaceholders ($htmlBlock, $replacedPlaceholders);
+		
+		# Convert each replaced placeholder to ultimateForm format
+		$replacements = array ();
+		foreach ($replacedPlaceholders as $placeholder => $originalHtml) {
+			$replacements[$placeholder] = '{' . $placeholder . '}';
+			if ($placeholder == 'submit') {
+				$replacements[$placeholder] = '{[[SUBMIT]]}';
+			}
+		}
+		
+		# Substitute the placeholders for the ultimateForm placeholders
+		$templateUltimateFormFormat = $this->doTemplateSubstitution ($template, $replacements);
+		
+		# Return the HTML
+		return $templateUltimateFormFormat;
 	}
 }
 

@@ -15,6 +15,9 @@ class telluswhere
 			'contactsPageHtml'		=> false,
 			'aboutPageHtml'			=> NULL,
 			'termsPageHtml'			=> NULL,
+			'defaultLatitude'		=> NULL,
+			'defaultLongitude'		=> NULL,
+			'defaultZoom'			=> NULL,
 		);
 		
 		# Return the defaults
@@ -426,12 +429,133 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		// #!# TODO
+		# Add the map
+		$this->template['map'] = $this->currentLocationsMap ();
+		
+		# Add the form
+		$this->template['form'] = $this->currentLocationsForm ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Map of current locations
+	private function currentLocationsMap ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Define starting point of map
+		$mapCentre = array (
+			'latitude'	=> $this->settings['defaultLatitude'],
+			'longitude'	=> $this->settings['defaultLongitude'],
+			'zoom'		=> $this->settings['defaultZoom'],
+		);
+		
+		# Create the map application HTML
+#!# Map width and height needs to be set in CSS using #map rather than #cycle-map
+		$html .= '
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
+		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
+		<style type="text/css">
+			#map {height: 400px; width: 590px;}
+		</style>
+		
+		<div id="map"></div>
+		
+		';
+		
+		# Create the map application Javascript
+		$html .= "
+		<script type=\"text/javascript\">
+			
+			var \$j = jQuery.noConflict();
+			\$j( document ).ready(function() {
+				
+				// Set map centre location
+				var map = L.map('map').setView([{$mapCentre['latitude']}, {$mapCentre['longitude']}], {$mapCentre['zoom']});
+				
+				// Set tile layer
+				var tileUrl = 'http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png';
+				var tileAttribution = 'Map data &copy; <a href=\"http://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>), Imagery &copy; <a href=\"http://www.opencyclemap.com/\">OpenCycleMap</a> by <a href=\"http://www.thunderforest.com/\">Thunderforest</a>';
+				L.tileLayer(tileUrl, {
+					attribution: tileAttribution,
+					maxZoom: 18
+				}).addTo(map);
+				
+				// Create marker and popup when clicking on the map
+				var marker;
+				var minZoomLevelToSet = 18;		// Required accuracy for marker setting
+				function onMapClick(e) {
+					
+					// Remove any marker present
+					if(marker){
+						map.removeLayer(marker);
+					}
+					
+					// Zoom if too far out and end
+					if(map.getZoom() < minZoomLevelToSet){
+						setFormValues (null, null, null);	// Clear any saved values
+						var currentZoomLevel = map.getZoom();
+						var zoomBy = (((minZoomLevelToSet - currentZoomLevel) <= 2) ? 1 : 2);	// When very zoomed in, zoom in less far, to avoid disorientation
+						var newZoomLevel = currentZoomLevel + zoomBy;
+						// alert('Current zoom: ' + currentZoomLevel + '; zooming by: ' + zoomBy + ' to: ' + newZoomLevel);
+						map.setZoomAround(e.latlng, newZoomLevel);
+						return;
+					}
+					
+					// Set marker position
+					marker = new L.Marker(e.latlng, {draggable:true});
+					map.addLayer(marker);
+					marker.bindPopup('Cycle parking is needed here').openPopup();
+					
+					// Register dragend processing function
+					marker.on('dragend', markerDrag);
+					
+					// Transmit the value to the form
+					setFormValues (e.latlng.lat, e.latlng.lng, map.getZoom());
+				}
+				map.on('click', onMapClick);
+				
+				// After dragging, transmit the value to the form
+				function markerDrag(e){
+					setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom());
+				}
+				
+				// Function to transmit the values to the form
+				function setFormValues (lat, lng, zoom){
+					\$j('input[name=lat]').val(lat);
+					\$j('input[name=lon]').val(lng);
+					\$j('input[name=zoom]').val(zoom);
+				}
+			});
+			
+		</script>
+		";
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Current locations form
+	private function currentLocationsForm ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		$html .= "\n" . '<form name="metadata">';
+		$html .= "\n\t" . '<p>Latitude = <input id="lat" type="text" name="lat" value="" /></p>';
+		$html .= "\n\t" . '<p>Longitude = <input type="text" name="lon" value="" /></p>';
+		$html .= "\n\t" . '<p>Zoom = <input type="text" name="zoom" value="" /></p>';
+		$html .= "\n" . '</form>';
 		
 		
 		# Return the HTML
 		return $html;
 	}
+	
 	
 	
 	# About page

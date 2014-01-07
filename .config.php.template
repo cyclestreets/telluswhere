@@ -8,6 +8,9 @@ $config = array (
 	'contactsPageHtml'	=> false,
 	'aboutPageHtml'		=> NULL,
 	'termsPageHtml'		=> NULL,
+	'defaultLatitude'	=> NULL,
+	'defaultLongitude'	=> NULL,
+	'defaultZoom'		=> NULL,
 	
 );
 

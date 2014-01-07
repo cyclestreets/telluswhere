@@ -155,7 +155,7 @@ class telluswhere
 		}
 		
 		# Get the HTML
-		$html = $this->getHtmlPage ($page);
+		$html = $this->convertDesignerHtmlToTemplate ($page);
 		
 		# Return the HTML
 		return $html;
@@ -169,15 +169,15 @@ class telluswhere
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
 		
 		# Obtain the template
-		$html = $this->getHtmlPage ($templateLocation);
+		$html = $this->convertDesignerHtmlToTemplate ($templateLocation);
 		
 		# Return the template HTML
 		return $html;
 	}
 	
 	
-	# Function to load a templatised HTML page; the htmlClean.. functions are present to enable a template to be dropped in from a designer without making changes first
-	private function getHtmlPage ($page)
+	# Function to convert the designer's raw HTML to a templatised HTML page; this is a preprocessor which enables a template to be dropped in from a designer without making changes first
+	private function convertDesignerHtmlToTemplate ($page)
 	{
 		# Determine the location
 		$path = $this->styleDirectory . $page;

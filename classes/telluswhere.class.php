@@ -568,8 +568,8 @@ class telluswhere
 				}
 				
 				// Set tile layer
-				var tileUrl = 'http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png';
-				var tileAttribution = 'Map data &copy; <a href=\"http://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>), Imagery &copy; <a href=\"http://www.opencyclemap.com/\">OpenCycleMap</a> by <a href=\"http://www.thunderforest.com/\">Thunderforest</a>';
+				var tileUrl = 'http://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
+				var tileAttribution = 'Map data &copy; <a href=\"http://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>)';
 				L.tileLayer(tileUrl, {
 					attribution: tileAttribution,
 					maxZoom: 18

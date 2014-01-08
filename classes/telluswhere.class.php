@@ -619,9 +619,10 @@ class telluswhere
 					setFormValues (latlng.lat, latlng.lng, map.getZoom());
 				}
 				
-				// After dragging, transmit the value to the form
+				// After dragging, transmit the value to the form, and reopen the popup
 				function markerDrag(e){
 					setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom());
+					marker.openPopup();
 				}
 				
 				// Function to transmit the values to the form

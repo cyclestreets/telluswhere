@@ -10,12 +10,80 @@
 <!-- /{$map} -->
 
 
+
 <!-- {$form} -->
 
-<form name="metadata">
-	<p>Latitude = <input id="lat" type="text" name="lat" value="" /></p>
-	<p>Longitude = <input type="text" name="lon" value="" /></p>
-	<p>Zoom = <input type="text" name="zoom" value="" /></p>
+<form name="form" action="/current/" method="post">
+	           
+	
+	<fieldset>
+		<label><span>* </span>Type of parking</label>
+		<!-- {$type} -->
+		<select required="required">
+			<option value="test0"> </option>
+			<option value="test1">Sheffield stand</option>
+			<option value="test2">Secure bike shelter</option>
+			<option value="test3">Double decker stand</option>
+			<option value="test4">Integrated Street furniture</option>
+			<option value="test4">Wall hoop</option>
+			<option value="test4">Informal (e.g. railings)</option>
+		</select>
+		<!-- /{$type} -->
+	</fieldset>
+	
+	<fieldset>
+		<label><span>* </span>How many cycles can be parked?</label>
+		<!-- {$capacity} --><input type="number" name="capacity" min="1" max="999" /><!-- /{$capacity} -->
+	</fieldset>
+	
+	<fieldset>
+		<label><span>* </span>Land type </label>
+		<!-- {$landtype} -->
+		<select name="landtype" required="required">
+			<option value="test1">Test 1</option>
+			<option value="test2">Test 2</option>
+			<option value="test3">Test 3</option>
+			<option value="test4">Test 4</option>
+		</select>
+		<!-- /{$landtype} -->
+	</fieldset>
+	           
+	<fieldset>
+		<label><span>* </span>Additional info / comments </label>
+		<!-- {$message} --><textarea cols="30" rows="3" name="message" required="required"></textarea><!-- /{$message} -->
+	</fieldset>
+	
+	<fieldset>
+		<label><span>* </span>Your name </label>
+		<!-- {$name} --><input type="text" name="name" required="required" /><!-- /{$name} -->
+	</fieldset>
+	           
+	<fieldset>
+		<label><span>* </span>Your e-mail </label>
+		<!-- {$email} --><input type="text" name="email" required="required" /><!-- /{$email} -->
+	</fieldset>
+	
+	<fieldset>
+		<label><span>* </span>Would you like to be kept up-to-date via e-mail? </label>
+		<!-- {$mailinglist} -->
+		<select name="mailinglist" required="required">
+			<option value="test1">Yes</option>
+			<option value="test2">No</option>
+		</select>
+		<!-- /{$mailinglist} -->
+	</fieldset>
+	           
+	<fieldset>
+		<!-- {$terms} -->
+		<input type="checkbox" name="terms" id="terms" value="true" checked="checked" /><label for="terms">I accept the terms &amp; conditions</label>
+		<!-- /{$terms} -->
+	</fieldset>
+	
+	
+	<fieldset>
+	<!-- {$submit} --><input type="submit" value="Submit" /><!-- /{$submit} -->
+	</fieldset>
 </form>
-
+	
 <!-- /{$form} -->
+

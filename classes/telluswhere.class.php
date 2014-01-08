@@ -63,6 +63,24 @@ class telluswhere
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	
+	# Cycle parking type presets
+	private $parkingTypes = array (
+		'stand'				=> 'Sheffield stand',
+		'shelter'			=> 'Secure bike shelter',
+		'stacker'			=> 'Double decker stand',
+		'streetfurniture'	=> 'Integrated Street furniture',
+		'insecure'			=> 'Wall hoop',
+		'informal'			=> 'Informal (e.g. railings)',
+	);
+	
+	# Land type presets
+	private $landTypes = array (
+		'highway'			=> 'Public highway',
+		'school'			=> 'School',
+		'private'			=> 'Private land',
+		'unknown'			=> 'Not sure',
+	);
+	
 	
 	
 	# Constructor
@@ -318,6 +336,36 @@ class telluswhere
 	}
 	
 	
+	# Function to take an extracted part of the template and convert to ultimateForm form template format
+	private function placeholderHtmlToFormTemplate ($placeholderName)
+	{
+		# Obtain the form template which was extracted during the template pre-processing
+		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
+		
+		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
+		$template = $this->commentsToPlaceholders ($htmlBlock, $replacedPlaceholders);
+		
+		# Convert each replaced placeholder to ultimateForm format
+		$replacements = array ();
+		foreach ($replacedPlaceholders as $placeholder => $originalHtml) {
+			$replacements[$placeholder] = '{' . $placeholder . '}';
+			if ($placeholder == 'submit') {
+				$replacements[$placeholder] = '{[[SUBMIT]]}';
+			}
+		}
+		
+		# Substitute the placeholders for the ultimateForm placeholders
+		$templateUltimateFormFormat = $this->doTemplateSubstitution ($template, $replacements);
+		
+		# Strip <form> and </form> tags if present
+		$templateUltimateFormFormat = preg_replace ('/<form ([^>]+)>/s', '', $templateUltimateFormFormat);
+		$templateUltimateFormFormat = str_replace ('</form>', '', $templateUltimateFormFormat);
+		
+		# Return the HTML
+		return $templateUltimateFormFormat;
+	}
+	
+	
 	# Function to serve a file as per a standard webserver
 	private function serveFile ($location)
 	{
@@ -429,11 +477,19 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# Add the form
+		$result = $this->currentLocationsForm ($formHtml);
+		$this->template['form'] = $formHtml;
+		
 		# Add the map
 		$this->template['map'] = $this->currentLocationsMap ();
 		
-		# Add the form
-		$this->template['form'] = $this->currentLocationsForm ();
+		# Send the result to the CycleStreets photo API
+		if ($result) {
+			
+			// TODO
+			application::dumpData ($result);
+		}
 		
 		# Return the HTML
 		return $html;
@@ -446,12 +502,28 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Define starting point of map
-		$mapCentre = array (
+		# By default, no marker is shown
+		$setMarkerInitially = false;
+		
+		# Set default map location
+		$mapLocation = array (
 			'latitude'	=> $this->settings['defaultLatitude'],
 			'longitude'	=> $this->settings['defaultLongitude'],
 			'zoom'		=> $this->settings['defaultZoom'],
 		);
+		
+		# If the form is posted, and a map location was set, extract the map location
+		#!# This hack is only necessary until ultimateForm has built-in support for a native map widget, which means this whole method can then be replaced
+		if (isSet ($_POST['form'])) {
+			if (isSet ($_POST['form']['latitude']) && isSet ($_POST['form']['longitude']) && isSet ($_POST['form']['zoom']) && preg_match ('/^[0-9-.]+$/', $_POST['form']['latitude']) && preg_match ('/^[0-9-.]+$/', $_POST['form']['longitude']) && preg_match ('/^[0-9]{1,2}$/', $_POST['form']['zoom'])) {
+				$mapLocation = array (
+					'latitude'	=> $_POST['form']['latitude'],
+					'longitude'	=> $_POST['form']['longitude'],
+					'zoom'		=> $_POST['form']['zoom'],
+				);
+				$setMarkerInitially = true;
+			}
+		}
 		
 		# Create the map application HTML
 #!# Map width and height needs to be set in CSS using #map rather than #cycle-map
@@ -471,6 +543,7 @@ class telluswhere
 		';
 		
 		# Create the map application Javascript
+		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$html .= "
 		<script type=\"text/javascript\">
 			
@@ -478,7 +551,21 @@ class telluswhere
 			\$j( document ).ready(function() {
 				
 				// Set map centre location
-				var map = L.map('map').setView([{$mapCentre['latitude']}, {$mapCentre['longitude']}], {$mapCentre['zoom']});
+				var map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
+				
+				// Initialise a marker
+				var marker;
+				
+				// Set required accuracy for marker setting
+				var minZoomLevelToSet = 18;
+				
+				// Determine whether to set the marker initially
+				setMarkerInitially = {$setMarkerInitiallyJs};
+				if(setMarkerInitially){
+					var latlng = L.latLng({$mapLocation['latitude']}, {$mapLocation['longitude']});
+					setMarker(latlng);
+					map.setView(latlng,minZoomLevelToSet);
+				}
 				
 				// Set tile layer
 				var tileUrl = 'http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png';
@@ -489,8 +576,6 @@ class telluswhere
 				}).addTo(map);
 				
 				// Create marker and popup when clicking on the map
-				var marker;
-				var minZoomLevelToSet = 18;		// Required accuracy for marker setting
 				function onMapClick(e) {
 					
 					// Show the help text
@@ -512,8 +597,18 @@ class telluswhere
 						return;
 					}
 					
+					// Set the marker
+					setMarker(e.latlng);
+					
+					// Remove the help text
+					\$j('#helptext').removeClass('display').addClass('hide');
+				}
+				map.on('click', onMapClick);
+				
+				// Function to set the marker
+				function setMarker(latlng) {
 					// Set marker position
-					marker = new L.Marker(e.latlng, {draggable:true});
+					marker = new L.Marker(latlng, {draggable:true});
 					map.addLayer(marker);
 					marker.bindPopup('Cycle parking is needed here').openPopup();
 					
@@ -521,12 +616,8 @@ class telluswhere
 					marker.on('dragend', markerDrag);
 					
 					// Transmit the value to the form
-					setFormValues (e.latlng.lat, e.latlng.lng, map.getZoom());
-					
-					// Remove the help text
-					\$j('#helptext').removeClass('display').addClass('hide');
+					setFormValues (latlng.lat, latlng.lng, map.getZoom());
 				}
-				map.on('click', onMapClick);
 				
 				// After dragging, transmit the value to the form
 				function markerDrag(e){
@@ -535,11 +626,9 @@ class telluswhere
 				
 				// Function to transmit the values to the form
 				function setFormValues (lat, lng, zoom){
-					
-					// Set the form values
-					\$j('input[name=lat]').val(lat);
-					\$j('input[name=lon]').val(lng);
-					\$j('input[name=zoom]').val(zoom);
+					\$j('#form_latitude').val(lat);
+					\$j('#form_longitude').val(lng);
+					\$j('#form_zoom').val(zoom);
 				}
 				
 				// Show the help text also if the user zooms
@@ -556,23 +645,106 @@ class telluswhere
 	}
 	
 	
-	# Current locations form
-	private function currentLocationsForm ()
+	# Contact form
+	private function currentLocationsForm (&$html = '')
 	{
-		# Start the HTML
-		$html = '';
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'		=> false,
+			'formCompleteText'			=> 'Many thanks for your submission.',
+			'display'					=> 'template',
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}" . $this->placeholderHtmlToFormTemplate ('form'),
+			'requiredFieldIndicator'	=> false,
+			'submitButtonText'			=> 'Submit',
+			'submitButtonAccesskey'		=> false,
+			'nullText'					=> false,
+		));
 		
-		$html .= "\n" . '<form name="metadata">';
-		$html .= "\n\t" . '<p>Latitude = <input id="lat" type="text" name="lat" value="" /></p>';
-		$html .= "\n\t" . '<p>Longitude = <input type="text" name="lon" value="" /></p>';
-		$html .= "\n\t" . '<p>Zoom = <input type="text" name="zoom" value="" /></p>';
-		$html .= "\n" . '</form>';
+		# Widgets
+		$form->select (array (
+			'name'			=> 'type',
+			'title'			=> 'Type of parking',
+			'required'		=> true,
+			'values'		=> $this->parkingTypes,
+		));
+		$form->number (array (
+			'name'			=> 'capacity',
+			'title'			=> 'How many cycles can be parked?',
+			'required'		=> true,
+		));
+		$form->select (array (
+			'name'			=> 'landtype',
+			'title'			=> 'Land type',
+			'required'		=> true,
+			'values'		=> $this->landTypes,
+		));
+		$form->textarea (array (
+			'name'			=> 'message',
+			'title'			=> 'Additional info / comments',
+			'required'		=> true,
+			'rows'			=> 2,
+			'cols'			=> 20,
+		));
+		$form->input (array (
+			'name'			=> 'name',
+			'title'			=> 'Your name',
+			'required'		=> true,
+		));
+		$form->email (array (
+			'name'			=> 'email',
+			'title'			=> 'Your e-mail address',
+			'required'		=> true,
+			#!# Needs to prefill e-mail address when logged in
+		));
+		$form->select (array (
+			'name'			=> 'mailinglist',
+			'title'			=> 'Would you like to be kept up-to-date via e-mail?',
+			'required'		=> true,
+			'values'		=> array ('Yes', 'No'),
+		));
+		$form->checkboxes (array (
+			'name'			=> 'terms',
+			'title'			=> 'Do you accept our terms & conditions?',
+			'required'		=> true,
+			'values'		=> array ('Yes'),
+			'default'		=> 'Yes',
+			'discard'		=> true,
+		));
 		
+		# Location (hidden)
+		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS
+		$html .= "\n" . '<style type="text/css">
+			#form_latitude, #form_longitude, #form_zoom {display: none;}
+		</style>
+		';
+		$form->input (array (
+			'name'			=> 'latitude',
+			'title'			=> 'Latitude (set by clicking on map)',
+			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+		));
+		$form->input (array (
+			'name'			=> 'longitude',
+			'title'			=> 'Longitude (set by clicking on map)',
+			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+		));
+		$form->input (array (
+			'name'			=> 'zoom',
+			'title'			=> 'Zoom level (set by clicking on map)',
+			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+		));
+		if ($unfinalisedData = $form->getUnfinalisedData ()) {
+			if (!strlen ($unfinalisedData['latitude']) || !strlen ($unfinalisedData['longitude']) || !strlen ($unfinalisedData['zoom']) || !preg_match ('/^[0-9-.]+$/', $unfinalisedData['latitude']) || !preg_match ('/^[0-9-.]+$/', $unfinalisedData['longitude']) || !preg_match ('/^[0-9]{1,2}$/', $unfinalisedData['zoom'])) {
+				$form->registerProblem ('location', 'The map location needs to be set.');
+			}
+		}
 		
-		# Return the HTML
-		return $html;
+		# Process the form
+		if (!$result = $form->process ($html)) {return false;}
+		
+		# Return the result
+		return $result;
 	}
-	
 	
 	
 	# About page
@@ -670,32 +842,6 @@ class telluswhere
 		
 		# Return the HTML
 		return $html;
-	}
-	
-	
-	# Function to take an extracted part of the template and convert to ultimateForm form template format
-	private function placeholderHtmlToFormTemplate ($placeholderName)
-	{
-		# Obtain the form template which was extracted during the template pre-processing
-		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
-		
-		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
-		$template = $this->commentsToPlaceholders ($htmlBlock, $replacedPlaceholders);
-		
-		# Convert each replaced placeholder to ultimateForm format
-		$replacements = array ();
-		foreach ($replacedPlaceholders as $placeholder => $originalHtml) {
-			$replacements[$placeholder] = '{' . $placeholder . '}';
-			if ($placeholder == 'submit') {
-				$replacements[$placeholder] = '{[[SUBMIT]]}';
-			}
-		}
-		
-		# Substitute the placeholders for the ultimateForm placeholders
-		$templateUltimateFormFormat = $this->doTemplateSubstitution ($template, $replacements);
-		
-		# Return the HTML
-		return $templateUltimateFormFormat;
 	}
 }
 

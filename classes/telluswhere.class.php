@@ -62,6 +62,7 @@ class telluswhere
 	# Class properties
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
+	private $tmpDirectory = '/tmp/';
 	
 	# Cycle parking type presets
 	private $parkingTypes = array (
@@ -97,6 +98,13 @@ class telluswhere
 		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
 		if (!$this->settings = application::assignArguments ($errors, $settings, $this->defaults (), __CLASS__, NULL, $handleErrors = true)) {
+			return false;
+		}
+		
+		# Determine the tmp directory in use for file uploads and ensure it is writeable
+		if (!$this->tmpDirectory = $this->getTmpDirectory ()) {
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error.</p>";
+			echo $this->html;
 			return false;
 		}
 		
@@ -153,6 +161,21 @@ class telluswhere
 		
 		# Return the location, not slash-terminated
 		return $location;
+	}
+	
+	
+	# Function to determine the tmp directory in use for file uploads and ensure it is writeable
+	private function getTmpDirectory ()
+	{
+		# Check the existence of the directory
+		$directory = $_SERVER['DOCUMENT_ROOT'] . $this->tmpDirectory;
+		if (!is_dir ($directory)) {return false;}
+		
+		# Ensure it is writeable
+		if (!is_writeable ($directory)) {return false;}
+		
+		# Return the location, not slash-terminated
+		return $directory;
 	}
 	
 	
@@ -672,6 +695,18 @@ class telluswhere
 		));
 		
 		# Widgets
+		$allowedExtensions = array ('jpg');
+		$form->upload (array (
+			'name'				=> 'file',
+			'title'				=> 'Select an image from your device/computer',
+			'description'		=> '<span class="small comment">(' . strtoupper (implode ('/', $allowedExtensions)) . ' only, maximum size: ' . ini_get ('upload_max_filesize') . ')</span>',
+			'required'			=> true,
+			'size'				=> 40,
+			'directory'				=> $this->tmpDirectory,
+			'allowedExtensions'		=> $allowedExtensions,
+			'lowercaseExtension'	=> true,
+			'flatten'			=> true,
+		));
 		if ($current) {
 			$form->select (array (
 				'name'			=> 'type',

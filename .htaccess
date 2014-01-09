@@ -22,7 +22,8 @@ RewriteRule ^(suggest|current|about|terms|contacts)$ /$1/ [L,R=301]
 
 # If no match above, serve files directly, via the web application, for the configured style
 RewriteCond %{REQUEST_FILENAME} !/index\.html$
-RewriteCond %{REQUEST_FILENAME} !/robots.txt$
+RewriteCond %{REQUEST_FILENAME} !/robots\.txt$
+RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$
 RewriteRule ^(.*)$ index.html?file=/$1 [L]
 
 

@@ -574,10 +574,13 @@ class telluswhere
 		# Create the map application Javascript
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$html .= "
+		<script type=\"text/javascript\" src=\"/js/jquery.exif.js\"></script>
 		<script type=\"text/javascript\">
 			
 			var \$j = jQuery.noConflict();
 			\$j( document ).ready(function() {
+				
+				/* Core map functions */
 				
 				// Set map centre location
 				var map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
@@ -591,7 +594,7 @@ class telluswhere
 				// Determine whether to set the marker initially
 				setMarkerInitially = {$setMarkerInitiallyJs};
 				if(setMarkerInitially){
-					var latlng = L.latLng({$mapLocation['latitude']}, {$mapLocation['longitude']});
+					var latlng = L.latLng(latitude, longitude);
 					setMarker(latlng);
 					map.setView(latlng,minZoomLevelToSet);
 				}
@@ -634,6 +637,12 @@ class telluswhere
 				}
 				map.on('click', onMapClick);
 				
+				// Wrapper function to set the marker by supplying raw latitude and longitude markers
+				function setMarkerLatitudeLongitude(latitude, longitude) {
+					var latlng = L.latLng(latitude, longitude);
+					setMarker(latlng);
+				}
+				
 				// Function to set the marker
 				function setMarker(latlng) {
 					// Set marker position
@@ -665,9 +674,45 @@ class telluswhere
 				map.on('zoomstart', function() {
 					\$j('#helptext').addClass('display');
 				});
+				
+				/* EXIF image marker setting functions */
+				
+				// Register function for adding to map
+				var exifCallback = function(exifObject) {
+					geolocationData = extractGeolocationData(exifObject);
+					setMarkerLatitudeLongitude(geolocationData.latitude, geolocationData.longitude);
+					//console.log(exifObject);
+				}
+				try {
+					\$j('#form_file_0').change(function() {
+						\$j(this).fileExif(exifCallback);
+					});
+				}
+				catch (e) {
+					alert(e);
+				}
+				
+				// Function to convert the complex EXIF geolocation data structure into standard lat,lon,bearing
+				function extractGeolocationData (exifObject) {
+					console.log(exifObject);
+					
+					//console.log(exifObject.GPSLatitude);
+					//console.log(exifObject.GPSLongitude);
+					
+					// Assemble the object to be returned
+// #!# Currently just hard-coded values for proof-of-concept
+					var geolocationData = new Array;
+					geolocationData['latitude'] = 51.0;
+					geolocationData['longitude'] = -0.1;
+					geolocationData['bearing'] = 90;
+					
+					// Return the object
+					return geolocationData;
+				}
+				
+				
 			});
-			
-		</script>
+			</script>
 		";
 		
 		# Return the HTML

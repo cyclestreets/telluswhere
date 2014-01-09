@@ -6,3 +6,9 @@
 style/*
 !style/readme.txt
 !style/default/
+
+# Ignore any contents of the tmp folder
+tmp/*
+!tmp/.gitignore
+
+

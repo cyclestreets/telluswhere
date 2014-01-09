@@ -9,7 +9,7 @@ php_value error_reporting -1
 AcceptPathInfo Off
 
 # Disable output buffering
-php_value output_buffering Off 
+php_flag output_buffering Off
 
 # Permit file uploads; NB has to be set at webserver or php.ini level (changeable only at PHP_INI_SYSTEM level)
 #php_flag file_uploads On

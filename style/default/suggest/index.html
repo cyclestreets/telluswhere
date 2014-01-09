@@ -1,1 +1,91 @@
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
 <h1>Suggest a location</h1>
+
+
+<!-- {$map} -->
+
+<iframe height="350" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://www.openstreetmap.org/export/embed.html?bbox=-0.0932765007019043%2C51.49897879637835%2C-0.05744218826293945%2C51.51233485317819&amp;layer=cyclemap&amp;marker=51.50565731413629%2C-0.07535934448242188" style="border: 1px solid '#ccc"></iframe>
+
+<!-- /{$map} -->
+
+
+
+<!-- {$form} -->
+
+<!-- Implementation note: if you need to style the form widgets, please do not set any class=.. attributes on the widget tags themselves - class=.. between the placeholders will get deleted. Instead, please set the class on the fieldset if styling is needed. -->
+
+<form name="form" action="/current/" method="post">
+	           
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<fieldset>
+		<label><span>* </span>Land type </label>
+		<!-- {$landtype} -->
+		<select name="landtype" required="required">
+			<option value="test1">Test 1</option>
+			<option value="test2">Test 2</option>
+			<option value="test3">Test 3</option>
+			<option value="test4">Test 4</option>
+		</select>
+		<!-- /{$landtype} -->
+	</fieldset>
+	           
+	<fieldset>
+		<label><span>* </span>Additional info / comments </label>
+		<!-- {$message} --><textarea cols="30" rows="3" name="message" required="required"></textarea><!-- /{$message} -->
+	</fieldset>
+	
+	<fieldset>
+		<label><span>* </span>Your name </label>
+		<!-- {$name} --><input type="text" name="name" required="required" /><!-- /{$name} -->
+	</fieldset>
+	           
+	<fieldset>
+		<label><span>* </span>Your e-mail </label>
+		<!-- {$email} --><input type="text" name="email" required="required" /><!-- /{$email} -->
+	</fieldset>
+	
+	<fieldset>
+		<label><span>* </span>Would you like to be kept up-to-date via e-mail? </label>
+		<!-- {$mailinglist} -->
+		<select name="mailinglist" required="required">
+			<option value="test1">Yes</option>
+			<option value="test2">No</option>
+		</select>
+		<!-- /{$mailinglist} -->
+	</fieldset>
+	           
+	<fieldset>
+		<!-- {$terms} -->
+		<input type="checkbox" name="terms" id="terms" value="true" checked="checked" /><label for="terms">I accept the terms &amp; conditions</label>
+		<!-- /{$terms} -->
+	</fieldset>
+	
+	
+	<fieldset>
+		<!-- {$submit} --><input type="submit" value="Submit" /><!-- /{$submit} -->
+	</fieldset>
+</form>
+	
+<!-- /{$form} -->
+

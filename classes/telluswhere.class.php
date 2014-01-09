@@ -463,8 +463,18 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		// #!# TODO
+		# Add the form
+		$result = $this->locationSubmissionForm ();
 		
+		# Add the map
+		$this->template['map'] = $this->locationsMap ();
+		
+		# Send the result to the CycleStreets photo API
+		if ($result) {
+			
+			// TODO
+			application::dumpData ($result);
+		}
 		
 		# Return the HTML
 		return $html;
@@ -478,11 +488,10 @@ class telluswhere
 		$html = '';
 		
 		# Add the form
-		$result = $this->currentLocationsForm ($formHtml);
-		$this->template['form'] = $formHtml;
+		$result = $this->locationSubmissionForm ($current = true);
 		
 		# Add the map
-		$this->template['map'] = $this->currentLocationsMap ();
+		$this->template['map'] = $this->locationsMap ();
 		
 		# Send the result to the CycleStreets photo API
 		if ($result) {
@@ -497,7 +506,7 @@ class telluswhere
 	
 	
 	# Map of current locations
-	private function currentLocationsMap ()
+	private function locationsMap ()
 	{
 		# Start the HTML
 		$html = '';
@@ -647,8 +656,11 @@ class telluswhere
 	
 	
 	# Contact form
-	private function currentLocationsForm (&$html = '')
+	private function locationSubmissionForm ($current = false)
 	{
+		# Start the HTML
+		$html = '';
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -663,17 +675,19 @@ class telluswhere
 		));
 		
 		# Widgets
-		$form->select (array (
-			'name'			=> 'type',
-			'title'			=> 'Type of parking',
-			'required'		=> true,
-			'values'		=> $this->parkingTypes,
-		));
-		$form->number (array (
-			'name'			=> 'capacity',
-			'title'			=> 'How many cycles can be parked?',
-			'required'		=> true,
-		));
+		if ($current) {
+			$form->select (array (
+				'name'			=> 'type',
+				'title'			=> 'Type of parking',
+				'required'		=> true,
+				'values'		=> $this->parkingTypes,
+			));
+			$form->number (array (
+				'name'			=> 'capacity',
+				'title'			=> 'How many cycles can be parked?',
+				'required'		=> true,
+			));
+		}
 		$form->select (array (
 			'name'			=> 'landtype',
 			'title'			=> 'Land type',
@@ -741,7 +755,10 @@ class telluswhere
 		}
 		
 		# Process the form
-		if (!$result = $form->process ($html)) {return false;}
+		$result = $form->process ($html);
+		
+		# Register the HTML into the template
+		$this->template['form'] = $html;
 		
 		# Return the result
 		return $result;

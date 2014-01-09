@@ -352,6 +352,9 @@ class telluswhere
 			if ($placeholder == 'submit') {
 				$replacements[$placeholder] = '{[[SUBMIT]]}';
 			}
+			if ($placeholder == 'map') {
+				$replacements[$placeholder] = $this->locationsMap ();
+			}
 		}
 		
 		# Substitute the placeholders for the ultimateForm placeholders
@@ -466,9 +469,6 @@ class telluswhere
 		# Add the form
 		$result = $this->locationSubmissionForm ();
 		
-		# Add the map
-		$this->template['map'] = $this->locationsMap ();
-		
 		# Send the result to the CycleStreets photo API
 		if ($result) {
 			
@@ -489,9 +489,6 @@ class telluswhere
 		
 		# Add the form
 		$result = $this->locationSubmissionForm ($current = true);
-		
-		# Add the map
-		$this->template['map'] = $this->locationsMap ();
 		
 		# Send the result to the CycleStreets photo API
 		if ($result) {

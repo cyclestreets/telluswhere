@@ -602,9 +602,10 @@ class telluswhere
 				// Set tile layer
 				var tileUrl = 'http://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
 				var tileAttribution = 'Map data &copy; <a href=\"http://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>)';
+				var maxZoom = 18;
 				L.tileLayer(tileUrl, {
 					attribution: tileAttribution,
-					maxZoom: 18
+					maxZoom: maxZoom
 				}).addTo(map);
 				
 				// Create marker and popup when clicking on the map
@@ -641,6 +642,7 @@ class telluswhere
 				function setMarkerLatitudeLongitude(latitude, longitude) {
 					var latlng = L.latLng(latitude, longitude);
 					setMarker(latlng);
+					map.setView(latlng, maxZoom);
 				}
 				
 				// Function to set the marker
@@ -679,8 +681,13 @@ class telluswhere
 				
 				// Register function for adding to map
 				var exifCallback = function(exifObject) {
+					if(marker){
+						map.removeLayer(marker);
+					}
 					geolocationData = extractGeolocationData(exifObject);
-					setMarkerLatitudeLongitude(geolocationData.latitude, geolocationData.longitude);
+					if(geolocationData) {
+						setMarkerLatitudeLongitude(geolocationData.latitude, geolocationData.longitude);
+					}
 					//console.log(exifObject);
 				}
 				try {
@@ -692,25 +699,28 @@ class telluswhere
 					alert(e);
 				}
 				
-				// Function to convert the complex EXIF geolocation data structure into standard lat,lon,bearing
+				// Function to convert the complex EXIF geolocation data structure into standard lat,lon,bearing; see: https://confluence.videoplaza.org/display/BLOG/2012/07/22/Geolocation+data+from+Images
 				function extractGeolocationData (exifObject) {
-					console.log(exifObject);
 					
-					//console.log(exifObject.GPSLatitude);
-					//console.log(exifObject.GPSLongitude);
+					// End if no data
+					var aLat = exifObject.GPSLatitude;
+					var aLon = exifObject.GPSLongitude;
+					if (!aLat || !aLon) {return;}
+					
+					// Convert from minutes/seconds/degrees to decimal
+					var strLatRef = exifObject.GPSLatitudeRef || 'N';
+					var strLongRef = exifObject.GPSLongitudeRef || 'W';
+					var latitude = (aLat[0] + aLat[1]/60 + aLat[2]/3600) * (strLatRef == 'N' ? 1 : -1);
+					var longitude = (aLon[0] + aLon[1]/60 + aLon[2]/3600) * (strLongRef == 'W' ? -1 : 1);
 					
 					// Assemble the object to be returned
-// #!# Currently just hard-coded values for proof-of-concept
 					var geolocationData = new Array;
-					geolocationData['latitude'] = 51.0;
-					geolocationData['longitude'] = -0.1;
-					geolocationData['bearing'] = 90;
+					geolocationData['latitude'] = latitude;
+					geolocationData['longitude'] = longitude;
 					
 					// Return the object
 					return geolocationData;
 				}
-				
-				
 			});
 			</script>
 		";

@@ -721,6 +721,45 @@ class telluswhere
 					// Return the object
 					return geolocationData;
 				}
+				
+				/* Existing locations browsing functions; see: http://chris-osm.blogspot.co.uk/2013/11/using-leaflet-with-database.html */
+				
+				function setIcon(feature,latlng) {
+					var marker = L.marker(latlng);
+					marker.bindPopup(feature.properties.popupContent);
+					return marker;
+				}
+				
+				currentDataLayer = L.geoJson(null, {
+					pointToLayer: setIcon
+					}
+				);
+				
+				currentDataLayer.addTo(map);
+				
+				function showCurrentData(ajaxResponse) {
+					currentDataLayer.clearLayers();
+					currentDataLayer.addData(ajaxResponse);
+				}
+				
+				function getData() {
+				    var data='bbox=' + map.getBounds().toBBoxString();
+					\$j.ajax({
+				        url: '/path/to/data-geojson.js',
+				        dataType: 'json',
+				        data: data,
+				        success: showCurrentData
+				    });
+				}
+				
+				function whenMapMoves(e) {
+					getData();
+				}
+				
+				map.on('moveend', whenMapMoves);
+				
+				getData();
+				
 			});
 			</script>
 		";

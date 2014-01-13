@@ -591,6 +591,31 @@ class telluswhere
 				// Set required accuracy for marker setting
 				var minZoomLevelToSet = 18;
 				
+				// Define the icons; see: http://leafletjs.com/examples/custom-icons.html
+				var largeIcon = L.Icon.extend({
+					options: {
+						shadowUrl: '/images/markers/shadow-large.png',
+						iconSize:     [32, 38],
+						shadowSize:   [50, 37],
+						iconAnchor:   [16, 38],
+						shadowAnchor: [0, 37],
+						popupAnchor:  [0, -34]
+					}
+				});
+				var smallIcon = L.Icon.extend({
+					options: {
+						shadowUrl: '/images/markers/shadow-small.png',
+						iconSize:     [25, 29],
+						shadowSize:   [42, 33],
+						iconAnchor:   [13, 29],
+						shadowAnchor: [0, 33],
+						popupAnchor:  [0, -25]
+					}
+				});
+				var suggestIcon = new largeIcon({iconUrl: '/images/markers/suggest.png'});
+				var currentIcon = new largeIcon({iconUrl: '/images/markers/current.png'});
+				var alreadyIcon = new smallIcon({iconUrl: '/images/markers/already.png'});
+				
 				// Determine whether to set the marker initially
 				setMarkerInitially = {$setMarkerInitiallyJs};
 				if(setMarkerInitially){
@@ -648,7 +673,7 @@ class telluswhere
 				// Function to set the marker
 				function setMarker(latlng) {
 					// Set marker position
-					marker = new L.Marker(latlng, {draggable:true});
+					marker = new L.Marker(latlng, {icon: suggestIcon, draggable:true});
 					map.addLayer(marker);
 					marker.bindPopup('Cycle parking is needed here').openPopup();
 					

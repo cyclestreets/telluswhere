@@ -571,6 +571,9 @@ class telluswhere
 		
 		';
 		
+		# Determine the icon to use
+		$useIcon = 'suggest';
+		
 		# Create the map application Javascript
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$html .= "
@@ -584,6 +587,9 @@ class telluswhere
 				
 				// Set map centre location
 				var map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
+				
+				// Set the icon to use
+				var useIcon = '{$useIcon}';
 				
 				// Initialise a marker
 				var marker;
@@ -612,9 +618,11 @@ class telluswhere
 						popupAnchor:  [0, -25]
 					}
 				});
-				var suggestIcon = new largeIcon({iconUrl: '/images/markers/suggest.png'});
-				var currentIcon = new largeIcon({iconUrl: '/images/markers/current.png'});
-				var alreadyIcon = new smallIcon({iconUrl: '/images/markers/already.png'});
+				var icons = {
+					suggest: new largeIcon({iconUrl: '/images/markers/suggest.png'}),
+					current: new largeIcon({iconUrl: '/images/markers/current.png'}),
+					already: new smallIcon({iconUrl: '/images/markers/already.png'})
+				};
 				
 				// Determine whether to set the marker initially
 				setMarkerInitially = {$setMarkerInitiallyJs};
@@ -673,7 +681,7 @@ class telluswhere
 				// Function to set the marker
 				function setMarker(latlng) {
 					// Set marker position
-					marker = new L.Marker(latlng, {icon: suggestIcon, draggable:true});
+					marker = new L.Marker(latlng, {icon: icons[useIcon], draggable: true});
 					map.addLayer(marker);
 					marker.bindPopup('Cycle parking is needed here').openPopup();
 					
@@ -701,6 +709,7 @@ class telluswhere
 				map.on('zoomstart', function() {
 					\$j('#helptext').addClass('display');
 				});
+				
 				
 				/* EXIF image marker setting functions */
 				
@@ -747,10 +756,11 @@ class telluswhere
 					return geolocationData;
 				}
 				
+				
 				/* Existing locations browsing functions; see: http://chris-osm.blogspot.co.uk/2013/11/using-leaflet-with-database.html */
 				
 				function setIcon(feature,latlng) {
-					var marker = L.marker(latlng);
+					var marker = L.marker(latlng, {icon: icons['already'], draggable:true});
 					marker.bindPopup(feature.properties.popupContent);
 					return marker;
 				}
@@ -784,7 +794,6 @@ class telluswhere
 				map.on('moveend', whenMapMoves);
 				
 				getData();
-				
 			});
 			</script>
 		";

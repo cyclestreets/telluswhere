@@ -571,9 +571,6 @@ class telluswhere
 		
 		';
 		
-		# Determine the icon to use
-		$useIcon = 'suggest';
-		
 		# Create the map application Javascript
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$html .= "
@@ -589,7 +586,7 @@ class telluswhere
 				var map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
 				
 				// Set the icon to use
-				var useIcon = '{$useIcon}';
+				var useIcon = '{$this->action}';
 				
 				// Initialise a marker
 				var marker;

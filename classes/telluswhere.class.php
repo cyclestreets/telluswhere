@@ -691,7 +691,7 @@ class telluswhere
 				// Function to set the marker
 				function setMarker(latlng) {
 					// Set marker position
-					marker = new L.Marker(latlng, {icon: icons[useIcon], draggable: true});
+					marker = new L.Marker(latlng, {icon: icons[useIcon], draggable: true, zIndexOffset: 1000});
 					map.addLayer(marker);
 					marker.bindPopup('Cycle parking is needed here').openPopup();
 					

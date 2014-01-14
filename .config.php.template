@@ -4,6 +4,7 @@
 $config = array (
 	'applicationName'	=> 'Tell us where',
 	'style'				=> 'default',
+	'apiKey'			=> NULL,
 	'feedbackRecipient'	=> NULL,
 	'contactsPageHtml'	=> false,
 	'aboutPageHtml'		=> NULL,

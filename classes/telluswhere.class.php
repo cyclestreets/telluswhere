@@ -10,6 +10,8 @@ class telluswhere
 		$defaults = array (
 			'applicationName'		=> 'Tell us where',
 			'style'					=> 'default',
+			'apiBase'				=> 'https://api.cyclestreets.net',
+			'apiKey'				=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'feedbackRecipient'		=> NULL,
 			'contactsPageHtml'		=> false,
@@ -40,6 +42,7 @@ class telluswhere
 			'suggest' => array (
 				'description' => false,
 				'url' => '/suggest/',
+				'browsingApiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=200',
 			),
 			'about' => array (
 				'description' => false,
@@ -554,6 +557,10 @@ class telluswhere
 			}
 		}
 		
+		# Determine the URL for the browsing API
+		#!# Improve way key is added here
+		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['browsingApiUrl'] . '&key=' . $this->settings['apiKey'];
+		
 		# Create the map application HTML
 #!# Map width and height needs to be set in CSS using #map rather than #cycle-map
 		$html .= '
@@ -580,13 +587,19 @@ class telluswhere
 			var \$j = jQuery.noConflict();
 			\$j( document ).ready(function() {
 				
+				/* Settings */
+				
+				// Determine the API endpoint to use for browsing
+				var browsingApiUrl = '{$browsingApiUrl}';
+				
+				// Set the icon to use
+				var useIcon = '{$this->action}';
+				
+				
 				/* Core map functions */
 				
 				// Set map centre location
 				var map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
-				
-				// Set the icon to use
-				var useIcon = '{$this->action}';
 				
 				// Initialise a marker
 				var marker;
@@ -758,7 +771,7 @@ class telluswhere
 				
 				function setIcon(feature,latlng) {
 					var marker = L.marker(latlng, {icon: icons['already'], draggable:true});
-					marker.bindPopup(feature.properties.popupContent);
+					marker.bindPopup(feature.properties.name);
 					return marker;
 				}
 				
@@ -775,13 +788,19 @@ class telluswhere
 				}
 				
 				function getData() {
-				    var data='bbox=' + map.getBounds().toBBoxString();
+					var data='bbox=' + map.getBounds().toBBoxString();
 					\$j.ajax({
-				        url: '/path/to/data-geojson.js',
-				        dataType: 'json',
-				        data: data,
-				        success: showCurrentData
-				    });
+						url: browsingApiUrl,
+						dataType: 'json',
+						data: data,
+/*
+// http://stackoverflow.com/questions/5507234/how-to-use-basic-auth-and-jquery-and-ajax
+						beforeSend: function (xhr){ 
+							xhr.setRequestHeader('Authorization', 'Basic ' + btoa(apiKey + ':' + 'password')); 
+						},
+*/
+						success: showCurrentData
+					});
 				}
 				
 				function whenMapMoves(e) {

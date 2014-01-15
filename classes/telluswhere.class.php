@@ -611,21 +611,21 @@ class telluswhere
 				var largeIcon = L.Icon.extend({
 					options: {
 						shadowUrl: '/images/markers/shadow-large.png',
-						iconSize:     [32, 38],
-						shadowSize:   [50, 37],
-						iconAnchor:   [16, 38],
-						shadowAnchor: [0, 37],
-						popupAnchor:  [0, -34]
+						iconSize:     [34, 40],
+						shadowSize:   [51, 38],
+						iconAnchor:   [17, 40],
+						shadowAnchor: [0, 38],
+						popupAnchor:  [0, -36]
 					}
 				});
 				var smallIcon = L.Icon.extend({
 					options: {
 						shadowUrl: '/images/markers/shadow-small.png',
-						iconSize:     [25, 29],
-						shadowSize:   [42, 33],
-						iconAnchor:   [13, 29],
-						shadowAnchor: [0, 33],
-						popupAnchor:  [0, -25]
+						iconSize:     [27, 30],
+						shadowSize:   [43, 34],
+						iconAnchor:   [13, 30],
+						shadowAnchor: [0, 34],
+						popupAnchor:  [0, -26]
 					}
 				});
 				var icons = {

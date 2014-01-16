@@ -35,14 +35,15 @@ class telluswhere
 				'description' => false,
 				'url' => '/',
 			),
-			'current' => array (
-				'description' => false,
-				'url' => '/current/',
-			),
 			'suggest' => array (
 				'description' => false,
 				'url' => '/suggest/',
 				'browsingApiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=200',
+			),
+			'current' => array (
+				'description' => false,
+				'url' => '/current/',
+				'browsingApiUrl' => '/v2/pois?type=cycleparking',
 			),
 			'about' => array (
 				'description' => false,

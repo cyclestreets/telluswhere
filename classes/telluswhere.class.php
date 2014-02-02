@@ -1069,6 +1069,46 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# Contact form
+		$this->template['form'] = $this->loginForm ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Login form
+	private function loginForm ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'		=> false,
+			'formCompleteText'			=> false,
+			'display'					=> 'template',
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form'),
+			'requiredFieldIndicator'	=> false,
+			'submitButtonText'			=> 'Login',
+		));
+		
+		# Widgets
+		$form->email (array (
+			'name'		=> 'email',
+			'title'		=> 'Your e-mail address',
+			'required'	=> true,
+		));
+		$form->password (array (
+			'name'		=> 'password',
+			'title'		=> 'Password',
+			'required'	=> true,
+		));
+		
+		# Process the form
+		$result = $form->process ($html);
+		
 		# Return the HTML
 		return $html;
 	}

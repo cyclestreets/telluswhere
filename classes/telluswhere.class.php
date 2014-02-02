@@ -566,12 +566,10 @@ class telluswhere
 		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['browsingApiUrl'] . '&key=' . $this->settings['apiKey'];
 		
 		# Create the map application HTML
-#!# Map width and height needs to be set in CSS using #map rather than #cycle-map
 		$html .= '
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
 		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
 		<style type="text/css">
-			#map {width: 590px; height: 400px;}
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}
 			#helptext.hide {background-color: transparent;}

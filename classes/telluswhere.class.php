@@ -43,7 +43,7 @@ class telluswhere
 			'current' => array (
 				'description' => false,
 				'url' => '/current/',
-				'browsingApiUrl' => '/v2/pois?type=cycleparking&limit=200',
+				'browsingApiUrl' => '/v2/pois?type=cycleparking&limit=40',
 			),
 			'about' => array (
 				'description' => false,

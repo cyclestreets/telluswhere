@@ -57,6 +57,14 @@ class telluswhere
 				'description' => false,
 				'url' => '/contacts/',
 			),
+			'data' => array (
+				'description' => false,
+				'url' => '/data/',
+			),
+			'login' => array (
+				'description' => false,
+				'url' => '/login/',
+			),
 		);
 		
 		# Return the actions
@@ -1038,6 +1046,28 @@ class telluswhere
 		
 		# Process the form
 		$result = $form->process ($html);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Data page
+	private function data ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Login page
+	private function login ()
+	{
+		# Start the HTML
+		$html = '';
 		
 		# Return the HTML
 		return $html;

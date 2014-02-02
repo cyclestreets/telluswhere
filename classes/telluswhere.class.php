@@ -38,12 +38,12 @@ class telluswhere
 			'suggest' => array (
 				'description' => false,
 				'url' => '/suggest/',
-				'browsingApiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150',
 			),
 			'current' => array (
 				'description' => false,
 				'url' => '/current/',
-				'browsingApiUrl' => '/v2/pois?type=cycleparking&limit=40',
+				'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
 			),
 			'about' => array (
 				'description' => false,
@@ -64,6 +64,7 @@ class telluswhere
 			'login' => array (
 				'description' => false,
 				'url' => '/login/',
+				'apiUrl' => '/v2/user.validate',
 			),
 		);
 		
@@ -574,7 +575,7 @@ class telluswhere
 		
 		# Determine the URL for the browsing API
 		#!# Improve way key is added here
-		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['browsingApiUrl'] . '&key=' . $this->settings['apiKey'];
+		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . '&key=' . $this->settings['apiKey'];
 		
 		# Create the map application HTML
 		$html .= '
@@ -1069,8 +1070,12 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Contact form
-		$this->template['form'] = $this->loginForm ();
+		# Login form
+		$result = $this->loginForm ($loginFormHtml);
+		$this->template['form'] = $loginFormHtml;
+		
+		// $result now contains the user details (username, email, name, privileges)
+		application::dumpData ($result);
 		
 		# Return the HTML
 		return $html;
@@ -1078,7 +1083,7 @@ class telluswhere
 	
 	
 	# Login form
-	private function loginForm ()
+	private function loginForm (&$html)
 	{
 		# Start the HTML
 		$html = '';
@@ -1106,11 +1111,52 @@ class telluswhere
 			'required'	=> true,
 		));
 		
-		# Process the form
-		$result = $form->process ($html);
+		# Validate the login
+		if ($unfinalisedData = $form->getUnfinalisedData ()) {
+			if (strlen ($unfinalisedData['email']) && strlen ($unfinalisedData['password'])) {
+				if (!$result = $this->doAuthentication ($unfinalisedData['email'], $unfinalisedData['password'], $error)) {
+					$form->registerProblem ('authfail', $error);
+				}
+			}
+		}
 		
-		# Return the HTML
-		return $html;
+		# Process the form
+		if (!$form->process ($html)) {return false;}
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Authentication
+	private function doAuthentication ($email, $password, &$error = '')
+	{
+		# Assemble the data to post
+		$postData = array (
+			'email'		=> $email,
+			'password'	=> $password,
+		);
+		
+		# Post to the API
+		$apiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . '?key=' . $this->settings['apiKey'];
+		$resultJson = application::file_post_contents ($apiUrl, $postData, $error);
+		if ($error) {
+			// echo $error;		// Debug
+			$error = 'Sorry, a technical error occured trying to validate the details you gave. Please try again later.';
+			return false;
+		}
+		
+		# Unpack the response
+		$result = json_decode ($resultJson, true);
+		
+		# If there is an error, pass on the text and return false
+		if (isSet ($result['error'])) {
+			$error = $result['error'];
+			return false;
+		}
+		
+		# Otherwise return the account details
+		return $result;
 	}
 }
 

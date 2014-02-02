@@ -80,8 +80,12 @@ class telluswhere
 	# Land type presets
 	private $landTypes = array (
 		'highway'			=> 'Public highway',
-		'school'			=> 'School',
+		'redroute'			=> 'Red route',
 		'private'			=> 'Private land',
+		'station'			=> 'Station',
+		'school'			=> 'School',
+		'park'				=> 'Park',
+		'riverpier'			=> 'Riverside pier',
 		'unknown'			=> 'Not sure',
 	);
 	

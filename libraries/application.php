@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-13
- * Version 1.5.3
+ * Version 1.5.5
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -183,13 +183,14 @@ class application
 	
 	
 	# Function to set a flash message
-	public static function setFlashMessage ($name, $value, $redirectTo, $redirectMessage = false, $path = '/')
+	#!# Currently also does a redirect, which is probably best separated out, or the function renamed to setFlashRedirect
+	public static function setFlashMessage ($name, $value, $redirectToPath, $redirectMessage = false, $path = '/')
 	{
 		# Set the cookie
 		setcookie ("flashredirect_{$name}", $value, time () + (60*5), $path);
 		
 		# Redirect to the specified location
-		$html = self::sendHeader (301, $_SERVER['_SITE_URL'] . $redirectTo, $redirectMessage);
+		$html = self::sendHeader (302, $_SERVER['_SITE_URL'] . $redirectToPath, $redirectMessage);
 		
 		# Return the HTML which will be displayed as the fallback
 		return $html;
@@ -2790,6 +2791,32 @@ class application
 		
 		# Return unmodified if no match found
 		return $pluralWord;
+	}
+	
+	
+	# Equivalent of file_get_contents but for POST rather than GET
+	public static function file_post_contents ($url, $postData, &$error = '')
+	{
+		# Create a CURL instance
+		$handle = curl_init ();
+		curl_setopt ($handle, CURLOPT_URL, $url);
+		
+		# Set the user agent
+		$userAgent = 'Proxy for: ' . $_SERVER['HTTP_USER_AGENT'];
+		curl_setopt ($handle, CURLOPT_USERAGENT, $userAgent);
+		
+		# Build the POST query
+		$post = http_build_query ($postData);
+		curl_setopt ($handle, CURLOPT_POSTFIELDS, $post);
+		
+		# Obtain the original page HTML
+		curl_setopt ($handle, CURLOPT_RETURNTRANSFER, true);
+		$output = curl_exec ($handle);
+		$error = curl_error ($handle);
+		curl_close ($handle);
+		
+		# Return the original page HTML
+		return $output;
 	}
 	
 	

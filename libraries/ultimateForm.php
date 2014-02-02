@@ -57,7 +57,7 @@
  * @license	http://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
  * @copyright Copyright  2003-13, Martin Lucas-Smith, University of Cambridge
- * @version 1.20.9
+ * @version 1.20.10
  */
 class form
 {
@@ -1779,6 +1779,7 @@ class form
 			'editable'				=> true,	# Whether the widget is editable (if not, a hidden element will be substituted but the value displayed)
 			'values'				=> array (),# Simple array of selectable values
 			'valuesNamesAutomatic'	=> false,	# Whether to create automatic value names based on the value itself (e.g. 'option1' would become 'Option 1')
+			'disabled'				=> array (),# Whether individual radiobuttons are disabled, either true for all (except for a default one), or false for none, or an array of the values that are disabled
 			'title'					=> '',		# Introductory text
 			'description'			=> '',		# Description text
 			'append'				=> '',		# HTML appended to the widget
@@ -1828,6 +1829,22 @@ class form
 		
 		# Apply truncation if necessary
 		$arguments['values'] = $widget->truncate ($arguments['values']);
+		
+		# Deal with disabled radio buttons
+		#!# This standard processing of 'array()/true/false --> list' should be library code
+		if ($arguments['disabled'] === false) {
+			$arguments['disabled'] = array ();
+		}
+		if ($arguments['disabled']) {
+			if ($arguments['disabled'] === true) {
+				$arguments['disabled'] = array ();
+				foreach ($arguments['values'] as $value) {
+					if ($value != $arguments['default']) {
+						$arguments['disabled'][] = $value;
+					}
+				}
+			}
+		}
 		
 		/* #!# Enable when implementing fieldset grouping
 		# If a multidimensional array, cache the multidimensional version, and flatten the main array values
@@ -1890,7 +1907,7 @@ class form
 				$elementId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}_{$value}]" : "{$arguments['name']}_{$value}");
 				
 				#!# Dagger hacked in - fix properly for other such characters; consider a flag somewhere to allow entities and HTML tags to be incorporated into the text (but then cleaned afterwards when printed/e-mailed)
-				$subelementsWidgetHtml[$value] = '<input type="radio"' . $this->nameIdHtml ($arguments['name'], false, $value) . ' value="' . htmlspecialchars ($value) . '"' . ($value == $elementValue ? ' checked="checked"' : '') . (($arguments['autofocus'] && $firstItem) ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml ($subwidgetIndex - 1) . " /><label for=\"" . $elementId . '">' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>';
+				$subelementsWidgetHtml[$value] = '<input type="radio"' . $this->nameIdHtml ($arguments['name'], false, $value) . ' value="' . htmlspecialchars ($value) . '"' . ($value == $elementValue ? ' checked="checked"' : '') . (($arguments['autofocus'] && $firstItem) ? ' autofocus="autofocus"' : '') . (in_array ($value, $arguments['disabled'], true) ? ' disabled="disabled"' : '') . $widget->tabindexHtml ($subwidgetIndex - 1) . " /><label for=\"" . $elementId . '">' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>';
 				$widgetHtml .= "\n\t\t\t" . $subelementsWidgetHtml[$value];
 				$firstItem = false;
 				

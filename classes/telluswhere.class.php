@@ -74,8 +74,7 @@ class telluswhere
 		'shelter'			=> 'Secure bike shelter',
 		'stacker'			=> 'Double decker stand',
 		'streetfurniture'	=> 'Integrated Street furniture',
-		'insecure'			=> 'Wall hoop',
-		'informal'			=> 'Informal (e.g. railings)',
+		'insecure'			=> 'Old-style wall hoop',
 	);
 	
 	# Land type presets

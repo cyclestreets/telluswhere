@@ -147,6 +147,9 @@ class telluswhere
 		# Load the template
 		$templateHtml = $this->getTemplateHtml ($this->action);
 		
+		# Register standard placeholder substitutions
+		$this->template['date'] = date ('Y');
+		
 		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
 		

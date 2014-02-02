@@ -573,6 +573,8 @@ class telluswhere
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}
 			#helptext.hide {background-color: transparent;}
+			form input[type=submit] {border: 1px solid #eee; color: gray; padding: 6px 14px; font-size: 15px;}
+			form input[type=number] {border: 1px solid #eee; padding: 5px;}
 		</style>
 		
 		<p id="helptext">Zoom all the way in, then click on the map to set the marker.</p>

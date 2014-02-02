@@ -1104,6 +1104,7 @@ class telluswhere
 			'name'		=> 'email',
 			'title'		=> 'Your e-mail address',
 			'required'	=> true,
+			'autofocus'	=> true,
 		));
 		$form->password (array (
 			'name'		=> 'password',

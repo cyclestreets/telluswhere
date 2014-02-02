@@ -38,7 +38,7 @@ class telluswhere
 			'suggest' => array (
 				'description' => false,
 				'url' => '/suggest/',
-				'browsingApiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=200',
+				'browsingApiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150',
 			),
 			'current' => array (
 				'description' => false,

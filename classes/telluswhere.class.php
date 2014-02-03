@@ -20,6 +20,7 @@ class telluswhere
 			'defaultLatitude'		=> NULL,
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
+			'apiUrlGeocoder'		=> '/v2/geocoder',
 		);
 		
 		# Return the defaults
@@ -612,7 +613,7 @@ class telluswhere
 				/* Core map functions */
 				
 				// Set map centre location
-				var map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
+				map = L.map('map').setView([{$mapLocation['latitude']}, {$mapLocation['longitude']}], {$mapLocation['zoom']});
 				
 				// Initialise a marker
 				var marker;
@@ -826,6 +827,16 @@ class telluswhere
 			});
 			</script>
 		";
+		
+		# Add autocomplete name search
+		$geocoderApiUrl = $this->settings['apiBase'] . $this->settings['apiUrlGeocoder'] . '?key=' . $this->settings['apiKey'];
+		// Libraries available at: http://cdnjs.com/libraries/jqueryui/
+		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
+		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
+		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
+		$html .= "\n" . "<script type=\"text/javascript\">var $ = jQuery.noConflict();</script>";
+		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
+		$html .= "\n" . "<script type=\"text/javascript\">addAutocomplete(\"input[name='location']\", \"{$geocoderApiUrl}\");</script>";
 		
 		# Return the HTML
 		return $html;

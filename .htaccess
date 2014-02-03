@@ -24,6 +24,7 @@ RewriteRule ^(suggest|current|about|terms|contacts|data|login)$ /$1/ [L,R=301]
 RewriteCond %{REQUEST_FILENAME} !/index\.html$
 RewriteCond %{REQUEST_FILENAME} !/robots\.txt$
 RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$
+RewriteCond %{REQUEST_FILENAME} !/js/autocomplete.\js$
 RewriteRule ^(.*)$ index.html?file=/$1 [L]
 
 

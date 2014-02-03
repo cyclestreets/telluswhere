@@ -598,8 +598,7 @@ class telluswhere
 		<script type=\"text/javascript\" src=\"/js/jquery.exif.js\"></script>
 		<script type=\"text/javascript\">
 			
-			var \$j = jQuery.noConflict();
-			\$j( document ).ready(function() {
+			jQuery( document ).ready(function( $ ) {
 				
 				/* Settings */
 				
@@ -669,7 +668,7 @@ class telluswhere
 				function onMapClick(e) {
 					
 					// Show the help text
-					\$j('#helptext').addClass('display');
+					\$('#helptext').addClass('display');
 					
 					// Remove any marker present
 					if(marker){
@@ -691,7 +690,7 @@ class telluswhere
 					setMarker(e.latlng);
 					
 					// Remove the help text
-					\$j('#helptext').removeClass('display').addClass('hide');
+					\$('#helptext').removeClass('display').addClass('hide');
 				}
 				map.on('click', onMapClick);
 				
@@ -724,14 +723,14 @@ class telluswhere
 				
 				// Function to transmit the values to the form
 				function setFormValues (lat, lng, zoom){
-					\$j('#form_latitude').val(lat);
-					\$j('#form_longitude').val(lng);
-					\$j('#form_zoom').val(zoom);
+					\$('#form_latitude').val(lat);
+					\$('#form_longitude').val(lng);
+					\$('#form_zoom').val(zoom);
 				}
 				
 				// Show the help text also if the user zooms
 				map.on('zoomstart', function() {
-					\$j('#helptext').addClass('display');
+					\$('#helptext').addClass('display');
 				});
 				
 				
@@ -749,8 +748,8 @@ class telluswhere
 					//console.log(exifObject);
 				}
 				try {
-					\$j('#form_file_0').change(function() {
-						\$j(this).fileExif(exifCallback);
+					\$('#form_file_0').change(function() {
+						\$(this).fileExif(exifCallback);
 					});
 				}
 				catch (e) {
@@ -803,7 +802,7 @@ class telluswhere
 				
 				function getData() {
 					var data='bbox=' + map.getBounds().toBBoxString();
-					\$j.ajax({
+					\$.ajax({
 						url: browsingApiUrl,
 						dataType: 'json',
 						data: data,

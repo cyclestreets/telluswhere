@@ -67,6 +67,10 @@ class telluswhere
 				'url' => '/login/',
 				'apiUrl' => '/v2/user.validate',
 			),
+			'logout' => array (
+				'description' => false,
+				'url' => '/logout/',
+			),
 		);
 		
 		# Return the actions
@@ -153,6 +157,9 @@ class telluswhere
 			echo $html;
 			return false;
 		}
+		
+		# Get the user's details, if authenticated
+		$this->user = $this->getUser ();
 		
 		# Load the template
 		$templateHtml = $this->getTemplateHtml ($this->action);
@@ -1080,15 +1087,20 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Login form
-		$result = $this->loginForm ($loginFormHtml);
-		$this->template['form'] = $loginFormHtml;
+		# If the user is logged in, state this
+		if ($this->user) {
+			$html .= "\n<p><strong>You are logged in</strong>, as " . $this->user['email'] . " .</p>";
+			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/logout/\">log out</a> if you wish.</p>";
+		} else {
+			
+			# Login form; if successful, log the user in
+			if ($result = $this->loginForm ($html)) {
+				$this->doLogin ($result);	// $result now contains the user details (username, email, name, privileges)
+			}
+		}
 		
-		// $result now contains the user details (username, email, name, privileges)
-		application::dumpData ($result);
-		
-		# Return the HTML
-		return $html;
+		# Set the form template area as the HTML
+		$this->template['form'] = $html;
 	}
 	
 	
@@ -1168,6 +1180,70 @@ class telluswhere
 		
 		# Otherwise return the account details
 		return $result;
+	}
+	
+	
+	# Get user details (from the session)
+	private function getUser ()
+	{
+		# Lock down PHP session management
+		ini_set ('session.name', 'session');
+		ini_set ('session.use_only_cookies', 1);
+		
+		# Start the session handling
+		if (!session_id ()) {session_start ();}
+		
+		# Regenerate the session ID
+		session_regenerate_id ($deleteOldSession = true);
+		
+		# Return false if no user
+		if (!isSet ($_SESSION['user'])) {return false;}
+		
+		# Return the user details
+		return $_SESSION['user'];
+	}
+	
+	
+	# Function to log the user in
+	private function doLogin ($result)
+	{
+		# Create the session entry
+		$_SESSION['user'] = $result;
+		
+		# Refresh the page to ensure the session cookie is written
+		application::sendHeader ('refresh');
+	}
+	
+	
+	# Function to log the user out
+	private function logout ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Cache whether the user presented session data
+		$userHadSessionData = (isSet ($_SESSION['user']));
+		
+		# Explicitly destroy the session
+		session_unset ();
+		session_destroy ();
+		unset ($_SESSION['user']);
+		$params = session_get_cookie_params ();
+		setcookie (session_name (), '', time () - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+		
+		# Confirm logout if there was a session, and redirect the user to the login page if necessary
+		$loginLocation = $this->baseUrl . $this->actions['login']['url'];
+		if ($userHadSessionData) {
+			$html .= "\n<p>You have been successfully logged out.</p>";
+			$html .= "\n<p>You can <a href=\"" . htmlspecialchars ($loginLocation) . '">log in again</a> if you wish.</p>';
+		} else {
+			header ('Location: http://' . $_SERVER['SERVER_NAME'] . $this->baseUrl . $loginLocation);
+			$html .= "\n<p>You are not logged in.</p>";
+			$html .= "\n<p><a href=\"" . htmlspecialchars ($loginLocation) . '">Please click here to continue.</a></p>';
+		}
+		
+		# Register the HTML
+		$this->template['text'] = $html;
 	}
 }
 

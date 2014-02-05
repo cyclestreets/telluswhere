@@ -1091,16 +1091,19 @@ class telluswhere
 		if ($this->user) {
 			$html .= "\n<p><strong>You are logged in</strong>, as " . $this->user['email'] . " .</p>";
 			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/logout/\">log out</a> if you wish.</p>";
+			$this->template['text'] = $html;
+			$this->template['form'] = false;
 		} else {
 			
 			# Login form; if successful, log the user in
-			if ($result = $this->loginForm ($html)) {
+			$html .= "\n<p>Please login below to access this section:</p>";
+			$this->template['text'] = $html;
+			$formHtml = '';
+			if ($result = $this->loginForm ($formHtml)) {
 				$this->doLogin ($result);	// $result now contains the user details (username, email, name, privileges)
 			}
+			$this->template['form'] = $formHtml;
 		}
-		
-		# Set the form template area as the HTML
-		$this->template['form'] = $html;
 	}
 	
 	

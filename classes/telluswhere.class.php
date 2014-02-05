@@ -1096,7 +1096,7 @@ class telluswhere
 		} else {
 			
 			# Login form; if successful, log the user in
-			$html .= "\n<p>Please login below to access this section:</p>";
+			$html .= "\n<p><strong>Please log in below to access this section:</strong></p>";
 			$this->template['text'] = $html;
 			$formHtml = '';
 			if ($result = $this->loginForm ($formHtml)) {

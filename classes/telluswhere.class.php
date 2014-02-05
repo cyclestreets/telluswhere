@@ -1122,6 +1122,7 @@ class telluswhere
 			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form'),
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Login',
+			'submitButtonAccesskey'		=> false,
 		));
 		
 		# Widgets

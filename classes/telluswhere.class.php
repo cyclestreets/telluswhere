@@ -61,6 +61,8 @@ class telluswhere
 			'data' => array (
 				'description' => false,
 				'url' => '/data/',
+				#!# Change to administrator when permissions system in place
+				'authentication' => true,
 			),
 			'login' => array (
 				'description' => false,
@@ -161,6 +163,13 @@ class telluswhere
 		
 		# Get the user's details, if authenticated
 		$this->user = $this->getUser ();
+		
+		# Require authentication if specified
+		if (isSet ($this->actions[$this->action]['authentication'])) {
+			if (!$this->user) {
+				$this->action = 'login';
+			}
+		}
 		
 		# Load the template
 		$templateHtml = $this->getTemplateHtml ($this->action);

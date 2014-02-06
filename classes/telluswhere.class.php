@@ -934,6 +934,7 @@ class telluswhere
 			'title'			=> 'Would you like to be kept up-to-date via e-mail?',
 			'required'		=> true,
 			'values'		=> array ('Yes', 'No'),
+			'default'		=> 'Yes',
 		));
 		$form->checkboxes (array (
 			'name'			=> 'terms',

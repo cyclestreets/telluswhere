@@ -95,6 +95,7 @@ class telluswhere
 	private $landTypes = array (
 		'highway'			=> 'Public highway',
 		'redroute'			=> 'Red route',
+		'workplace'			=> 'Workplace',
 		'private'			=> 'Private land',
 		'station'			=> 'Station',
 		'school'			=> 'School',

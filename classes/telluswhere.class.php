@@ -715,8 +715,8 @@ class telluswhere
 				// Wrapper function to set the marker by supplying raw latitude and longitude markers
 				function setMarkerLatitudeLongitude(latitude, longitude) {
 					var latlng = L.latLng(latitude, longitude);
-					setMarker(latlng);
 					map.setView(latlng, maxZoom);
+					setMarker(latlng);
 				}
 				
 				// Function to set the marker

@@ -668,9 +668,9 @@ class telluswhere
 				// Determine whether to set the marker initially
 				setMarkerInitially = {$setMarkerInitiallyJs};
 				if(setMarkerInitially){
-					var latlng = L.latLng(latitude, longitude);
+					var latlng = L.latLng({$mapLocation['latitude']}, {$mapLocation['longitude']});
 					setMarker(latlng);
-					map.setView(latlng,minZoomLevelToSet);
+					map.setView(latlng,{$mapLocation['zoom']});
 				}
 				
 				// Set tile layer

@@ -801,7 +801,7 @@ class telluswhere
 				/* Existing locations browsing functions; see: http://chris-osm.blogspot.co.uk/2013/11/using-leaflet-with-database.html */
 				
 				function setIcon(feature,latlng) {
-					var marker = L.marker(latlng, {icon: icons['already'], draggable:true});
+					var marker = L.marker(latlng, {icon: icons['already']});
 					marker.bindPopup(feature.properties.name);
 					return marker;
 				}

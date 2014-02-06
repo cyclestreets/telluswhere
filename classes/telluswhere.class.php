@@ -603,6 +603,7 @@ class telluswhere
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}
 			#helptext.hide {background-color: transparent;}
+			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
 		</style>
 		
 		<p id="helptext">Zoom all the way in, then click on the map to set the marker.</p>

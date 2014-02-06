@@ -23,6 +23,7 @@ RewriteRule ^(suggest|current|about|terms|contacts|data|login|logout)$ /$1/ [L,R
 # If no match above, serve files directly, via the web application, for the configured style
 RewriteCond %{REQUEST_FILENAME} !/index\.html$
 RewriteCond %{REQUEST_FILENAME} !/robots\.txt$
+RewriteCond %{REQUEST_FILENAME} !/images/ui-anim_basic_16x16\.gif$
 RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$
 RewriteCond %{REQUEST_FILENAME} !/js/autocomplete.\js$
 RewriteRule ^(.*)$ index.html?file=/$1 [L]

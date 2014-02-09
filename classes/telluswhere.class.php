@@ -970,7 +970,7 @@ class telluswhere
 			'name'				=> 'file',
 			'title'				=> 'Select an image from your device/computer',
 			'description'		=> '<span class="small comment">(' . strtoupper (implode ('/', $allowedExtensions)) . ' only, maximum size: ' . ini_get ('upload_max_filesize') . ')</span>',
-			'required'			=> true,
+			'required'			=> false,
 			'size'				=> 40,
 			'directory'				=> $this->tmpDirectory,
 			'allowedExtensions'		=> $allowedExtensions,

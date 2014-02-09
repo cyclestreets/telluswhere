@@ -23,6 +23,8 @@ class telluswhere
 			'bbox'					=> NULL,	// W,S,E,N
 			'earliestTime'			=> false,	// e.g. '2010-01-01 00:00:00',
 			'apiUrlGeocoder'		=> '/v2/geocoder',
+			'username'				=> NULL,
+			'password'				=> NULL,
 		);
 		
 		# Return the defaults
@@ -122,7 +124,7 @@ class telluswhere
 	public function __construct ($settings)
 	{
 		# Set the include path to include libraries
-		set_include_path (get_include_path () . PATH_SEPARATOR . $_SERVER['DOCUMENT_ROOT'] . '/libraries/');
+		set_include_path ($_SERVER['DOCUMENT_ROOT'] . '/libraries/' . PATH_SEPARATOR . get_include_path ());
 		
 		# Load required libraries
 		require_once ('application.php');
@@ -536,23 +538,13 @@ class telluswhere
 	# Suggest a location page
 	private function suggest ()
 	{
-		# Start the HTML
-		$html = '';
-		
 		# Add the form
 		$result = $this->locationSubmissionForm ();
 		
 		# Send the result to the CycleStreets photo API
 		if ($result) {
-			
-			// TODO
-			application::dumpData ($result);
-			
-			
+			$this->postSubmission ($result, __FUNCTION__);
 		}
-		
-		# Return the HTML
-		return $html;
 	}
 	
 	
@@ -562,18 +554,69 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Add the form
-		$result = $this->locationSubmissionForm ($current = true);
-		
-		# Send the result to the CycleStreets photo API
-		if ($result) {
+		# Create the form and process the data
+		if ($data = $this->locationSubmissionForm ($current = true)) {
 			
-			// TODO
-			application::dumpData ($result);
+			# Send the data (including any image) to the API
+			if (!$result = $this->postSubmission ($data, __FUNCTION__, $error)) {
+				$this->template['form'] = $error;
+				return;
+			}
+			
+			# Unpack the response
+			$result = json_decode ($result, true);
+			
+			# Thank the user
+			$html = "\n<p><strong>Thank you for your submission</strong>, which is number {$result['id']}.</p>";
+			
+			// Mailing list addition - uses mailinglist,name,email fields
+			
 		}
 		
-		# Return the HTML
-		return $html;
+		# Register the HTML
+		$this->template['form'] = $html;
+	}
+	
+	
+	# Function to post submissions to the API
+	private function postSubmission ($rawdata, $action, &$error = '')
+	{
+		# Define the API URL; note this uses a POST operation due to the presence of a username and password
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.add' . '?key=' . $this->settings['apiKey'];
+		
+		# Map the fields to the API
+		$data = array (
+			#!# Currently a fixed username/password
+			'username'		=> $this->settings['username'],
+			'password'		=> $this->settings['password'],
+			'metacategory'	=> $this->actions[$action]['metacategory'],
+			'category'		=> 'cycleparking',
+			'caption'		=> $rawdata['message'],
+			'latitude'		=> $rawdata['latitude'],
+			'longitude'		=> $rawdata['longitude'],
+			'zoom'			=> $rawdata['zoom'],
+			'basemap'		=> 'mapnik',
+			'credit'		=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
+			'mediaupload'	=> ($rawdata['file'] ? '@' . $this->tmpDirectory . $rawdata['file'] : false),	// @ symbol - see: http://stackoverflow.com/a/4270282/180733
+		);
+		
+		# Post the file
+		$result = application::file_post_contents ($apiUrl, $data, true, $error);
+		
+		# Report any transport error
+		if ($error) {
+			// echo $error;	// Debugging
+			$error = 'Sorry, a technical error occured - please try again later.';
+			return false;
+		}
+		
+		# Delete the temporary file if a file was uploaded
+		if ($rawdata['file']) {
+			unlink ($this->tmpDirectory . $rawdata['file']);
+		}
+		
+		# Return the result
+		return $result;
 	}
 	
 	
@@ -886,7 +929,7 @@ class telluswhere
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'		=> false,
-			'formCompleteText'			=> 'Many thanks for your submission.',
+			'formCompleteText'			=> false,
 			'display'					=> 'template',
 			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}" . $this->placeholderHtmlToFormTemplate ('form'),
 			'requiredFieldIndicator'	=> false,

@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-13
- * Version 1.5.5
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
+ * Version 1.5.7
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -1792,19 +1792,27 @@ class application
 	
 	
 	# Function to create a listing to the results page
-	public static function splitListItems ($listItems, $columns = 2, $class = 'splitlist', $byStrlen = false)
+	public static function splitListItems ($listItems, $columns = 2, $class = 'splitlist', $byStrlen = false, $firstColumnHtml = false)
 	{
 		# Work out the maximum number of items in a column
 		$maxPerColumn = ceil (count ($listItems) / $columns);
 		if ($byStrlen) {$maxPerColumn = ceil (strlen (implode ($listItems)) / $columns);}
 		
 		# Create the list
-		$html = "\n<table class=\"{$class}\"><tr><td>\n<ul>";
+		$html  = "\n<table class=\"{$class}\">";
+		$html .= "\n\t<tr>";
+		if ($firstColumnHtml) {
+			$html .= "\n\t\t<td>";
+			$html .= "\n\t\t\t" . $firstColumnHtml;
+			$html .= "\n\t\t</td>";
+		}
+		$html .= "\n\t\t<td>";
+		$html .= "\n\t\t\t<ul>";
 		$i = 0;
 		$strlen = 0;
 		$totalListItems = count ($listItems);
 		foreach ($listItems as $listItem) {
-			$html .= $listItem;
+			$html .= "\n\t\t\t\t" . $listItem;
 			
 			# Do not split if there are fewer items than columns
 			if ($totalListItems < $columns) {continue;}
@@ -1813,12 +1821,18 @@ class application
 			$i++;
 			$strlen += strlen ($listItem);
 			if (($byStrlen ? $strlen : $i) >= $maxPerColumn) {
-				$html .= "\n</ul>\n</td><td>\n<ul>";
+				$html .= "\n\t\t\t</ul>";
+				$html .= "\n\t\t</td>";
+				$html .= "\n\t\t<td>";
+				$html .= "\n\t\t\t<ul>";
 				$i = 0;
 				$strlen = 0;
 			}
 		}
-		$html .= "\n</ul>\n</td></tr></table>";
+		$html .= "\n\t\t\t</ul>";
+		$html .= "\n\t\t</td>";
+		$html .= "\n\t</tr>";
+		$html .= "\n</table>\n";
 		
 		# Return the constructed HTML
 		return $html;
@@ -2795,7 +2809,7 @@ class application
 	
 	
 	# Equivalent of file_get_contents but for POST rather than GET
-	public static function file_post_contents ($url, $postData, &$error = '')
+	public static function file_post_contents ($url, $postData, $multipart = false, &$error = '')
 	{
 		# Create a CURL instance
 		$handle = curl_init ();
@@ -2805,9 +2819,14 @@ class application
 		$userAgent = 'Proxy for: ' . $_SERVER['HTTP_USER_AGENT'];
 		curl_setopt ($handle, CURLOPT_USERAGENT, $userAgent);
 		
+		# When not multipart (i.e. when a file is not included), build the data into a string: see http://stackoverflow.com/a/5224895/180733 "If value is an array, the Content-Type header will be set to multipart/form-data"
+		if (!$multipart) {
+			$postData = http_build_query ($postData);
+		}
+		
 		# Build the POST query
-		$post = http_build_query ($postData);
-		curl_setopt ($handle, CURLOPT_POSTFIELDS, $post);
+		curl_setopt ($handle, CURLOPT_POST, 1);
+		curl_setopt ($handle, CURLOPT_POSTFIELDS, $postData);
 		
 		# Obtain the original page HTML
 		curl_setopt ($handle, CURLOPT_RETURNTRANSFER, true);

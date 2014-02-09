@@ -600,17 +600,6 @@ class telluswhere
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.add' . '?key=' . $this->settings['apiKey'];
 		
-		# Define the media upload property
-		$mediaupload = false;
-		if ($rawdata['file']) {
-			$filePath = $this->tmpDirectory . $rawdata['file'];
-			if (function_exists ('curl_file_create')) {
-				$mediaupload = curl_file_create ($filePath);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
-			} else {
-				$mediaupload = '@' . $filePath;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
-			}
-		}
-		
 		# Map the fields to the API
 		$data = array (
 			#!# Currently a fixed username/password
@@ -624,8 +613,18 @@ class telluswhere
 			'zoom'			=> $rawdata['zoom'],
 			'basemap'		=> 'mapnik',
 			'credit'		=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
-			'mediaupload'	=> $mediaupload,
 		);
+		
+		# Add the mediaupload field if a file has been submitted
+		if ($rawdata['file']) {
+			$filePath = $this->tmpDirectory . $rawdata['file'];
+			if (function_exists ('curl_file_create')) {
+				$mediaupload = curl_file_create ($filePath);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
+			} else {
+				$mediaupload = '@' . $filePath;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
+			}
+			$data['mediaupload'] = $mediaupload;
+		}
 		
 		# Post the file
 		$result = application::file_post_contents ($apiUrl, $data, true, $error);

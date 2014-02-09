@@ -20,6 +20,7 @@ class telluswhere
 			'defaultLatitude'		=> NULL,
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
+			'bbox'					=> NULL,	// W,S,E,N
 			'apiUrlGeocoder'		=> '/v2/geocoder',
 		);
 		
@@ -61,6 +62,12 @@ class telluswhere
 			'data' => array (
 				'description' => false,
 				'url' => '/data/',
+				#!# Change to administrator when permissions system in place
+				'authentication' => true,
+			),
+			'download' => array (
+				'description' => false,
+				'url' => false,
 				#!# Change to administrator when permissions system in place
 				'authentication' => true,
 			),
@@ -243,6 +250,9 @@ class telluswhere
 	# Function to load the template
 	private function getTemplateHtml ($action)
 	{
+		# Do not attempt to fetch a template if no URL specified
+		if (!$this->actions[$action]['url']) {return false;}
+		
 		# Determine the location of the template
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
 		
@@ -1090,6 +1100,47 @@ class telluswhere
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Data downloads
+	private function download ()
+	{
+		# Ensure the dataset is valid
+		$datasets = array (
+			'suggest' => array (
+				'apiUrl' => '/v2/photos',
+				'parameters'		=> array (
+					'category'		=> 'cycleparking',
+					'metacategory'	=> 'bad',
+					'bbox'			=> $this->settings['bbox'],
+					'thumbnailsize'	=> '640',
+					'limit'			=> '0',
+					'format'		=> 'csv',
+					'fields'		=> 'id,shortlink,thumbnailUrl,hasPhoto,areaName,latitude,longitude,caption,datetime,license',
+				),
+			),
+		);
+		
+		# Ensure a dataset is specified, and that it is valid
+		if (!isSet ($_GET['dataset']) || !array_key_exists ($_GET['dataset'], $datasets)) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		$dataset = $_GET['dataset'];
+		
+		# Assemble the API call URL
+		$apiUrl = $this->settings['apiBase'] . $datasets[$dataset]['apiUrl'] . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($datasets[$dataset]['parameters']);
+		
+		# Obtain the data
+		$csv = file_get_contents ($apiUrl);
+		
+		# Serve the file
+		$filenameBase = $dataset . '_savedAt' . date ('Ymd-His');
+		header ('Content-type: application/octet-stream');
+		header ('Content-Disposition: attachment; filename="' . $filenameBase . '.csv"');
+		echo $csv;
 	}
 	
 	

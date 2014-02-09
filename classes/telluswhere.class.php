@@ -545,6 +545,8 @@ class telluswhere
 			
 			// TODO
 			application::dumpData ($result);
+			
+			
 		}
 		
 		# Return the HTML
@@ -1107,20 +1109,26 @@ class telluswhere
 	# Data downloads
 	private function download ()
 	{
-		# Ensure the dataset is valid
+		# Define the standard parameters for the download
+		$parameters = array (
+			'category'		=> 'cycleparking',
+			'bbox'			=> $this->settings['bbox'],
+			'earliestTime'	=> ($this->settings['earliestTime'] ? strtotime ($this->settings['earliestTime']) : 0),
+			'thumbnailsize'	=> '640',
+			'limit'			=> '0',
+			'format'		=> 'csv',
+			'fields'		=> 'id,latitude,longitude,areaName,caption,datetime,hasPhoto,thumbnailUrl,shortlink,license',
+		);
+		
+		# Define the datasets and their API calls
 		$datasets = array (
-			'suggest' => array (
-				'apiUrl' => '/v2/photos',
-				'parameters'		=> array (
-					'category'		=> 'cycleparking',
-					'metacategory'	=> 'bad',
-					'bbox'			=> $this->settings['bbox'],
-					'earliestTime'	=> ($this->settings['earliestTime'] ? strtotime ($this->settings['earliestTime']) : 0),
-					'thumbnailsize'	=> '640',
-					'limit'			=> '0',
-					'format'		=> 'csv',
-					'fields'		=> 'id,latitude,longitude,areaName,caption,datetime,hasPhoto,thumbnailUrl,shortlink,license',
-				),
+			'suggest'		=> array (
+				'apiUrl'		=> '/v2/photos',
+				'parameters'	=> array_merge ($parameters, array ('metacategory' => 'bad')),
+			),
+			'current'		=> array (
+				'apiUrl'		=> '/v2/photos',
+				'parameters'	=> array_merge ($parameters, array ('metacategory' => 'other')),
 			),
 		);
 		

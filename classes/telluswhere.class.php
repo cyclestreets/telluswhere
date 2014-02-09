@@ -538,13 +538,14 @@ class telluswhere
 	# Suggest a location page
 	private function suggest ()
 	{
-		# Add the form
-		$result = $this->locationSubmissionForm ();
+		# Start the HTML
+		$html = '';
 		
-		# Send the result to the CycleStreets photo API
-		if ($result) {
-			$this->postSubmission ($result, __FUNCTION__);
-		}
+		# Show the submission page
+		$html = $this->submissionPage ($current = false);
+		
+		# Register the HTML
+		$this->template['form'] = $html;
 	}
 	
 	
@@ -554,27 +555,41 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Create the form and process the data
-		if ($data = $this->locationSubmissionForm ($current = true)) {
-			
-			# Send the data (including any image) to the API
-			if (!$result = $this->postSubmission ($data, __FUNCTION__, $error)) {
-				$this->template['form'] = $error;
-				return;
-			}
-			
-			# Unpack the response
-			$result = json_decode ($result, true);
-			
-			# Thank the user
-			$html = "\n<p><strong>Thank you for your submission</strong>, which is number {$result['id']}.</p>";
-			
-			// Mailing list addition - uses mailinglist,name,email fields
-			
-		}
+		# Show the submission page
+		$html = $this->submissionPage ($current = true);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
+	}
+	
+	
+	# Submission page logic
+	private function submissionPage ($current = false)
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Create the form and process the data
+		if (!$data = $this->locationSubmissionForm ($current, $html)) {		// &html written into by reference
+			return $html;
+		}
+		
+		# Send the data (including any image) to the API
+		if (!$result = $this->postSubmission ($data, $this->action, $error)) {
+			$html = $error;
+			return $html;
+		}
+		
+		# Unpack the response
+		$result = json_decode ($result, true);
+		
+		# Thank the user
+		$html = "\n<p><strong>Thank you for your submission</strong>, which is number {$result['id']}.</p>";
+		
+		// Mailing list addition - uses mailinglist,name,email fields
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -920,7 +935,7 @@ class telluswhere
 	
 	
 	# Contact form
-	private function locationSubmissionForm ($current = false)
+	private function locationSubmissionForm ($current = false, &$html = '')
 	{
 		# Start the HTML
 		$html = '';
@@ -1033,9 +1048,6 @@ class telluswhere
 		
 		# Process the form
 		$result = $form->process ($html);
-		
-		# Register the HTML into the template
-		$this->template['form'] = $html;
 		
 		# Return the result
 		return $result;

@@ -584,7 +584,8 @@ class telluswhere
 		$result = json_decode ($result, true);
 		
 		# Thank the user
-		$html = "\n<p><strong>Thank you for your submission</strong>, which is number {$result['id']}.</p>";
+		$html  = "\n<p><strong>Thank you for your submission</strong>, which is number {$result['id']}.</p>";
+		$html .= "\n<p><a href=\"{$this->actions[$this->action]['url']}\">Add another?</a></p>";
 		
 		// Mailing list addition - uses mailinglist,name,email fields
 		

@@ -1119,7 +1119,7 @@ class telluswhere
 					'thumbnailsize'	=> '640',
 					'limit'			=> '0',
 					'format'		=> 'csv',
-					'fields'		=> 'id,shortlink,thumbnailUrl,hasPhoto,areaName,latitude,longitude,caption,datetime,license',
+					'fields'		=> 'id,latitude,longitude,areaName,caption,datetime,hasPhoto,thumbnailUrl,shortlink,license',
 				),
 			),
 		);

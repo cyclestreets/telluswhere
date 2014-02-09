@@ -21,6 +21,7 @@ class telluswhere
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
 			'bbox'					=> NULL,	// W,S,E,N
+			'earliestTime'			=> false,	// e.g. '2010-01-01 00:00:00',
 			'apiUrlGeocoder'		=> '/v2/geocoder',
 		);
 		
@@ -1114,6 +1115,7 @@ class telluswhere
 					'category'		=> 'cycleparking',
 					'metacategory'	=> 'bad',
 					'bbox'			=> $this->settings['bbox'],
+					'earliestTime'	=> ($this->settings['earliestTime'] ? strtotime ($this->settings['earliestTime']) : 0),
 					'thumbnailsize'	=> '640',
 					'limit'			=> '0',
 					'format'		=> 'csv',

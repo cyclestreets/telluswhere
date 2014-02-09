@@ -42,11 +42,13 @@ class telluswhere
 				'description' => false,
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150',
+				'metacategory' => 'bad',
 			),
 			'current' => array (
 				'description' => false,
 				'url' => '/current/',
 				'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
+				'metacategory' => 'other',
 			),
 			'about' => array (
 				'description' => false,
@@ -1109,9 +1111,19 @@ class telluswhere
 	# Data downloads
 	private function download ()
 	{
-		# Define the standard parameters for the download
+		# Ensure a dataset is specified, and that it is valid
+		$datasets = array ('suggest', 'current');
+		if (!isSet ($_GET['dataset']) || !in_array ($_GET['dataset'], $datasets)) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		$dataset = $_GET['dataset'];
+		
+		# Define the parameters for the API call
 		$parameters = array (
 			'category'		=> 'cycleparking',
+			'metacategory'	=> $this->actions[$dataset]['metacategory'],
 			'bbox'			=> $this->settings['bbox'],
 			'earliestTime'	=> ($this->settings['earliestTime'] ? strtotime ($this->settings['earliestTime']) : 0),
 			'thumbnailsize'	=> '640',
@@ -1120,28 +1132,8 @@ class telluswhere
 			'fields'		=> 'id,latitude,longitude,areaName,caption,datetime,hasPhoto,thumbnailUrl,shortlink,license',
 		);
 		
-		# Define the datasets and their API calls
-		$datasets = array (
-			'suggest'		=> array (
-				'apiUrl'		=> '/v2/photos',
-				'parameters'	=> array_merge ($parameters, array ('metacategory' => 'bad')),
-			),
-			'current'		=> array (
-				'apiUrl'		=> '/v2/photos',
-				'parameters'	=> array_merge ($parameters, array ('metacategory' => 'other')),
-			),
-		);
-		
-		# Ensure a dataset is specified, and that it is valid
-		if (!isSet ($_GET['dataset']) || !array_key_exists ($_GET['dataset'], $datasets)) {
-			$html = $this->page404 ();
-			echo $html;
-			return false;
-		}
-		$dataset = $_GET['dataset'];
-		
 		# Assemble the API call URL
-		$apiUrl = $this->settings['apiBase'] . $datasets[$dataset]['apiUrl'] . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($datasets[$dataset]['parameters']);
+		$apiUrl = $this->settings['apiBase'] . '/v2/photos' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
 		
 		# Obtain the data
 		$csv = file_get_contents ($apiUrl);

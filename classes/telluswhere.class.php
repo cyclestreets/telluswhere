@@ -1393,6 +1393,10 @@ class telluswhere
 		# Regenerate the session ID
 		session_regenerate_id ($deleteOldSession = true);
 		
+		# Set the top-right login area
+		// To finish
+		$this->template['login-status'] = '';
+		
 		# Return false if no user
 		if (!isSet ($_SESSION['user'])) {return false;}
 		

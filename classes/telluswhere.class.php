@@ -690,8 +690,18 @@ class telluswhere
 			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
 			.leaflet-popup-content-wrapper {width: 250px;}
 			.placeholderbubble p.caption {padding-left: 20px;}
-			.leaflet-popup-content p.caption {margin-bottom: 5px;}
+			.leaflet-popup-content p {margin-bottom: 5px;}
 			.placeholderbubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -10px; vertical-align: bottom;}
+			
+			/* \'Lines\' table style */
+			table.lines {border-collapse: collapse; /* width: 95%; */}
+			.lines td, .lines th {border-bottom: 1px solid #e9e9e9; padding: 6px 8px 2px 1px; vertical-align: top; text-align: left;}
+			.lines tr:first-child {border-top: 1px solid #e9e9e9;}
+			table.lines td.value p:first-child {margin-top: 0;}
+			table.lines td.value p:last-child {margin-bottom: 0;}
+			table.lines td:last-child ul:first-child {margin-top: 0;}
+			table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
+			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
 		
 		<p id="helptext">Zoom all the way in, then click on the map to set the marker.</p>
@@ -894,8 +904,8 @@ class telluswhere
 					return (str + \'\').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, \'$1\' + breakTag + \'$2\');
 				}' . "
 				
-				// Define HTML to be used in the popup
-				function popupHtml(properties) {
+				// Define HTML to be used in the popup (suggest)
+				function popupHtmlSuggest(properties) {
 					
 					var html = ''
 					+ '<div class=\"' + (properties.hasPhoto == 'yes' ? 'photo' : 'placeholder') + 'bubble' + '\">'
@@ -908,10 +918,29 @@ class telluswhere
 					return html;
 				}
 				
+				// Define HTML to be used in the popup (current)
+				function popupHtmlCurrent(properties) {
+					
+					var html = ''
+					+ '<div class=\"current\">'
+					+ ''
+					+ (properties.osmTags ? 
+						  '<p>Current cycle parking:</p>'
+						+ '<table class=\"lines compressed\">'
+						+ (typeof properties.osmTags.bicycle_parking !== 'undefined' ? '<tr><td>Type:</td><td>' + nl2br(properties.osmTags.bicycle_parking) + '</td></tr>' : '')
+						+ (typeof properties.osmTags.capacity !== 'undefined' ? '<tr><td>Capacity:</td><td>' + properties.osmTags.capacity + '</td></tr>' : '')
+						+ (typeof properties.osmTags.covered !== 'undefined' ? '<tr><td>Covered:</td><td>' + properties.osmTags.covered + '</td></tr>' : '')
+						+ '</table>'
+					  : '<p>Current cycle parking</p>')
+					+ '</div>';
+					
+					// Return HTML
+					return html;
+				}
 				
 				function setIcon(feature,latlng) {
 					var marker = L.marker(latlng, {icon: icons['already']});
-					marker.bindPopup(popupHtml(feature.properties));
+					marker.bindPopup(popupHtml" . ucfirst ($this->action) . "(feature.properties));
 					return marker;
 				}
 				

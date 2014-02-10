@@ -43,7 +43,7 @@ class telluswhere
 			'suggest' => array (
 				'description' => false,
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl',
 				'metacategory' => 'bad',
 			),
 			'current' => array (
@@ -688,8 +688,9 @@ class telluswhere
 			#helptext.display {background-color: yellow;}
 			#helptext.hide {background-color: transparent;}
 			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
-			.leaflet-popup-content {max-width: 250px;}
+			.leaflet-popup-content-wrapper {width: 250px;}
 			.placeholderbubble p.caption {padding-left: 20px;}
+			.leaflet-popup-content p.caption {margin-bottom: 5px;}
 			.placeholderbubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -10px; vertical-align: bottom;}
 		</style>
 		
@@ -893,28 +894,14 @@ class telluswhere
 					return (str + \'\').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, \'$1\' + breakTag + \'$2\');
 				}' . "
 				
-				function photoId2ImgTag (photoId) {
-					return '<img src=\"/location/'+ photoId +'/cyclestreets'+ photoId +'-size200.jpg\" alt=\"Image loading &hellip;\" />';
-				}
-				
 				// Define HTML to be used in the popup
 				function popupHtml(properties) {
 					
-					// Caption
-					var caption = '<p class=\"caption\">' + nl2br(properties.name,true) + '</p>';
-					
-					// The main bit of the content
-					// var mainContent = (properties.hasPhoto == 'yes'
-					// 	? '<p class=\"peekimage\">' + photoId2ImgTag (properties.id) + '</p>'
-					// 	: '<p class=\"leadintext\">What\'s been said about this location&hellip;</p>' +  '<p class=\"placeholdernote faded\">Placeholder (no photo)</p>'
-					// );
-					
-					// Result html
 					var html = ''
 					+ '<div class=\"' + (properties.hasPhoto == 'yes' ? 'photo' : 'placeholder') + 'bubble' + '\">'
 					// + '<p class=\"metadata small\">#<strong>' + properties.id + '</strong>' + '</p>'
-					// + mainContent
-					+ caption
+					+ '<p class=\"caption\">' + nl2br(properties.name,true) + '</p>'
+					+ (properties.hasPhoto == 'yes' ? '<img src=\"' + properties.thumbnailUrl + '\" alt=\"Image\" />' : '')
 					+ '</div>';
 					
 					// Return HTML

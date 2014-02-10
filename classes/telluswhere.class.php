@@ -45,12 +45,14 @@ class telluswhere
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl',
 				'metacategory' => 'bad',
+				'additionalMetadata' => 'landtype',
 			),
 			'current' => array (
 				'description' => false,
 				'url' => '/current/',
 				'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
 				'metacategory' => 'other',
+				'additionalMetadata' => 'landtype,type,capacity',
 			),
 			'about' => array (
 				'description' => false,
@@ -600,19 +602,24 @@ class telluswhere
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.add' . '?key=' . $this->settings['apiKey'];
 		
+		# Assemble the additional metadata
+		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
+		$additionalMetadata = application::arrayFields ($rawdata, $additionalMetadataFields);
+		
 		# Map the fields to the API
 		$data = array (
 			#!# Currently a fixed username/password
-			'username'		=> $this->settings['username'],
-			'password'		=> $this->settings['password'],
-			'metacategory'	=> $this->actions[$action]['metacategory'],
-			'category'		=> 'cycleparking',
-			'caption'		=> $rawdata['message'],
-			'latitude'		=> $rawdata['latitude'],
-			'longitude'		=> $rawdata['longitude'],
-			'zoom'			=> $rawdata['zoom'],
-			'basemap'		=> 'mapnik',
-			'credit'		=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
+			'username'				=> $this->settings['username'],
+			'password'				=> $this->settings['password'],
+			'metacategory'			=> $this->actions[$action]['metacategory'],
+			'category'				=> 'cycleparking',
+			'caption'				=> $rawdata['message'],
+			'latitude'				=> $rawdata['latitude'],
+			'longitude'				=> $rawdata['longitude'],
+			'zoom'					=> $rawdata['zoom'],
+			'basemap'				=> 'mapnik',
+			'credit'				=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
+			'additionalMetadata'	=> json_encode ($additionalMetadata),
 		);
 		
 		# Add the mediaupload field if a file has been submitted
@@ -1257,7 +1264,7 @@ class telluswhere
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',
-			'fields'		=> 'id,latitude,longitude,areaName,caption,datetime,hasPhoto,thumbnailUrl,shortlink,license',
+			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,thumbnailUrl,shortlink,license",
 		);
 		
 		# Assemble the API call URL

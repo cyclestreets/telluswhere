@@ -332,6 +332,9 @@ class telluswhere
 			# Full URLs should be left unchanged
 			if (preg_match ('|^https?://.+$|', $paths[$i])) {continue;}
 			
+			# Absolute URLs should be left unchanged
+			if (preg_match ('|^/.+$|', $paths[$i])) {continue;}
+			
 			# Pure anchors should be left changed
 			if (preg_match ('|^#.*$|', $paths[$i])) {continue;}
 			

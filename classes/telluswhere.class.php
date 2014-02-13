@@ -1348,7 +1348,7 @@ class telluswhere
 			'intelligence' => true,
 			'data' => $this->settings,
 			'attributes' => array (
-				
+				'url'	=> array ('default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

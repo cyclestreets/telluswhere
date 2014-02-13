@@ -78,6 +78,12 @@ class telluswhere
 				#!# Change to administrator when permissions system in place
 				'authentication' => true,
 			),
+			'admin' => array (
+				'description' => false,
+				'url' => '/admin/',
+				#!# Change to administrator when permissions system in place
+				'authentication' => true,
+			),
 			'login' => array (
 				'description' => false,
 				'url' => '/login/',
@@ -94,6 +100,9 @@ class telluswhere
 	}
 	
 	# Class properties
+	private $html = '';
+	private $databaseConnection = NULL;
+	private $forcedAction = false;
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	private $tmpDirectory = '/tmp/';
@@ -135,20 +144,27 @@ class telluswhere
 		$this->baseUrl = application::getBaseUrl ();
 		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
-		if (!$this->settings = application::assignArguments ($errors, $settings, $this->defaults (), __CLASS__, NULL, $handleErrors = true)) {
+		if (!$fixedSettings = application::assignArguments ($errors, $settings, $this->defaults (), __CLASS__, NULL, $handleErrors = true)) {
+			return false;
+		}
+		
+		# Add additional settings from the database, ensuring the database is set up
+		if (!$this->settings = $this->getSettings ($fixedSettings)) {
+			$this->html .= "\n<p class=\"warning\">The website could not be set up due to a configuration error. Please check back shortly.</p>";
+			echo $this->html;
 			return false;
 		}
 		
 		# Determine the tmp directory in use for file uploads and ensure it is writeable
-		if (!$this->tmpDirectory = $this->getTmpDirectory ()) {
-			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error.</p>";
+		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpDirectory)) {
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
 			echo $this->html;
 			return false;
 		}
 		
 		# Determine the style directory in use
 		if (!$this->styleDirectory = $this->getStyleDirectory ($this->settings['style'])) {
-			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error.</p>";
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
 			echo $this->html;
 			return false;
 		}
@@ -168,6 +184,7 @@ class telluswhere
 		
 		# Ensure the action is valid
 		$this->action = $_GET['action'];
+		if ($this->forcedAction) {$this->action = $this->forcedAction;}
 		$this->actions = $this->actions ();
 		if (!isSet ($this->actions[$this->action])) {
 			$html = $this->page404 ();
@@ -202,6 +219,57 @@ class telluswhere
 	}
 	
 	
+	# Function to add additional settings from the database, ensuring the database is set up
+	private function getSettings ($settings)
+	{
+		# Ensure the server has PDO SQLite support (usually enabled using "extension=php_pdo_sqlite.ext" in php.ini)
+		if (!extension_loaded ('pdo_sqlite')) {return false;}
+		
+		# Ensure the database directory exists and is writable
+		$databaseFolder = '/db/';
+		if (!$databaseDirectory = $this->getWritableDirectory ($databaseFolder)) {return false;}
+		
+		# Connect to the database, or create it if it does not yet exist (for PDO SQLite, a connection will attempt to create the file if it does not exist)
+		$databaseFile = $databaseDirectory . 'db.sqlite';
+		$databaseExists = is_readable ($databaseFile);
+		require_once ('database.php');
+		$this->databaseConnection = new database ('main', NULL, NULL, $databaseFile, $vendor = 'sqlite');
+		
+		# Create the structure if required
+		if (!$databaseExists) {
+			$this->createDatabaseStructure ($databaseFile);
+		}
+		
+		# Obtain the settings; if none, force showing the settings form for first-run and return the fixed settings unmodified
+		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('id' => 1))) {
+			$this->forcedAction = 'admin';
+			return $settings;
+		}
+		
+		# Add in the database settings
+		$settings += $databaseSettings;
+		
+		# Return the settings
+		return $settings;
+	}
+	
+	
+	# Function to bootstrap the database structure
+	private function createDatabaseStructure ($databaseFile)
+	{
+		# Define the table structure; note the SQLite format comments: http://stackoverflow.com/questions/7426205/
+		$query = "
+			CREATE TABLE IF NOT EXISTS main.settings (
+			  `id` INTEGER PRIMARY KEY,		-- Automatic key
+			  `url` VARCHAR(255) NOT NULL	-- URL of site (match)
+			);
+		";
+		
+		# Create the table structure
+		$this->databaseConnection->query ($query);
+	}
+	
+	
 	# Function to determine the style directory in use
 	private function getStyleDirectory ($style)
 	{
@@ -215,11 +283,11 @@ class telluswhere
 	}
 	
 	
-	# Function to determine the tmp directory in use for file uploads and ensure it is writeable
-	private function getTmpDirectory ()
+	# Function to determine the existence of a specified writable directory
+	private function getWritableDirectory ($folder)
 	{
 		# Check the existence of the directory
-		$directory = $_SERVER['DOCUMENT_ROOT'] . $this->tmpDirectory;
+		$directory = $_SERVER['DOCUMENT_ROOT'] . $folder;
 		if (!is_dir ($directory)) {return false;}
 		
 		# Ensure it is writeable
@@ -486,9 +554,10 @@ class telluswhere
 			}
 		}
 		
+#!# Move this check to constructor - should not have part of site working but not all
 		# Ensure the fileinfo extension is loaded
 		if (!function_exists ('finfo_open')) {
-			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error.</p>";
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
 			echo $this->html;
 			return false;
 		}
@@ -1229,6 +1298,70 @@ class telluswhere
 		
 		# Process the form
 		$result = $form->process ($html);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Settings page
+	private function admin ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Write the form into the template
+		$this->template['settings'] = $this->settingsForm ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Settings form
+	private function settingsForm ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Determine whether there are already settings present
+		$settingsPresent = (isSet ($this->settings['id']));		// id comes only from the database table
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'formCompleteText'		=> false,
+			'reappear'				=> true,
+			'databaseConnection'	=> $this->databaseConnection,
+		));
+		if (!$settingsPresent) {
+			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');
+		}
+		$form->dataBinding (array (
+			'database' => 'main',
+			'table' => 'settings',
+			'exclude' => array ('id'),
+			'data' => $this->settings,
+			'attributes' => array (
+				
+			),
+		));
+		if (!$result = $form->process ($html)) {
+			return $html;
+		}
+		
+		# Insert/update the data
+		if ($settingsPresent) {
+			$result = $this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
+		} else {
+			$result = $this->databaseConnection->insert ('main', 'settings', $result);
+		}
+		
+		# Confirm success
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$message  = "\n<p><strong>{$unicodeTick} The settings have been saved.</strong></p>";
+		$message .= "\n<p><a href=\"{$this->baseUrl}/\">Continue to the front page.</a></p>";
+		$html = $message;
 		
 		# Return the HTML
 		return $html;

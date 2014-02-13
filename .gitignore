@@ -2,10 +2,14 @@
 # Ignore the instantiated copy of the bootstrap files
 .config.php
 
-# Ignore any contents of the style folder, except the default
+# Ignore any contents of the style folder, except the default style folder
 style/*
 !style/readme.txt
 !style/default/
+
+# Ignore any contents of the database folder
+db/*
+!db/.gitignore
 
 # Ignore any contents of the tmp folder
 tmp/*

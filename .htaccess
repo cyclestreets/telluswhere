@@ -17,8 +17,8 @@ php_flag output_buffering Off
 # Run application pages
 RewriteEngine On
 RewriteRule ^$ index.html?action=home [L,QSA]
-RewriteRule ^(suggest|current|about|terms|contacts|data|login|logout)/$ index.html?action=$1 [L,QSA]
-RewriteRule ^(suggest|current|about|terms|contacts|data|login|logout)$ /$1/ [L,R=301]
+RewriteRule ^(suggest|current|about|terms|contacts|data|admin|login|logout)/$ index.html?action=$1 [L,QSA]
+RewriteRule ^(suggest|current|about|terms|contacts|data|admin|login|logout)$ /$1/ [L,R=301]
 RewriteRule ^data/(suggest|current).csv$ index.html?action=download&dataset=$1 [L,QSA]
 
 # If no match above, serve files directly, via the web application, for the configured style

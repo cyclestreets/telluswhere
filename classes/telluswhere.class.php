@@ -136,6 +136,7 @@ class telluswhere
 	{
 		# Set the include path to include libraries
 		set_include_path ($_SERVER['DOCUMENT_ROOT'] . '/libraries/' . PATH_SEPARATOR . get_include_path ());
+		set_include_path ($_SERVER['DOCUMENT_ROOT'] . '/_fckeditor/' . PATH_SEPARATOR . get_include_path ());
 		
 		# Load required libraries
 		require_once ('application.php');
@@ -1330,9 +1331,12 @@ class telluswhere
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
-			'formCompleteText'		=> false,
-			'reappear'				=> true,
-			'databaseConnection'	=> $this->databaseConnection,
+			'formCompleteText'			=> false,
+			'reappear'					=> true,
+			'databaseConnection'		=> $this->databaseConnection,
+			'richtextEditorToolbarSet'	=> 'BasicLongerFormat',
+			'richtextWidth'				=> '500px',
+			'richtextHeight'			=> '250px',
 		));
 		if (!$settingsPresent) {
 			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');

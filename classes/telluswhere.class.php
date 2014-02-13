@@ -1331,6 +1331,7 @@ class telluswhere
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
+			'autofocus'					=> true,
 			'formCompleteText'			=> false,
 			'reappear'					=> true,
 			'databaseConnection'		=> $this->databaseConnection,

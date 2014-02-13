@@ -11,6 +11,7 @@ class telluswhere
 			'applicationName'		=> 'Tell us where',
 			'style'					=> 'default',
 			'apiBase'				=> 'https://api.cyclestreets.net',
+			'cssFileLocation'		=> NULL,
 			'apiKey'				=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'feedbackRecipient'		=> NULL,
@@ -1336,6 +1337,7 @@ class telluswhere
 			'reappear'					=> true,
 			'databaseConnection'		=> $this->databaseConnection,
 			'richtextEditorToolbarSet'	=> 'BasicLongerFormat',
+			'richtextEditorAreaCSS'		=> $this->settings['cssFileLocation'],
 			'richtextWidth'				=> '500px',
 			'richtextHeight'			=> '250px',
 		));

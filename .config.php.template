@@ -4,6 +4,7 @@
 $config = array (
 	'applicationName'	=> 'Tell us where',
 	'style'				=> 'default',
+	'cssFileLocation'	=> '/css/style.css',
 	'apiKey'			=> NULL,
 	'feedbackRecipient'	=> NULL,
 	'aboutPageHtml'		=> NULL,

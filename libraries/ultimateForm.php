@@ -185,9 +185,10 @@ class form
 		'size'								=> 30,								# Global setting for input widget - size
 		'cols'								=> 30,								# Global setting for textarea cols - number of columns
 		'rows'								=> 5,								# Global setting for textarea cols - number of rows
+		'richtextEditorToolbarSet'			=> 'pureContent',					# Global setting for richtext editor toolbar set
+		'richtextEditorAreaCSS'				=> '',								# Global setting for richtext editor CSS
 		'richtextWidth'						=> '100%',							# Global setting for richtext width
 		'richtextHeight'					=> '400px',							# Global setting for richtext height
-		'richtextEditorToolbarSet'			=> 'pureContent',					# Global setting for richtext editor toolbar set
 		'mailAdminErrors'					=> false,							# Whether to mail the admin with any errors in the form setup
 		'attachments'						=> false,							# Whether to send uploaded file(s) as attachment(s) (they will not be unzipped)
 		'attachmentsMaxSize'				=> '10M',							# Total maximum attachment(s) size; attachments will be allowed into an e-mail until they reach this limit
@@ -972,7 +973,7 @@ class form
 			'editorConfig'				=> array (	# Editor configuration - see http://wiki.fckeditor.net/Developer's_Guide/Configuration/Configurations_Settings
 				'CustomConfigurationsPath'	=> '/_fckeditor/fckconfig-customised.js',
 				'FontFormats'				=> 'p;h1;h2;h3;h4;h5;h6;pre',
-				'EditorAreaCSS'				=> '',
+				'EditorAreaCSS'				=> $this->settings['richtextEditorAreaCSS'],
 				'StartupFocus'				=> false,
 				'ToolbarCanCollapse'		=> false,
 				'LinkUpload'				=> false,	// Whether the link box includes the [quick]'upload' tab

@@ -484,8 +484,8 @@ class database
 	{
 		# Obtain the comments by obtaining the original CREATE TABLE SQL
 		$ddlQuery = "SELECT name, sql FROM sqlite_master WHERE type='table' AND name='{$table}' ORDER BY name;";
-		$originalCreateTable = $this->getOneField ($ddlQuery, 'sql');
-		$lines = explode ("\n", trim ($originalCreateTable));
+		$originalCreateTableQuery = $this->getOneField ($ddlQuery, 'sql');
+		$lines = explode ("\n", trim ($originalCreateTableQuery));
 		$comments = array ();
 		foreach ($lines as $id => $line) {
 			$line = str_replace ('`', '', trim ($line));
@@ -503,7 +503,7 @@ class database
 				'Null'			=> !$field['notnull'],
 				'Key'			=> ($field['pk'] == '1' ? 'PRI' : false),
 				'Default'		=> $field['dflt_value'],
-				'Extra'			=> NULL,		// No support for this in SQLite
+				'Extra'			=> ($field['type'] == 'INTEGER' && $field['pk'] == '1' ? 'auto_increment' : NULL),
 				'Privileges'	=> NULL,		// No support for this in SQLite
 				'Comment'		=> $comments[$field['name']],
 			);

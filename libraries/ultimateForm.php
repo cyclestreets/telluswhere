@@ -56,8 +56,8 @@
  * @package ultimateForm
  * @license	http://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-13, Martin Lucas-Smith, University of Cambridge
- * @version 1.20.10
+ * @copyright Copyright  2003-14, Martin Lucas-Smith, University of Cambridge
+ * @version 1.20.12
  */
 class form
 {
@@ -185,6 +185,9 @@ class form
 		'size'								=> 30,								# Global setting for input widget - size
 		'cols'								=> 30,								# Global setting for textarea cols - number of columns
 		'rows'								=> 5,								# Global setting for textarea cols - number of rows
+		'richtextWidth'						=> '100%',							# Global setting for richtext width
+		'richtextHeight'					=> '400px',							# Global setting for richtext height
+		'richtextEditorToolbarSet'			=> 'pureContent',					# Global setting for richtext editor toolbar set
 		'mailAdminErrors'					=> false,							# Whether to mail the admin with any errors in the form setup
 		'attachments'						=> false,							# Whether to send uploaded file(s) as attachment(s) (they will not be unzipped)
 		'attachmentsMaxSize'				=> '10M',							# Total maximum attachment(s) size; attachments will be allowed into an e-mail until they reach this limit
@@ -957,14 +960,14 @@ class form
 			'disallow'				=> false,		# Regular expression against which the submission must not validate
 			'current'				=> false,	# List of current values which the submitted value must not match
 			'discard'				=> false,	# Whether to process the input but then discard it in the results
-			'width'					=> '100%',		# Width
-			'height'				=> '400px',		# Height
+			'width'					=> $this->settings['richtextWidth'],		# Width
+			'height'				=> $this->settings['richtextHeight'],		# Height
 			#!# autofocus not yet supported in fckeditor itself
 			'autofocus'				=> false,	# HTML5 autofocus (true/false)
 			'default'				=> '',		# Default value (optional)
 			'datatype'				=> false,	# Datatype used for database writing emulation (or caching an actual value)
 			'editorBasePath'		=> '/_fckeditor/',	# Location of the editor files
-			'editorToolbarSet'		=> 'pureContent',	# Editor toolbar set
+			'editorToolbarSet'		=> $this->settings['richtextEditorToolbarSet'],	# Editor toolbar set
 			'CKFinder'						=> false,	// Whether to use CKFinder or the standard finder
 			'editorConfig'				=> array (	# Editor configuration - see http://wiki.fckeditor.net/Developer's_Guide/Configuration/Configurations_Settings
 				'CustomConfigurationsPath'	=> '/_fckeditor/fckconfig-customised.js',
@@ -7020,6 +7023,9 @@ class form
 					break;
 				
 				# INT (numeric) field
+				case (preg_match ('/(integer)/i', $type, $matches)):
+					$matches[2] = 11;
+					// Fall through to rest of logic
 				case (preg_match ('/(int|tinyint|smallint|mediumint|bigint)\(([0-9]+)\)/i', $type, $matches)):
 					$unsigned = substr_count (strtolower ($type), ' unsigned');
 					if ($int1ToCheckbox && $matches[2] == '1') {

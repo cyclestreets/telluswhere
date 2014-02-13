@@ -1340,7 +1340,7 @@ class telluswhere
 		$form->dataBinding (array (
 			'database' => 'main',
 			'table' => 'settings',
-			'exclude' => array ('id'),
+			'intelligence' => true,
 			'data' => $this->settings,
 			'attributes' => array (
 				

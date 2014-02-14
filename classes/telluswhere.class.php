@@ -1313,7 +1313,8 @@ class telluswhere
 		$html = '';
 		
 		# Write the form into the template
-		$this->template['settings'] = $this->settingsForm ();
+		$this->template['contents']  = "\n<h2>Settings</h2>";
+		$this->template['contents'] .= $this->settingsForm ();
 		
 		# Return the HTML
 		return $html;

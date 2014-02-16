@@ -323,13 +323,6 @@ class telluswhere
 		
 		# Show generic text if custom 404 not available
 		$page = '/404.html';
-		$path = $this->styleDirectory . $page;
-		$file = $_SERVER['DOCUMENT_ROOT'] . $path;
-		if (!is_readable ($file)) {
-			$html  = "\n<h1>Page not found</h1>";
-			$html .= "\n<p>Sorry, that page was not found. Please check the URL or use the menu to navigate elsewhere.</p>";
-			return $html;
-		}
 		
 		# Get the template
 		$templateHtml = $this->convertDesignerHtmlToTemplate ($page);
@@ -365,6 +358,13 @@ class telluswhere
 		# Determine the location
 		$path = $this->styleDirectory . $page;
 		$file = $_SERVER['DOCUMENT_ROOT'] . $path;
+		
+		# If the file does not exist, fall back to the default (which will exist, as it is part of the repository)
+		if (!is_readable ($file)) {
+			$this->styleDirectory = $this->getStyleDirectory ('default');
+			$path = $this->styleDirectory . $page;
+			$file = $_SERVER['DOCUMENT_ROOT'] . $path;
+		}
 		
 		# Load the file
 		$html = file_get_contents ($file);

@@ -1349,7 +1349,6 @@ class telluswhere
 		
 		# Set the processing options
 		$form->setOutputEmail ($this->settings['feedbackRecipient'], $this->settings['administratorEmail'], $this->settings['applicationName'] . ' contact form', NULL, $replyToField = 'email');
-		$form->setOutputScreen ();
 		
 		# Process the form
 		$result = $form->process ($html);

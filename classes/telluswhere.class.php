@@ -1344,9 +1344,13 @@ class telluswhere
 		# Determine whether there are already settings present
 		$settingsPresent = (isSet ($this->settings['id']));		// id comes only from the database table
 		
+		# Add form styles
+		$html .= "\n<link rel=\"stylesheet\" href=\"/css/generic.css\" />";
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
+			'div'						=> 'ultimateform horizontalonly',
 			'autofocus'					=> true,
 			'formCompleteText'			=> false,
 			'reappear'					=> true,

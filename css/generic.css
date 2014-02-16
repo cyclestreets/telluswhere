@@ -1,0 +1,674 @@
+/* Common stylesheet used by all sites on the server */
+
+/* Body, layout and visibility */
+#standards, p.standards, p.skipnavigation {display: none;}
+p.timestamp {text-align: right;}
+
+/* Clearance */
+.clearright {clear: right;}
+
+/* Firefox placeholder styling - see http://stackoverflow.com/questions/9723716/firefox-placeholder-color-changes */
+input::-webkit-input-placeholder, #purecontenteditor input::-webkit-input-placeholder, .ultimateform input::-webkit-input-placeholder {color: #999;}
+input:-moz-placeholder,           #purecontenteditor input:-moz-placeholder,           .ultimateform input:-moz-placeholder           {color: #999;}
+input:-ms-input-placeholder,      #purecontenteditor input:-ms-input-placeholder,      .ultimateform input:-ms-input-placeholder      {color: #999;}
+
+/* General alignment */
+p.alignright {text-align: right; margin-left: 12px;}
+
+/* Tables */
+th {font-weight: bold; text-align: left;}
+table caption {line-height: 1.2em;}
+table td.highlighted {background-color: #ccf; font-weight: bold;}
+
+/* 'Border' table style */
+table.border {border: 1px; border-collapse: collapse; border-spacing: 0px;}
+table.border td, table.border th {border: 2px #eee solid; padding: 4px;}
+
+/* 'Lines' table style */
+table.lines {border-collapse: collapse; /* width: 95%; */}
+.lines td, .lines th {border-bottom: 1px solid #e9e9e9; padding: 6px 4px 2px; vertical-align: top; text-align: left;}
+/* .lines td:first-child, .lines th:first-child {width: 150px;} */
+.lines tr:first-child {border-top: 1px solid #e9e9e9;}
+.lines td h3 {text-align: left; padding-top: 20px;}
+.lines p {text-align: left;}
+.lines td.noline {border-bottom: 0;}
+table.lines td.value p:first-child {margin-top: 0;}
+table.lines td.value p:last-child {margin-bottom: 0;}
+table.lines td:last-child ul:first-child {margin-top: 0;}
+table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
+table th.background, table td.background {background-color: #eee;}
+table th.border, table td.border {border: 1px solid gray;}
+
+table.compressed td {padding: 0 4px;}
+table.spaced td {padding: 8px 4px;}
+table tr.spaced td {padding-top: 2em;}
+table tr.grouplast td {padding-bottom: 2em;}
+table.small td {font-size: 11px;}	/* #!# Doesn't work because .small below overrides */
+table.alternate tr:nth-child(even) td {background-color: #f7f7f7;}
+table.lines.regulated td.key, table.lines.regulated td:first-child {width: 150px;}
+table.spaced7525 {width: 99%;}
+table.spaced7525 td:first-child {width: 75%;}
+.lines td.noline, table.noline td, table.lines.noline tr:first-child {border-bottom: 0; border-top: 0;}
+table.rightkey td.key {text-align: right;}
+
+/* 'Boxy' lines table style - apply both lines and boxy to get this */
+table.boxy {border-collapse: separate; border-spacing: 0 10px;}
+.boxy td, .boxy th {border-top: 1px solid #e9e9e9; padding: 5px;}
+.boxy td:first-child {border-left: 1px solid #e9e9e9;}
+.boxy td:last-child {border-right: 1px solid #e9e9e9;}
+
+/* Code box style */
+div.code {background-color: #fcfaf3; color: #0b0b0b; border: 1px solid #eee; padding: 10px;}
+div.code span {color: #888;}
+
+
+/* Additions to border/lines styles */
+table.centred td {text-align: center; vertical-align: middle;}
+table.figures td {text-align: right;}
+table.figures tr td:first-child {text-align: left;}
+
+/* Table hover class to add background color on mouse tracking - IE6 doesn't yet support */
+table.hover tr:hover {background-color: #eaf5fd;}
+
+/* Table style which is similar to div.graybox */
+table.graybox {border-collapse: separate; border-spacing: 0 10px;}
+table.graybox td {vertical-align: top; padding: 10px 0; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; background-color: #fcfcfc;}
+table.graybox td:nth-child(2) > h3 {margin-top: 0; padding-top: 0;}
+table.graybox td:first-child img {margin-right: 20px;}
+
+/* Portal style - images on the left and small text on the right containing links */
+table.portal {border-collapse: collapse; border-bottom: 1px solid #eee;}
+table.portal td {vertical-align: top; padding-top: 10px; padding-bottom: 10px; border-top: 1px solid #eee; padding-right: 15px;}
+table.portal h3 {font-size: 0.87em; margin-top: 0; padding-top: 0; color: #555; font-weight: bold;}
+table.portal h3 span {font-weight: normal;}
+table.portal p {margin-top: 0; padding-top: 0; margin-bottom: 0; padding-bottom: 7px;}
+table.portal td:first-child img {border: 0; width: 95px;}
+table.portal.largeimages td:first-child {width: 180px;}	/* Needed in case no image present in any row */
+table.portal.largeimages td:first-child img {border: 0; width: 180px;}
+table.portal.largeheadings h3 {font-size: 1.05em;}
+table.portal td:first-child a {border: 0;}
+table.portal td p {font-size: 0.83em;}
+table.portal td ul {margin-top: 8px; padding-top: 0; font-size: 0.83em; margin-left: 0; padding-left: 0;}
+table.portal td ul.spaced li {margin-bottom: 5px;}
+table.portal td ul li {margin: 0; list-style: none; padding-left: 13px; background: url(/images/general/bullet_arrow_right.png) no-repeat -3px 1px; text-align: left;}
+table.portal td ul.inline {padding-bottom: 0; margin-bottom: 2px;}
+table.portal table td {border: 0;}
+table.portal.spacedparagraphs p {padding-bottom: 0.6em;}
+table.portal.imageborders td img {border: 1px solid #ccc;}
+table.news.portal td:first-child img {width: 150px;}
+table.news.portal td:first-child {width: 155px;}
+
+
+
+/* Boxes */
+/* Yellow box with dotted top/bottom */	div.box {border-top: 1px dashed gray; border-bottom: 1px dashed gray; padding: 10px 5px; margin: 8px 0;}
+										div.box, div.box td {background-color: #fff9e3;}
+/* Basic, gray solid-edged box */		div.basicbox {border: 1px dotted gray; padding: 12px; margin-top: 5px;}
+/* Red solid-edged box */				div.announcement, div.warningbox {border: 1px solid red; padding: 4px 8px; margin-top: 5px; margin-bottom: 10px;}
+/* Right-floated mini-menu */			div.contextbox {float: right; width: 20%; border: 1px dashed gray; margin: 0 0 30px 15px; padding: 10px; background-color: white;}
+/* Right-floated mini-menu */			div.contextbox2 {float: right; width: 25%; border-left: 1px dashed #ccc; margin: 0 0 30px 15px; padding: 10px;}
+div.contextbox2 ul {margin-left: 15px;}
+
+div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
+div.graybox h2, div.graybox h3 {margin-top: 0.4em;}
+div.graybox p {text-align: left; margin-top: 10px;}
+/* div.graybox img {border: 1px solid #999; margin-right: 10px;} */
+p.yellowwarning {border: 1px solid #fc9; background-color: #ffc; padding: 5px;}
+
+/* Superscript correction - see http://lists.evolt.org/harvest/detail.cgi?w=20060918&id=13118 */
+sup {position: relative; top: -3px; vertical-align: top; font-size: 82%;}
+
+/* Nobreak */
+.nobr {white-space: nowrap;}
+
+/* Forced page-breaks */
+.pagebreak {page-break-before: always;}
+
+/* Forms */
+div.jumplist form, form.inline, form.inline input, form.inline textarea {display: inline;}
+.button {background-color: #eee; border-color: #eee #999 #999 #eee; border-style: solid; border-width: 2px; color: #000; padding: 2px; border-radius: 2px; -moz-border-radius: 2px; -webkit-border-radius: 2px; white-space: nowrap;}
+ul.language li input {padding: 0; margin: 0; border: 1px solid transparent; background: none; cursor: pointer;}
+* html ul.language li input {border: 0;}
+ul.language li.selected input {border-color: gray;}
+
+
+/* Mini-threads */
+ul.thread {margin: 10px 0; border-top: 2px solid #ddd; border-bottom: 2px solid #ddd; text-align: center; padding: 5px 0;}
+ul.thread li {display: inline; list-style-type: none;}
+ul.thread li a {padding: 7px 5px; margin: 0 10px;}
+
+/* Spam trap */
+#spamtrap, p.spamtrap {display: none;}
+
+/* Warning and note colourings */
+.error, .important, .warning, .failure {color: red;}
+.pleasenote {color: #990000;}
+.success {color: green;}
+.faded {color: #bbb/*#666*/;}
+.highlight, .highlight td {background-color: #ff9;}
+.comment {color: #777;}
+.warningreminder {border: 2px dotted red; padding: 8px; margin-bottom: 50px;}
+span.new {color: #cc3366;}
+h2.new, h3.new, h4.new, p.new, li.new, a.new {padding-left: 32px; background: url(/images/general/new.gif) no-repeat 0 0;}
+h2.updated, h3.updated, h4.updated, p.updated, li.updated, a.updated {padding-left: 50px; background: url(/images/general/updated.gif) no-repeat 0 center;}
+.cancel:hover {background-color: red; color: white;}
+
+/* Signature */
+p.signature {text-align: right; font-style: italic;}
+
+/* Lists, paragraphs and threads */
+.compact li, li.compact {margin-top: 0; margin-bottom: 0;}
+.spaced li, li.spaced {margin-top: 12px;}
+.spaced .normal li, .spaced li.normal {margin-top: 3px;}
+p.spaced {margin-top: 3em;}
+.heavilyspaced li, li.heavilyspaced {margin-top: 24px;}
+ul.nobullet, .nobullet ul {list-style-type: none; margin: 0; padding: 0;}
+ul.nobullet li, .nobullet ul li {list-style: none;}
+ul.inline, ul.thread, ul.sectionmenu, .sectionmenu ul {margin: 10px 0 20px; padding: 0;}
+ul.inline li, ul.thread li, ul.sectionmenu li, .sectionmenu ul li {display: inline; list-style-type: none; padding: 0 10px;}
+ul.inline li {white-space: nowrap;}
+ul.noindent {margin-left: 10px; padding-left: 10px;}
+ul.noindent ul {margin-left: 10px; padding-left: 10px;}
+ul.sectionmenu, .sectionmenu ul, ul.thread {border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; text-align: center;}
+div.splitlist ul {float: left; margin-left: 10px; padding-left: 20px; margin-bottom: 20px;}
+ul.sectionmenu li a {white-space: nowrap;}
+ul.projectlist li {font-weight: bold; margin-top: 1em;}
+ul.projectlist li li {font-weight: normal; margin-top: 0;}
+ul.boxylist {margin-left: 0; padding-left: 0;}
+ul.boxylist li {list-style-type: none; border: 1px solid #ccc; background-color: #f1f1f1; width: 50%; margin-top: 0.5em;}
+ul.boxylist li a {display: block; padding: 8px}
+table.splitlist {table-layout: fixed;}
+table.splitlist td {width: 30%  /* 30% is a reasonably safe approximation */ ; padding-right: 1em; vertical-align: top;}
+table.splitlist td ul li {text-align: left;}
+table.autowidth {table-layout: auto;}
+table.autowidth td {width: auto;}
+dl.spaced dt {margin-top: 1.2em; font-weight: bold;}
+dl.spaced dd {margin-top: 0.5em;}
+
+/* PDE expandable list */
+ul.pde a, ul.pde a:link, ul.pde a:visited, ul.pde a:hover, ul.pde a:active {text-decoration: none; background-color: none; border-bottom: 0; font-weight: bold;}
+ul.pde img {border: 0; margin: 0; padding: 0; vertical-align: middle;}
+ul.pde, ul.pde li {margin-left: 0; padding-left: 0; list-style: none;}
+ul.pde li {font-weight: bold; vertical-align: middle; line-height: 27px;}
+ul.pde li li, ul.pde a.unclassified {font-weight: normal;}
+ul.pde ul {margin-left: 1em; padding-left: 1em;}
+/* ul.pde li {padding-left: 30px;} */	/* dynamically added to LIs with nested ULs */
+ul.pde li.parent {padding-left: 0;}
+ul.pde li.parent img {border: none; padding-right: 3px;}
+ul.pde li.current li {padding-left: 0;}	/* dynamically added to LIs with nested ULs and STRONG elements in them */
+ul.pde .hide {position: absolute; top: 0; left: -4000px;}	/* The class to hide nested ULs */
+ul.pde .show {position: static; display:  table; top: 0; left: 1em;}	/* The class to show nested ULs */
+
+/* Expandable headings */
+div.expandable .collapse p {padding: 0 10px 1em}
+div.expandable .switch {text-align: right; padding: 3px}
+div.expandable .post .switch {position: static; text-align: right}
+div.expandable .post .main {margin-bottom: .3em; padding-bottom: 0}
+div.expandable .summary {margin-bottom: .3em; padding: 1em; border: 1px solid #e8e7e8; background-color: #f8f7f8}
+div.expandable .expand {margin: 0; padding: 0; padding-bottom: .75em}
+div.expandable .expand a:link, div.expandable .expand a:visited {border: 1px dotted #ccc; border-width: 0; text-decoration: none;}
+div.expandable .expand a:active {border-style: solid; background-color: #f0f0f0; text-decoration: underline; outline: 0 none}
+div.expandable .expand a {display: block; padding: 3px 10px;}
+div.expandable .expand      a:link, div.expandable .expand      a:visited {border-width: 1px; background-image: url(/images/general/arrow-down.gif); background-repeat: no-repeat; background-position: 98% 50%;}
+div.expandable .expand a.open:link, div.expandable .expand a.open:visited {border-style: solid; background: #eee url(/images/general/arrow-up.gif) no-repeat 98% 50%;}
+
+/* Hierarchical listing */
+ul.hierarchicallisting li {margin-top: 5px; margin-bottom: 5px;} 
+ul.hierarchicallisting li span {opacity: 0.4;}
+ul.hierarchicallisting li span {filter: alpha(opacity=40); -moz-opacity: 0.4; -khtml-opacity: 0.4;}	/* Vendor-specific hacks */
+ul.hierarchicallisting li a.minilink {color: #bbb; border: 1px solid #ddd; padding: 0 3px; font-size: 0.81em;}
+ul.hierarchicallisting li a.minilink:hover {text-decoration: none; background-color: #eee; border-color: #bbb;}
+
+
+/* Callouts (based on http://www.mikepick.com/news/archives/000106.html) */
+div.pullquote {float: right; width: 20em; padding: 10px 0 10px 20px; margin: 0; font-family: Lucida Grande, Tahoma, sans-serif; font-size: 1.2em; line-height: 22px; text-indent: 30px; text-align: right; font-style: italic;}
+div.pullquote p {color: #888;}
+div.pullquote p:first-line {font-size: 1.4em; line-height: 36px; color: #888;}
+div.pullquote p:first-letter {font-size: 1.2em; padding-right: 2px;}
+div.pullquoteleft {float: left; padding: 10px 20px 0 10px;}
+
+
+
+
+/* Navigation menu (previous/current/next) */
+ul.navigationmenu {clear: right; margin: 0; text-align: right; float: right; padding-top: 0; border-bottom: 1px solid #eee; padding-left: 0; padding-right: 0.8em;}
+ul.navigationmenu li {display: inline; text-align: right; float: left; margin-left: 0.5em; width: 1.5em; padding-bottom: 1px;}
+ul.navigationmenu li.root {margin-left: 0.8em; text-align: center; width: 14em;}
+ul.navigationmenu a {border: 1px solid white; padding: 0.1em 0.5em;}
+ul.navigationmenu a:hover {border: 1px solid #ddd;}
+ul.navigationmenu li.root a {width: 13em; display: block;}
+
+/* First/Previous/Index/Next/Last buttons */
+div.location {float: right;}
+div.location ul {display: block;}
+div.location p {clear: right;}
+div.location ul li {float: left; margin-left: 10px; padding: 0; list-style: none; display: block;}
+div.location ul li.previous, div.location ul li.next {width: 85px;}
+div.location ul li.index {width: 100px;}
+div.location ul a {display: block; padding: 1px 5px; border: 1px solid gray; text-align: center;}
+div.location ul li.first a, div.location ul li.last a {border: 1px solid #ddd;}
+
+
+/* Rules */
+hr {border: 0; height: 1px; color: #e0e0e0; background-color: #e0e0e0;}
+
+/* Miscellaneous */
+p[align=right] {text-align: right;} /* Only works for Mozilla */
+.signature {text-align: right; font-style: italic;}
+.small {font-size: 11px;}
+
+/* Photo gallery */
+div.gallery div.image {display: block; float: left; text-align: center;}
+div.gallery div.image img {border: 1px solid #333; margin: 30px 10px 5px 0;}
+div.gallery div.image p {margin-top: 0; margin-bottom: 0;}
+
+/* Photo gallery (anotehr) */
+.lightboxgallery {overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+.lightboxgallery img {float: left; padding: 5px; border: 1px solid #ccc; margin: 0 10px 10px 0; }
+
+/* Directory listings */
+ul.filelist li {list-style: none; color: #999; font-size: 82%;}
+ul.filelist li a {font-weight: bold; font-size: 122%; margin-right: 5px;}
+ul.filelist li a img {border: 0;}
+
+/* Search results */
+.search #searchform form {margin-top: 2em;}
+.search ul.navigationmenu img, .search ul.navigationmenu a {border: 0; margin: 0; padding: 0;}
+.search ul.navigationmenu img {vertical-align: middle;}
+.search ul.navigationmenu li.previous {text-align: right; width: 20px;}
+.search ul.navigationmenu li.next {text-align: left; width: 20px;}
+.search ul.navigationmenu li.current {width: 60px; text-align: center;}
+.search dl dd.attributes {font-size: 0.83em; padding: 0; margin-top: 3px;}
+
+ol.searchresults dt {padding-bottom: 1.5em;}
+ol.searchresults li ul {list-style-type: none; margin: 0; padding: 0;}
+ol.searchresults li li {padding-bottom: 0.1em;}
+ol.searchresults li li.attributes {font-style: italic;}
+
+/* Big search form */
+.largesearch input, .largesearch search {color: #603; font-size: 1.4em; padding: 0.2em;}
+
+/* Search highlighting */
+p.referer {border: 1px solid #aaa; background-color: #eee; color: #333; font-style: italic;}
+span.referer {background-color: #eee;}
+
+/* External links - add arrow - CSS2 not supported by IE<7 */
+a[target=external]:link, a[target=external]:visited, a[target=_blank]:link, a[target=_blank]:visited {background-image: url(/images/general/offsite.gif); background-repeat: no-repeat; background-position: 100% 60%; padding-right: 13px;}
+a[target=external].noarrow:link, a[target=external].noarrow:visited, a[target=_blank].noarrow:link, a[target=_blank].noarrow:visited {background: none; padding-right: 0; border-bottom: 0;}
+.imagelinks a, a.imagelinks {border: 0; padding: 0;}
+
+/* Table-like definition list - see http://archivist.incutio.com/viewlist/css-discuss/27940 */
+dl.table dt {font-weight: bold; text-align: right; float: left; width: 10em; margin: 0 0 1em 0; /* margin: match the dd */}
+dl.table dd {clear: right; margin: 0 0 1em 11em; font-style: normal; /* margin: match the dt except for the left margin */}
+
+/* Other definition lists */
+dd.smaller {font-size: 0.83em;}
+
+/* Switchable gallery styles */
+div.switchablegallery {line-height: 1.8em;}
+div.switchablegallery p.jumplist {margin-left: 20px;}
+div.switchablegallery p.jumplist a {color: #333; padding: 0px 4px; border: 1px solid #ccc;}
+div.switchablegallery p.jumplist a:visited, div.switchablegallery p.jumplist a.first {background-color: #eee;}
+div.switchablegallery p.jumplist a.selected, div.switchablegallery p.jumplist a.selected:visited {background-color: #bbb;}
+div.switchablegallery p.jumplist a:hover {border: 1px solid #333; text-decoration: none;}
+div.switchablegallery img {border: 1px solid #ccc;}
+
+/* Callouts (based on http://www.mikepick.com/news/archives/000106.html) */
+div.callout {float: right; width: 50%; padding: 10px 0 10px 14px; margin: 0; font-family: Lucida Grande, Tahoma, sans-serif; font-size: 1.4em; line-height: 22px; color: #888; text-indent: 30px; text-align: right;}
+div.callout:first-line {font-size: 1.8em; line-height: 36px; color: #888;}
+div.callout:first-letter {font-size: 1.4em; padding-right: 2px;}
+
+/* Acronyms, 
+abbreviations, definitions */
+acronym, abbr, defn {cursor: help; border-bottom: 1px dotted #000;}
+
+/* Sitemap */
+div.sitemap li {padding-top: 10px; font-weight: bold;}
+div.sitemap li li {padding-top: 0; font-weight: normal;}
+
+/* Biography pages */
+img.biography {position: absolute; /*height: 120px;*/ width: 100px; border: 0; margin-left: 200px; margin-top: 10px;}
+ul.biography {height: 150px;}
+
+/* Images (with or without caption) */
+/* NB div's can't be used instead of tables [perhaps until p+p is supported by IE] because the size of the image changes, so the text wouldn't line up */
+table.photo, table.diagram {caption-side: bottom; font-style: italic;}
+table.photo caption, table.diagram caption {padding: 0 12px;}
+table.diagram img, img.diagram {border: 0;}
+table.photo img, img.photo {border: 1px solid black;}
+.diagram, .photo {margin: 8px 0;} /* Default, overriden in following lines */
+.diagram *, .photo * {background-color: white;}
+.centre {display: block; margin-left: auto; margin-right: auto;}
+.left {float: left; margin-right: 24px;}	/* Deprecated - use align instead */
+.right {float: right; margin-left: 24px;}	/* Deprecated - use align instead */
+img[align=left], table[align=right] {margin-right: 24px; margin-left: 0;}
+img[align=right], table[align=right] {margin-left: 24px; margin-right: 0;}
+.imagelinks a, a.imagelinks {border: 0; padding: 0;}
+img.shiftup, p.shiftup, div.shiftup {position: relative; top: -2.5em;}
+div.imagestrip {border-left: 1px dashed #ccc; padding-left: 10px; float: right; position: relative; top: -2.5em; margin-left: 20px; background-color: white;}
+div.imagestrip img {border: 1px solid gray; display: block; margin-bottom: 10px;}
+
+/* Action buttons, for use with icons from www.famfamfam.com */
+ul.actions {margin: 0; padding: 0; float: right; display: block; margin-left: 10px;}
+ul.actions.inline {float: none; margin-top: 2em;}
+ul.actions li {list-style: none; margin-bottom: 1px;}
+ul.actions.inline li {display: inline; margin-right: 5px;}
+ul.actions li a, ul.actions li form, p.actions a, a.actions, ul.actions li span.actions {border-bottom: 0; border: 1px solid #ddd; padding: 4px 8px 2px; -moz-border-radius: 4px; -webkit-border-radius: 4px; width: 185px;}
+ul.actions li form, ul.actions li span.actions {padding: 0; width: /* 185px + 2*8px = */ 201px;}
+ul.actions li form input, ul.actions li span.actions {width: 100%; border: 0; background-color: white; text-align: left; padding: 4px 8px 2px;}
+ul.actions li a, ul.actions li form input.action, ul.actions li span.actions {display: block;}
+p.actions a, a.actions {padding: 10px 8px 2px;}
+ul.actions.inline li a {display: inline; width: auto;}
+ul.actions li a:hover, ul.actions li form:hover, a.actions:hover {border-color: #aaa;}
+ul.actions li form input:hover {cursor: pointer; cursor: hand;} /* See http://www.quirksmode.org/css/cursor.html#note */
+ul.actions li a img, a.actions img {vertical-align: top; width: 16px; height: 16px; border: 0;}
+img.icon {width: 16px; height: 16px; border: 0; vertical-align: middle;}
+a.redborder, body ul.tabs li a.redborder {border: 2px solid red; padding: 3px 6px;}
+
+ul.actions li a, p.actions a {border-bottom: 0; border: 1px solid #ddd; padding: 4px 8px 2px; -moz-border-radius: 4px; width: 185px;}
+ul.actions li a {display: block;}
+ul.actions.left {float: none;}
+p.actions a {padding: 10px 8px 2px;}
+/* Pagination */
+p.pagination, p.orderby {font-size: 83%;}
+p.pagination, p.orderby {line-height: 1.8em; margin: 2px 0; border-bottom: 0px solid #f7f7f7;}
+p.pagination strong, p.pagination span, p.orderby strong {color: #aaa;}
+p.pagination a, p.orderby a {color: #333;}
+p.pagination a, p.pagination strong, p.pagination span, p.orderby a, p.orderby strong {padding: 1px 5px; border: 1px solid #ccc;}
+p.pagination strong, p.orderby strong {border-color: #333;}
+p.pagination a.first
+p.pagination a.selected, p.orderby a.selected {background-color: #bbb;}
+p.pagination a:hover, p.orderby a:hover {border-color: #6100c1; background-color: #f0e1ff; text-decoration: none;}
+p.pagination {margin-top: 2em; margin-bottom: 2em;}
+
+/* Pagination links */
+ul.paginationlinks {height: 3em; margin: 0; padding-top: 0; padding-left: 0; padding-right: 0.8em;}
+ul.paginationlinks li {float: left; margin-left: 0.5em; width: 1.4em; padding-bottom: 1px; list-style: none;}
+ul.paginationlinks li.introduction, ul.paginationlinks li.root {width: auto;}
+ul.paginationlinks li.introduction {margin-left: 0;}
+ul.paginationlinks a, ul.paginationlinks li span {border: 1px solid white; padding: 0.1em 0.5em;}
+ul.paginationlinks a:hover {border: 1px solid #ddd;}
+ul.paginationlinks li div.jumplist form {display: inline; white-space: nowrap;}
+ul.paginationlinks li div.jumplist form input {font-size: 0.83em;}
+
+/* Listing types switcher */
+#listingtypeswitcher ul {float: right; margin: 0 0 0 15px; padding: 0;}
+#listingtypeswitcher ul li {display: inline; margin: 0; padding: 0;}
+#listingtypeswitcher ul a {border: 0;}
+#listingtypeswitcher ul li img {margin-top: 2px; padding: 3px 5px; background-color: #f7f7f7; border: 1px solid #e7e7e7;}
+#listingtypeswitcher ul li.selected img {border-color: #999;}
+
+
+/* Target (CSS3) */
+*.targetold:target {background: #eee; padding-top: 2em;}
+*.targetold:target:before {content: '\203A\203A '; color: red; font-weight: bold; font-size: 1.3em; padding-left: 0.2em; margin-right: 0.4em;}
+
+/* Target (CSS3); see: http://css-tricks.com/automatic-table-of-contents/ */
+:target {-webkit-animation: highlight 4s ease; animation: highlight 4s ease; padding-top: 2em;}
+@keyframes highlight {
+	from {background: yellow;}
+	to {background: white;}
+}
+@-webkit-keyframes highlight {
+	from {background: yellow;}
+	to {background: white;}
+}
+
+
+/* Hiding/showing in printing */
+.printonly {display: none;}
+@media print {
+	.noprint {display: none;}
+	.printonly {display: block;}
+}
+
+/* Auto-combined pages */
+div.autocombined h2 {margin-top: 2.4em; padding: 0.7em 0 0.4em 0.5em; border-bottom: 2px solid gray; background-color: #eee; font-style: italic;}
+div.autocombined .autocombinedhidden {display: none;}
+@media print {
+	div.autocombined a:link, div.autocombined a:visited {color: #333; border: none;}
+	div.autocombined a[target=external]:link, div.autocombined a[target=external]:visited, div.autocombined a[target=_blank]:link, div.autocombined a[target=_blank]:visited {background: none; padding-right: 0;}
+}
+
+/* Generic applications */
+p.loggedinas {float: right; font-size: 0.91em; text-align: right;}
+ul.tabs {padding: 3px 0 4px 2px; margin-left: 0; margin-bottom: 1.5em; border-bottom: 1px solid #778; line-height: 1em;}
+ul.tabs li {list-style: none; margin: 0; display: inline;}
+ul.tabs li a {padding: 3px 0.5em; margin-left: 2px; border: 1px solid #778; border-bottom: none; background: #f7f7f7; text-decoration: none;}
+ul.tabs li a:link {color: #448;}
+ul.tabs li a:visited {color: #667;}
+ul.tabs li a:hover {color: #000; background: #eee; border-color: #227;}
+ul.tabs li.selected a {background: white; border-bottom: 1px solid white;}
+ul.tabs img {border: 0; vertical-align: bottom; padding: 0;}
+ul.tabs li select {margin-bottom: 1em;}
+ul.tabs li select option {color: #603;}
+ul.tabs li a {border-radius: 3px 3px 0 0;}
+ul.tabs li a {-moz-border-radius: 3px 3px 0 0; -webkit-border-radius: 3px 3px 0 0;} /* Vendor-specific hacks */
+ul.subtabs {padding: 0 0 2px 2px;}
+ul.subtabs li a {border-style: dotted; border-bottom: none; padding: 0 0.5em;}
+#cornersearch {float: right; margin-bottom: 20px; margin-left: 5em;}
+
+
+/* Switchtable tabs */
+#switchabletabs {margin-top: 2em;}
+#switchabletabs-content.boxed {margin-top: 0; margin-bottom: 30px;}
+#switchabletabs-content.boxed > div {min-height: 250px; background-color: #fcfcfc; border-bottom: 1px solid #ddd; padding: 0 20px 10px;}
+#switchabletabs-content.boxed h2 {margin-top: 0; padding-top: 25px;}
+
+
+/* Blogs
+.blogs div.entry {margin-top: 4em; margin-bottom: 0;}
+.blogs div.entry h2 {margin-bottom: 0;}
+.blogs p.postmetadata {color: gray; margin: 0.5em 0; text-align: right; font-style: italic; font-weight: normal;}
+.blogs p.postmetadata a {color: gray;}
+.blogs p.signature {margin-top: 2em;}
+*/
+
+/* Clearfix - forces containers to expand to full height of floated elements */
+.DISABLEDclearfix:after, #DISABLEDmenu ul li.selected ul:after {content: "."; display: block; height: 0em; clear: both; visibility: hidden;}
+.DISABLEDclearfix {display: inline-block;}
+/* Hides from IE-mac \*/
+* html .DISABLEDclearfix {height: 1%;}
+.DISABLEDclearfix {display: block;}
+/* End hide from IE-mac */
+
+/* Clearfix - forces containers to expand to full height of floated elements */
+.clearfix:after, #menu ul li.selected ul:after {content: "."; display: block; height: 0; clear: both; visibility: hidden;}
+.clearfix {display: inline-block;}
+/* Hide from IE Mac \*/
+.clearfix {display: block;}
+/* End hide from IE Mac */
+
+/* Event listing */
+table.eventlisting td h3 {margin-top: 0; padding-top: 0;}
+
+/* Flash video defaults */
+a.flv {display: block;}
+a.flv, a.flv img {width: 480px; height: 360px; border: 0;}
+p a.flv {background-color: gray;}
+/* Centring - see http://stackoverflow.com/questions/13402165 */
+a.flv {background-position: center center; background-repeat: no-repeat; display: table-cell; vertical-align: middle; text-align: center;}
+a.flv img {width: 83px; height: 83px;}
+
+
+/* Sortable lists */
+ol.sortable label {display: none;}
+ol.sortable {list-style: none; position: relative; margin-left: 0; padding-left: 0;}
+ol.sortable li {border: 1px #fff solid; padding: 3px 10px;}
+ol.sortable li:hover {border-color: #666; cursor: move;}
+
+/* Admin login link */
+p.adminloginlink {text-align: right;}
+p.adminloginlink.floatright {text-align: left; float: left;}
+p.adminloginlink a {border: 1px solid #aaa; padding: 5px; border-radius: 4px;}
+p.adminloginlink a:hover {background-color: #eee; border-color: #603;}
+
+/* Abstract submission */
+#abstractsubmissions {max-width: 800px;}
+#abstractsubmissions h3 {margin-top: 2.5em; margin-bottom: 1.1em;}
+#abstractsubmissions ul.boxylist {margin-bottom: 1.4em;}
+/* #!# Not working */
+#abstractsubmissions ul.ui-autocomplete {list-style: none;}
+#abstractsubmissions ul.tabs.submission li.selected a {background-color: #ddd; color: black; font-weight: bold;}
+#abstractsubmissions ul.tabs.submission {margin-bottom: 0;}
+#abstractsubmissions ul.tabs a.confirm {margin-left: 20px;}
+#abstractsubmissions p.tools {margin-top: 0; text-align: right; background-color: #f7f7f7; padding: 5px 10px; color: #ccc; margin-bottom: 2em;}
+#abstractsubmissions p.tools a {margin: 0 7px 0 7px;}
+#abstractsubmissions .ultimateform table tr.dataStorage td, #abstractsubmissions .ultimateform table tr.metadata td, #abstractsubmissions .ultimateform table tr.dataAvailability td {border-bottom: 0; padding-bottom: 0;}
+#abstractsubmissions .ultimateform table tr.dataStorageDetails td, #abstractsubmissions .ultimateform table tr.metadataDetails td, #abstractsubmissions .ultimateform table tr.dataAvailabilityDetails td {border-top: 0; padding-top: /* Needed for old IE */ 2px; padding-left: 5em; padding-bottom: 2em;}
+#abstractsubmissions .ultimateform table tr.dataStorageDetails td.title, #abstractsubmissions .ultimateform table tr.metadataDetails td.title, #abstractsubmissions .ultimateform table tr.dataAvailabilityDetails td.title {color: #777;}
+#abstractsubmissions .ultimateform table tr.heading td {border-left: 0; border-right: 0;}
+#abstractsubmissions .ultimateform table tr.heading td h3 {margin: 1.2em 0 0.2em;}
+#abstractsubmissions h4 span {margin-left: 20px; font-weight: normal; font-size: 0.9em;}
+#abstractsubmissions h4 span, #abstractsubmissions h4 span a {color: #888;}
+#abstractsubmissions ul.tabs li {white-space: nowrap;}
+
+/* Contact person */
+div.contactperson {width: 300px; margin-left: 25px; float: right;}
+div.contactperson img {float: left;}
+div.contactperson h3 {margin-top: 0; padding-top: 0;}
+div.contactperson h3, div.contactperson p {margin-left: 90px;}
+
+/* Collapsable lists */
+dl.collapsable {margin: 2em;}
+dl.collapsable dt {margin-top: 0.5em; padding-left: 20px; font-weight: bold; background-image: url(/images/general/minus.gif); background-repeat: no-repeat; background-position: center left;}
+dl.collapsable dt:hover {cursor: pointer;}
+dl.collapsable dt.collapsed {font-weight: normal; background-image: url(/images/general/plus.gif);}
+dl.collapsable dd {margin-bottom: 2em; display: block; margin-left: 28px;}
+dl.collapsable dd.collapsed {display: none; margin-bottom: 0;}
+dl.collapsable.faq dt {font-weight: bold;}
+
+
+/* Changes to YUI default skin */
+body .yui-skin-sam .yui-navset .yui-content {background-color: white; border: 0; min-height: 300px;}
+body .yui-skin-sam .yui-navset .yui-nav {border-bottom: 1px solid #bbb;}
+
+
+/* Editing interface */
+/* NB add #purecontenteditor {font-size: 1em;} to the main stylesheet when the font-size is already small (e.g. 82%) */
+#purecontenteditor, #purecontenteditor p, #purecontenteditor input, #purecontenteditor textarea, #purecontenteditor option, #purecontenteditor select {font-family: verdana, arial, helvetica, sans-serif; font-size: 1em;}
+#purecontenteditor input, #purecontenteditor textarea, #purecontenteditor option, #purecontenteditor select, #purecontenteditor label {color: #603;}
+#purecontenteditor table tr:hover {background-color: #fbfdff;}
+#purecontenteditor {font-size: 82%;}
+#purecontenteditor pre {font-size: 1em;}
+#purecontenteditor p.success {background: url(/images/general/tick.gif) no-repeat top left; padding-left: 17px; color: green;}
+#purecontenteditor p.failure {background: url(/images/general/cross.gif) no-repeat top left; padding-left: 17px; color: red;}
+#purecontenteditor p.information, #purecontenteditor p.warning {margin: 10px 0; padding-left: 19px;}
+#purecontenteditor p.information {background: url(/images/general/information.png) no-repeat top left; }
+#purecontenteditor p.warning {color: red; background: url(/images/general/alert.gif) no-repeat top left; }
+/* #purecontenteditor h2 {font-style: normal; margin-top: 5px; size: 0.82em;} */
+#purecontenteditor #administration {border: 1px solid #ccc; padding: 10px; margin-bottom: 15px;}
+#purecontenteditor #administration p em {font-style: normal;}
+#purecontenteditor #administration ul, #purecontenteditor #administration p {margin: 0; padding: 0;}
+#purecontenteditor #administration ul li {list-style-type: none; line-height: 1.6em; text-align: left;}
+#purecontenteditor #administration img.extension {display: none;}
+#purecontenteditor #administration ul li a {white-space: nowrap; color: #444; padding: 2px 5px; border: 1px solid #bbb; border-width: 0 1px; background-color: #f2f2f2;}
+#purecontenteditor #administration ul li a[target=_blank] {padding-right: 17px; background-position: 95% 60%;}
+#purecontenteditor #administration ul li.selected a {background-color: #936; color: white;}
+#purecontenteditor #administration ul li a:hover {color: black; text-decoration: none; background-color: #f0e1ff; border: 1px solid #6100c1; border-width: 0 1px;}
+#purecontenteditor #administration ul li ul li {display: inline;}
+#container {position: relative;}	/* Ensures that #purecontenteditor #administration ul li ul positioning below works; see www.wpdfd.com/editorial/wpd0904news.htm#feature */
+#purecontenteditor ul#administrationtypes {margin-top: 5px;}
+#purecontenteditor #administration ul li ul {position: absolute; left: 290px /*27em*/; width: auto; display: inline;}
+#purecontenteditor .ultimateform table {width: 99%;}
+#purecontenteditorresult {clear: both; margin-top: 1.5em;}
+body #purecontenteditor div.graybox {float: none; width: auto; min-height: auto;}
+p.editlink {text-align: right;}
+
+
+/* UltimateForm styles */
+/* Font scaling needs to be in the calling stylesheet
+.ultimateform * {font-family: verdana, arial, helvetica, sans-serif;}
+body {font-size: 69%;}
+h1 {font-size: 2.2em;}
+h2 {font-size: 1.6em;}
+h3 {font-size: 1.2em;}
+h4 {font-size: 1em;}
+p, table, input, select, textarea {font-size: 1.0em;}
+pre, code {font-size: 110%;}
+*/
+/* Headings */
+.ultimateform h2 {margin-top: 30px;}
+.ultimateform input, .ultimateform select, .ultimateform textarea, .ultimateform option, .ultimateform td.data label, .ultimateform table td p.currentfile span.filename {color: #603;}
+.ultimateform .spaced li {margin-top: 10px;}
+.ultimateform .comment {color: #888; text-align: left;}
+.ultimateform .button, .ultimateform .resetbutton {cursor: pointer; background-color: #ddd; border-color: #eee #999 #999 #eee; border-style: solid; border-width: 2px;}
+.ultimateform td.title {text-align: right; vertical-align: top;}
+.ultimateform.leftlabels td.title {text-align: left;}
+.ultimateform td.data {vertical-align: top;}
+.ultimateform td.description {text-align: left; vertical-align: top; color: #888;}
+.ultimateform span.description {color: #888; font-style: italic;}
+.ultimateform span.restriction {color: #999; font-style: italic;}
+.ultimateform table td, .ultimateform table.noborder td table td, .ultimateform table th, .ultimateform table.noborder td table th {border: 1px #eee solid; padding: 4px;}
+.ultimateform.compressed table td, .ultimateform.compressed table.noborder td table td, .ultimateform.compressed table th, .ultimateform.compressed table.noborder td table th {padding: 2px;}
+.ultimateform table td p.currentfile {margin-top: 0; margin-bottom: 2px; padding-top: 0; padding-bottom: 0;}
+.ultimateform table td p.currentfilenext {margin-top: 5px;}
+.ultimateform table {border: 0; border-collapse: collapse; border-spacing: 0;}
+.ultimateform table.noborder td {border: 0; padding: 0 16px 10px 0;}
+.ultimateform th {text-align: center;}
+.ultimateform td.results {text-align: center;}
+.ultimateform td.comment {color: #ccc; font-style: italic;}
+.ultimateform td.totals {text-align: center; color: #666;}
+.ultimateform input.refresh {background-color: transparent; border: 0; padding: 1px; color: #aaa; font-size: 1.1em;}
+/* Error box and warning highlighting */
+.ultimateform div.error {border: 1px dashed gray; padding: 5px 10px; margin-top: 5px; margin-bottom: 5px;}
+.ultimateform div.error p {margin-bottom: 5px;}
+.ultimateform div.error ul {margin-top: 0;}
+.ultimateform div.error p, div.error ul, div.error li {color: red; margin-top: 5px;}
+.ultimateform .warning, .ultimateform .error {color: red;}
+.ultimateform span.unsuccessful {display: block; border-left: 1px solid red;}
+.ultimateform span.unsuccessful input, .ultimateform span.unsuccessful select, .ultimateform span.unsuccessful textarea {margin-left: 5px;}
+.ultimateform .success {color: green;}
+.ultimateform .completion {font-weight: bold;}
+.ultimateform div.debug {border: 1px dashed gray; padding: 5px 10px; color: red; margin-top: 5px; margin-bottom: 5px;}
+/* CSS layout version to replace form tables */
+.ultimateform div.row, .ultimateform p.submit {border-top: 1px solid #e9e9e9; vertical-align: top; padding: 5px 0 10px;}
+.ultimateform div.row {clear: both;}
+.ultimateform div.row span.label {float: left; width: 27%; text-align: right; padding-right: 10px;}
+.ultimateform div.row span.restriction {display: block;} /* Forces line-break */
+.ultimateform div.row span.data {float: left; width: 40%; text-align: left; padding-right: 10px;}
+.ultimateform div.row span.description {float: left; width: 28%; text-align: left;}
+/* Fieldset */
+.ultimateform fieldset {border: 0;}
+/* On-screen layout results */
+.ultimateform table.results td.key {font-weight: bold; text-align: right;}
+.ultimateform table.results td {vertical-align: top;}
+/* Self-documentation */
+.ultimateform table.documentation th {text-align: left;}
+.ultimateform table.documentation th.displayformat, .ultimateform td.displayformat {text-align: right;}
+.ultimateform td.defaultdisplayformat {text-align: left;}
+/* Checkboxes/radiobuttons */
+.ultimateform label {vertical-align: top; margin-right: 0.5em;}	/* For the margin, ideally, input[type=radio] should be used instead, but that is poorly supported */
+.ultimateform.horizontalonly td, .ultimateform.horizontalonly th {border-left: 0; border-right: 0;}
+.ultimateform tr.checkboxes table td {border: 0; padding: 0; padding-right: 4px; vertical-align: top;}
+
+
+/* Survey results */
+table.surveyresultschart td.chart {padding-left: 2em; width: 300px; border-right: 1px dashed gray;}
+table.surveyresultschart td.chart div {color: black; background-color: #ccc;}
+table.surveyresults td.surveyresultstable {width: 60%;}
+
+/* sineNomine */
+table.sinenomine {background-color: #fff; border: 1px solid #dcdcdc;}
+table.sinenomine th, table.sinenomine td {padding: 4px 4px;}
+table.sinenomine th, table.sinenomine th a {vertical-align: top; background-color: #7397dd; color: #fff; text-align: left;}
+table.sinenomine th a {display: block;}
+table.sinenomine th a.selected {background-color: #36c}
+table.sinenomine th span.orderby {background-color: brown;}
+table.sinenomine td {background-color: #ebeff4; border-bottom: 1px solid #dcdcdc;}
+table.sinenomine tr:hover td {background-color: #eaeafa;}
+table.sinenomine tr.Field td, table.sinenomine tr.Type td, table.sinenomine tr.Null td, table.sinenomine tr.Key td, table.sinenomine tr.Extra td, table.sinenomine tr.Privileges td, table.sinenomine tr.Comment td, table.sinenomine tr.Collation td, table.sinenomine tr.Default td {padding: 1px 4px; color: #777; font-size: 0.93em; vertical-align: top; text-align: left;}
+table.sinenomine td.key a {display: block;}
+table.sinenomine, table.lines {margin-top: 1.2em;}
+table.sinenomine th.text {min-width: 300px;}
+
+/* User account */
+div.useraccount input[type=email], div.useraccount tr.email input, div.useraccount input[type=password] {font-size: 1.2em; font-weight: bold;}
+div.accountdetails table tr.newpassword td {border-bottom-width: 0;}
+div.accountdetails table tr.newpassword__confirmation td {border-top-width: 0; padding-bottom: 40px;}
+div.accountdetails table tr.email td, div.accountdetails table tr.username td, div.accountdetails table tr.name td, div.accountdetails table tr.newpassword td {padding-top: 30px;}
+div.accountdetails table tr.currentpassword td {background-color: #eee;}
+div.accountdetails table td.description {padding-left: 20px; font-size: 0.83em; max-width: 250px;}
+
+/* #!# Change some of the px-based stuff to em-based */

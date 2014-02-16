@@ -146,6 +146,9 @@ class telluswhere
 			return false;
 		}
 		
+		# Determine if the site is being run for the first time, which will force settings to be entered
+		$this->isFirstRun = (!isSet ($this->settings['id']));	// id comes only from the database table
+		
 		# Determine the tmp directory in use for file uploads and ensure it is writeable
 		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpDirectory)) {
 			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
@@ -1388,12 +1391,9 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Determine whether there are already settings present
-		$settingsPresent = (isSet ($this->settings['id']));		// id comes only from the database table
-		
-		# If no settings present, set the initial administrator
+		# If no settings present, set a default for the initial administrator value
 		$data = $this->settings;
-		if (!$settingsPresent) {
+		if ($this->isFirstRun) {
 			$data['administrators'] = $this->user['email'] . "\n";
 		}
 		
@@ -1415,7 +1415,7 @@ class telluswhere
 			'picker'					=> true,
 			'displayRestrictions'		=> false,
 		));
-		if (!$settingsPresent) {
+		if ($this->isFirstRun) {
 			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');
 		}
 		$form->dataBinding (array (
@@ -1439,10 +1439,10 @@ class telluswhere
 		}
 		
 		# Insert/update the data
-		if ($settingsPresent) {
-			$this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
-		} else {
+		if ($this->isFirstRun) {
 			$this->databaseConnection->insert ('main', 'settings', $result);
+		} else {
+			$this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
 		}
 		
 		# Confirm success

@@ -241,6 +241,9 @@ class telluswhere
 		# Add in the database settings
 		$settings = array_merge ($settings, $databaseSettings);
 		
+		# Assemble the administrators list as an array (done as an extra entry so that the original string can be maintained if the settings form is being edited)
+		$settings['administratorsList'] = preg_split ("/\s+/", trim ($settings['administrators']));
+		
 		# Return the settings
 		return $settings;
 	}
@@ -260,6 +263,7 @@ class telluswhere
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
+			  `administrators` TEXT NOT NULL,				-- E-mail addresses of administrators
 			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
 			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
@@ -1387,6 +1391,12 @@ class telluswhere
 		# Determine whether there are already settings present
 		$settingsPresent = (isSet ($this->settings['id']));		// id comes only from the database table
 		
+		# If no settings present, set the initial administrator
+		$data = $this->settings;
+		if (!$settingsPresent) {
+			$data['administrators'] = $this->user['email'] . "\n";
+		}
+		
 		# Add form styles
 		$html .= "\n<link rel=\"stylesheet\" href=\"/css/generic.css\" />";
 		
@@ -1412,11 +1422,12 @@ class telluswhere
 			'database' => 'main',
 			'table' => 'settings',
 			'intelligence' => true,
-			'data' => $this->settings,
+			'data' => $data,
 			'attributes' => array (
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
 				'aboutPageHtml'		=> array ('heading' => array (3 => 'Page texts'), ),
 				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
+				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
 				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: http://stackoverflow.com/questions/15303940/
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
@@ -1429,9 +1440,9 @@ class telluswhere
 		
 		# Insert/update the data
 		if ($settingsPresent) {
-			$result = $this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
+			$this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
 		} else {
-			$result = $this->databaseConnection->insert ('main', 'settings', $result);
+			$this->databaseConnection->insert ('main', 'settings', $result);
 		}
 		
 		# Confirm success

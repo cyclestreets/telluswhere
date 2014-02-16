@@ -259,11 +259,11 @@ class telluswhere
 			  `id` INTEGER PRIMARY KEY,						-- Site number
 			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
 			  `style` VARCHAR(255) NOT NULL,				-- Style
-			  `earliestDate` DATE,							-- Earliest date to appear in export
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
+			  `earliestDate` DATE,							-- Earliest date to appear in export
 			  `bbox` VARCHAR(225) NOT NULL					-- Bounding box for export
 			);
 		";
@@ -1366,9 +1366,11 @@ class telluswhere
 			'intelligence' => true,
 			'data' => $this->settings,
 			'attributes' => array (
-				'url'			=> array ('default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
-				'style'			=> array ('type' => 'select', 'values' => $this->getStyles (), ),
-				'bbox'			=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
+				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
+				'contactsPageHtml'	=> array ('heading' => array (3 => 'Page texts'), ),
+				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
+				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
+				'bbox'				=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

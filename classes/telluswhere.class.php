@@ -257,9 +257,9 @@ class telluswhere
 			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
 			  `style` VARCHAR(255) NOT NULL,				-- Style
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
+			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
-			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
 			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
@@ -1368,7 +1368,7 @@ class telluswhere
 			'data' => $this->settings,
 			'attributes' => array (
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
-				'contactsPageHtml'	=> array ('heading' => array (3 => 'Page texts'), ),
+				'aboutPageHtml'		=> array ('heading' => array (3 => 'Page texts'), ),
 				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
 				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: http://stackoverflow.com/questions/15303940/
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),

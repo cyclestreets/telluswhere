@@ -59,20 +59,17 @@ class telluswhere
 			'data' => array (
 				'description' => false,
 				'url' => '/data/',
-				#!# Change to administrator when permissions system in place
-				'authentication' => true,
+				'administrator' => true,
 			),
 			'download' => array (
 				'description' => false,
 				'url' => false,
-				#!# Change to administrator when permissions system in place
-				'authentication' => true,
+				'administrator' => true,
 			),
 			'admin' => array (
 				'description' => false,
 				'url' => '/admin/',
-				#!# Change to administrator when permissions system in place
-				'authentication' => true,
+				'administrator' => true,
 			),
 			'login' => array (
 				'description' => false,
@@ -146,9 +143,6 @@ class telluswhere
 			return false;
 		}
 		
-		# Determine if the site is being run for the first time, which will force settings to be entered
-		$this->isFirstRun = (!isSet ($this->settings['id']));	// id comes only from the database table
-		
 		# Determine the tmp directory in use for file uploads and ensure it is writeable
 		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpDirectory)) {
 			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
@@ -183,6 +177,14 @@ class telluswhere
 			return false;
 		}
 		
+		# In first run mode, force settings to be entered, temporarily promoting the logged-in user to be an administrator
+		if ($this->isFirstRun) {
+			if ($this->isFirstRun) {$this->forcedAction = 'admin';}
+			if ($this->user) {
+				$this->settings['administratorsList'] = array ($this->user['email']);
+			}
+		}
+		
 		# Ensure the action is valid
 		$this->action = $_GET['action'];
 		if ($this->forcedAction) {$this->action = $this->forcedAction;}
@@ -194,9 +196,21 @@ class telluswhere
 		}
 		
 		# Require authentication if specified
-		if (isSet ($this->actions[$this->action]['authentication'])) {
+		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator'])) {
 			if (!$this->user) {
 				$this->action = 'login';
+			}
+		}
+		
+		# Determine if the user is an administrator
+		$this->userIsAdministrator = ($this->user && in_array ($this->user['email'], $this->settings['administratorsList']));
+		
+		# Require administrative privileges if specified
+		if (isSet ($this->actions[$this->action]['administrator'])) {
+			if (!$this->userIsAdministrator) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
 			}
 		}
 		
@@ -235,17 +249,20 @@ class telluswhere
 			$this->createDatabaseStructure ($databaseFile);
 		}
 		
-		# Obtain the settings; if none, force showing the settings form for first-run and return the fixed settings unmodified
+		# Set a flag to indicate first-run mode
+		$this->isFirstRun = false;
+		
+		# Obtain the settings
 		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('id' => 1))) {
-			$this->forcedAction = 'admin';
-			return $settings;
+			$this->isFirstRun = true;
+			$databaseSettings = array ('administrators' => false);	// $databaseSettings = false would crash array_merge below
 		}
 		
 		# Add in the database settings
 		$settings = array_merge ($settings, $databaseSettings);
 		
-		# Assemble the administrators list as an array (done as an extra entry so that the original string can be maintained if the settings form is being edited)
-		$settings['administratorsList'] = preg_split ("/\s+/", trim ($settings['administrators']));
+		# Assemble the administrators list as an array (done as an extra setting so that the original string can be maintained if the settings form is being edited)
+		$settings['administratorsList'] = ($settings['administrators'] ? preg_split ("/\s+/", trim ($settings['administrators'])) : array ());
 		
 		# Return the settings
 		return $settings;

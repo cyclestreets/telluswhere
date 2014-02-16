@@ -18,7 +18,6 @@ class telluswhere
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
 			'bbox'					=> NULL,	// W,S,E,N
-			'apiUrlGeocoder'		=> '/v2/geocoder',
 			'username'				=> NULL,
 			'password'				=> NULL,
 		);
@@ -1080,7 +1079,7 @@ class telluswhere
 		";
 		
 		# Add autocomplete name search
-		$geocoderApiUrl = $this->settings['apiBase'] . $this->settings['apiUrlGeocoder'] . '?key=' . $this->settings['apiKey'];
+		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];
 		// Libraries available at: http://cdnjs.com/libraries/jqueryui/
 		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';

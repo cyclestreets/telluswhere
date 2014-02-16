@@ -261,7 +261,7 @@ class telluswhere
 		# Define the table structure; note the SQLite format comments: http://stackoverflow.com/questions/7426205/
 		$query = "
 			CREATE TABLE IF NOT EXISTS main.settings (
-			  `id` INTEGER PRIMARY KEY,			-- Automatic key
+			  `id` INTEGER PRIMARY KEY,			-- Site number
 			  `url` VARCHAR(255) NOT NULL,		-- URL of site (match)
 			  `contactsPageHtml` TEXT NOT NULL	-- Contact page text
 			);

@@ -167,6 +167,12 @@ class telluswhere
 			return false;
 		}
 		
+		# Register standard placeholder substitutions
+		$this->template['date'] = date ('Y');
+		
+		# Get the user's details, if authenticated
+		$this->user = $this->getUser ();
+		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
 			$this->serveFile ($_GET['file']);
@@ -190,9 +196,6 @@ class telluswhere
 			return false;
 		}
 		
-		# Get the user's details, if authenticated
-		$this->user = $this->getUser ();
-		
 		# Require authentication if specified
 		if (isSet ($this->actions[$this->action]['authentication'])) {
 			if (!$this->user) {
@@ -202,9 +205,6 @@ class telluswhere
 		
 		# Load the template
 		$templateHtml = $this->getTemplateHtml ($this->action);
-		
-		# Register standard placeholder substitutions
-		$this->template['date'] = date ('Y');
 		
 		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
@@ -331,8 +331,11 @@ class telluswhere
 			return $html;
 		}
 		
+		# Get the template
+		$templateHtml = $this->convertDesignerHtmlToTemplate ($page);
+		
 		# Get the HTML
-		$html = $this->convertDesignerHtmlToTemplate ($page);
+		$html = $this->doTemplateSubstitution ($templateHtml, $this->template);
 		
 		# Return the HTML
 		return $html;

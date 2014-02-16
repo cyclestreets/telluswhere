@@ -203,14 +203,14 @@ class telluswhere
 			}
 		}
 		
-		# Load the template
-		$templateHtml = $this->getTemplateHtml ($this->action);
-		
 		# Register standard placeholder substitutions
 		$this->template['date'] = date ('Y');
 		
 		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
+		
+		# Load the template
+		$templateHtml = $this->getTemplateHtml ($this->action);
 		
 		# Render the page
 		$html = $this->doTemplateSubstitution ($templateHtml, $this->template);
@@ -1377,9 +1377,9 @@ class telluswhere
 		
 		# Insert/update the data
 		if ($settingsPresent) {
-			$result = $this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
+			$this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
 		} else {
-			$result = $this->databaseConnection->insert ('main', 'settings', $result);
+			$this->databaseConnection->insert ('main', 'settings', $result);
 		}
 		
 		# Confirm success
@@ -1387,6 +1387,10 @@ class telluswhere
 		$message  = "\n<p><strong>{$unicodeTick} The settings have been saved.</strong></p>";
 		$message .= "\n<p><a href=\"{$this->baseUrl}/\">Continue to the front page.</a></p>";
 		$html = $message;
+		
+		# Update the in-memory settings so that any change to the style is immediately picked up
+		$this->settings['style'] = $result['style'];
+		$this->styleDirectory = $this->getStyleDirectory ($this->settings['style']);
 		
 		# Return the HTML
 		return $html;

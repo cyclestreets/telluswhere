@@ -1386,7 +1386,7 @@ class telluswhere
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
 		$message  = "\n<p><strong>{$unicodeTick} The settings have been saved.</strong></p>";
 		$message .= "\n<p><a href=\"{$this->baseUrl}/\">Continue to the front page.</a></p>";
-		$html = $message;
+		$html = $message . $html;
 		
 		# Update the in-memory settings so that any change to the style is immediately picked up
 		$this->settings['style'] = $result['style'];

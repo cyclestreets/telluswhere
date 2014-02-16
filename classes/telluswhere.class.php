@@ -1088,12 +1088,6 @@ class telluswhere
 						url: browsingApiUrl,
 						dataType: 'json',
 						data: data,
-/*
-// http://stackoverflow.com/questions/5507234/how-to-use-basic-auth-and-jquery-and-ajax
-						beforeSend: function (xhr){ 
-							xhr.setRequestHeader('Authorization', 'Basic ' + btoa(apiKey + ':' + 'password')); 
-						},
-*/
 						success: showCurrentData
 					});
 				}

@@ -1109,6 +1109,14 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# Unpack user details cookie if present from a previous submission
+		$data = array ();
+		if (isSet ($_COOKIE['userdetails'])) {
+			if (preg_match ('/^(.+) <([^>]+)>$/', $_COOKIE['userdetails'], $matches)) {
+				$data = array ('name' => $matches[1], 'email' => $matches['2']);
+			}
+		}
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -1165,12 +1173,13 @@ class telluswhere
 			'name'			=> 'name',
 			'title'			=> 'Your name',
 			'required'		=> true,
+			'default'		=> ($data ? $data['name'] : false),
 		));
 		$form->email (array (
 			'name'			=> 'email',
 			'title'			=> 'Your e-mail address',
 			'required'		=> true,
-			#!# Needs to prefill e-mail address when logged in
+			'default'		=> ($data ? $data['email'] : false),
 		));
 		$form->select (array (
 			'name'			=> 'mailinglist',
@@ -1217,6 +1226,13 @@ class telluswhere
 		
 		# Process the form
 		$result = $form->process ($html);
+		
+		# Upon a successful submission, save the name and e-mail in a cookie for a short period to save the user having to re-type these
+		if ($result) {
+			$cookiePeriodHours = 12;
+			$userdetails = "{$result['name']} <{$result['email']}>";
+			setcookie ('userdetails', $userdetails, time () + ($cookiePeriodHours * 60*60), $this->baseUrl . '/');
+		}
 		
 		# Return the result
 		return $result;

@@ -269,13 +269,6 @@ class telluswhere
 		# Add in the database settings
 		$settings = array_merge ($settings, $databaseSettings);
 		
-		# Assemble the administrators list as an array (done as an extra setting so that the original string can be maintained if the settings form is being edited)
-		$settings['administratorsList'] = ($settings['administrators'] ? preg_split ("/\s+/", trim ($settings['administrators'])) : array ());
-		
-		# Assemble the downloaders list as an array
-		$settings['downloadersList'] = ($settings['downloaders'] ? preg_split ("/\s+/", trim ($settings['downloaders'])) : array ());
-		$settings['downloadersList'] = array_merge ($settings['downloadersList'], $settings['administratorsList']);		// Admins also get download privileges
-		
 		# Return the settings
 		return $settings;
 	}
@@ -1662,9 +1655,13 @@ class telluswhere
 		# Return false if no user
 		if (!isSet ($_SESSION['user'])) {return false;}
 		
-		# Determine user privileges
-		$this->userIsAdministrator = (in_array ($_SESSION['user']['email'], $this->settings['administratorsList']));
-		$this->userIsDownloader = (in_array ($_SESSION['user']['email'], $this->settings['downloadersList']));
+		# Determine if the user is an administrator
+		$administratorsList = ($this->settings['administrators'] ? preg_split ("/\s+/", trim ($this->settings['administrators'])) : array ());
+		$this->userIsAdministrator = (in_array ($_SESSION['user']['email'], $administratorsList));
+		
+		# Determine if the user is a downloader
+		$downloadersList = ($this->settings['downloaders'] ? preg_split ("/\s+/", trim ($this->settings['downloaders'])) : array ());
+		$this->userIsDownloader = (in_array ($_SESSION['user']['email'], $downloadersList) || $this->userIsAdministrator);
 		
 		# Write the login status in the top-right
 		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($_SESSION['user']['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";

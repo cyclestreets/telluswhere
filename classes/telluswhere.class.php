@@ -140,22 +140,22 @@ class telluswhere
 		
 		# Add additional settings from the database, ensuring the database is set up
 		if (!$this->settings = $this->getSettings ($fixedSettings)) {
-			$this->html .= "\n<p class=\"warning\">The website could not be set up due to a configuration error. Please check back shortly.</p>";
-			echo $this->html;
+			$html = "\n<p class=\"warning\">The website could not be set up due to a configuration error. Please check back shortly.</p>";
+			echo $html;
 			return false;
 		}
 		
 		# Determine the tmp directory in use for file uploads and ensure it is writeable
 		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpDirectory)) {
-			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
-			echo $this->html;
+			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
+			echo $html;
 			return false;
 		}
 		
 		# Determine the style directory in use
 		if (!$this->styleDirectory = $this->getStyleDirectory ($this->settings['style'])) {
-			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
-			echo $this->html;
+			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
+			echo $html;
 			return false;
 		}
 		

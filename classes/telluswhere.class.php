@@ -261,7 +261,7 @@ class telluswhere
 		$this->isFirstRun = false;
 		
 		# Obtain the settings
-		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('id' => 1))) {
+		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
 			$this->isFirstRun = true;
 			$databaseSettings = array ('administrators' => false, 'downloaders' => false);	// $databaseSettings = false would crash array_merge below
 		}

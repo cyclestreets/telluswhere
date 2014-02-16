@@ -14,9 +14,6 @@ class telluswhere
 			'cssFileLocation'		=> NULL,
 			'apiKey'				=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
-			'defaultLatitude'		=> NULL,
-			'defaultLongitude'		=> NULL,
-			'defaultZoom'			=> NULL,
 			'username'				=> NULL,
 			'password'				=> NULL,
 		);
@@ -263,6 +260,9 @@ class telluswhere
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
+			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
+			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
+			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
 			  `earliestDate` DATE,							-- Earliest date to appear in export
 			  `bbox` VARCHAR(225) NOT NULL					-- Bounding box for export
 			);
@@ -1356,6 +1356,7 @@ class telluswhere
 			'richtextWidth'				=> '500px',
 			'richtextHeight'			=> '250px',
 			'picker'					=> true,
+			'displayRestrictions'		=> false,
 		));
 		if (!$settingsPresent) {
 			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');
@@ -1369,6 +1370,8 @@ class telluswhere
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
 				'contactsPageHtml'	=> array ('heading' => array (3 => 'Page texts'), ),
 				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
+				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: http://stackoverflow.com/questions/15303940/
+				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
 				'bbox'				=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
 			),

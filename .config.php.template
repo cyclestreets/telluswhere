@@ -5,9 +5,6 @@ $config = array (
 	'applicationName'	=> 'Tell us where',
 	'cssFileLocation'	=> '/css/style.css',
 	'apiKey'			=> NULL,
-	'defaultLatitude'	=> NULL,
-	'defaultLongitude'	=> NULL,
-	'defaultZoom'		=> NULL,
 	'username'			=> NULL,
 	'password'			=> NULL,
 );

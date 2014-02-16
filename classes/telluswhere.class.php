@@ -8,7 +8,6 @@ class telluswhere
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
-			'applicationName'		=> 'Tell us where',
 			'style'					=> 'default',
 			'apiBase'				=> 'https://api.cyclestreets.net',
 			'cssFileLocation'		=> NULL,
@@ -255,6 +254,7 @@ class telluswhere
 			CREATE TABLE IF NOT EXISTS main.settings (
 			  `id` INTEGER PRIMARY KEY,						-- Site number
 			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
+			  `applicationName` VARCHAR(255) NOT NULL,		-- Site name
 			  `style` VARCHAR(255) NOT NULL,				-- Style
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text

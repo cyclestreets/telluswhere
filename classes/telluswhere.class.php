@@ -14,7 +14,6 @@ class telluswhere
 			'cssFileLocation'		=> NULL,
 			'apiKey'				=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
-			'feedbackRecipient'		=> NULL,
 			'aboutPageHtml'			=> NULL,
 			'termsPageHtml'			=> NULL,
 			'defaultLatitude'		=> NULL,
@@ -261,11 +260,12 @@ class telluswhere
 		# Define the table structure; note the SQLite format comments: http://stackoverflow.com/questions/7426205/
 		$query = "
 			CREATE TABLE IF NOT EXISTS main.settings (
-			  `id` INTEGER PRIMARY KEY,			-- Site number
-			  `url` VARCHAR(255) NOT NULL,		-- URL of site (match)
-			  `style` VARCHAR(255) NOT NULL,	-- Style
-			  `earliestDate` DATE,				-- Earliest date to appear in export
-			  `contactsPageHtml` TEXT NOT NULL	-- Contact page text
+			  `id` INTEGER PRIMARY KEY,						-- Site number
+			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
+			  `style` VARCHAR(255) NOT NULL,				-- Style
+			  `earliestDate` DATE,							-- Earliest date to appear in export
+			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
+			  `contactsPageHtml` TEXT NOT NULL				-- Contact page text
 			);
 		";
 		

@@ -170,14 +170,15 @@ class telluswhere
 		# Register standard placeholder substitutions
 		$this->template['date'] = date ('Y');
 		
-		# Get the user's details, if authenticated
-		$this->user = $this->getUser ();
-		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
-			$this->serveFile ($_GET['file']);
-			return;
+			if ($this->serveFile ($_GET['file'])) {
+				return;		// End all processing as the content has now been delivered
+			}
 		}
+		
+		# Get the user's details, if authenticated
+		$this->user = $this->getUser ();
 		
 		# End if no action specified
 		if (!isSet ($_GET['action']) || !strlen ($_GET['action'])) {
@@ -542,24 +543,18 @@ class telluswhere
 	{
 		# Throw 404 if none
 		if (!strlen ($location)) {
-			$html = $this->page404 ();
-			echo $html;
-			return false;
+			return false;	// Front controller will go on to serve a 404
 		}
 		
 		# Prevent directory traversal attacks
 		if (substr_count ($location, '../')) {
-			$html = $this->page404 ();
-			echo $html;
-			return false;
+			return false;	// Front controller will go on to serve a 404
 		}
 		
 		# Ensure page exists
 		$file = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $location;
 		if (!is_file ($file) || !is_readable ($file)) {
-			$html = $this->page404 ();
-			echo $html;
-			return false;
+			return false;	// Front controller will go on to serve a 404
 		}
 		
 		# Enable caching to improve browser performance; see: http://stackoverflow.com/a/1583753/180733
@@ -570,7 +565,7 @@ class telluswhere
 	    if (isset ($_SERVER['HTTP_IF_MODIFIED_SINCE']) || isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
 			if (strtotime ($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime || trim ($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
 				header ('HTTP/1.1 304 Not Modified');
-				return;
+				return true;
 			}
 		}
 		
@@ -579,7 +574,7 @@ class telluswhere
 		if (!function_exists ('finfo_open')) {
 			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
 			echo $this->html;
-			return false;
+			return true;
 		}
 		
 		# Set a header for the MIME type of the file
@@ -591,6 +586,9 @@ class telluswhere
 		
 		# Serve the file
 		readfile ($file);
+		
+		# Signal success
+		return true;
 	}
 	
 	

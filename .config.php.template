@@ -12,7 +12,7 @@ $config = array (
 	'defaultLongitude'	=> NULL,
 	'defaultZoom'		=> NULL,
 	'bbox'				=> NULL,	// W,S,E,N
-	'earliestTime'		=> false,	// e.g. '2010-01-01 00:00:00',
+	'earliestDate'		=> false,	// e.g. '2010-01-01',
 	'username'			=> NULL,
 	'password'			=> NULL,
 );

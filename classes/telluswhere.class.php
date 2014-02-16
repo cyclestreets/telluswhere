@@ -21,7 +21,7 @@ class telluswhere
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
 			'bbox'					=> NULL,	// W,S,E,N
-			'earliestTime'			=> false,	// e.g. '2010-01-01 00:00:00',
+			'earliestDate'			=> false,	// e.g. '2010-01-01',
 			'apiUrlGeocoder'		=> '/v2/geocoder',
 			'username'				=> NULL,
 			'password'				=> NULL,
@@ -264,6 +264,7 @@ class telluswhere
 			  `id` INTEGER PRIMARY KEY,			-- Site number
 			  `url` VARCHAR(255) NOT NULL,		-- URL of site (match)
 			  `style` VARCHAR(255) NOT NULL,	-- Style
+			  `earliestDate` DATE,				-- Earliest date to appear in export
 			  `contactsPageHtml` TEXT NOT NULL	-- Contact page text
 			);
 		";
@@ -1355,6 +1356,7 @@ class telluswhere
 			'richtextEditorAreaCSS'		=> $this->settings['cssFileLocation'],
 			'richtextWidth'				=> '500px',
 			'richtextHeight'			=> '250px',
+			'picker'					=> true,
 		));
 		if (!$settingsPresent) {
 			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');
@@ -1419,7 +1421,7 @@ class telluswhere
 			'category'		=> 'cycleparking',
 			'metacategory'	=> $this->actions[$dataset]['metacategory'],
 			'bbox'			=> $this->settings['bbox'],
-			'earliestTime'	=> ($this->settings['earliestTime'] ? strtotime ($this->settings['earliestTime']) : 0),
+			'earliestTime'	=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',

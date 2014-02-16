@@ -1545,11 +1545,14 @@ class telluswhere
 		session_regenerate_id ($deleteOldSession = true);
 		
 		# Set the top-right login area
-		// To finish
+		// At present, the login box is not shown
 		$this->template['login-status'] = '';
 		
 		# Return false if no user
 		if (!isSet ($_SESSION['user'])) {return false;}
+		
+		# Write the login status in the top-right
+		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($_SESSION['user']['email']) . " | <a href=\"{$this->baseUrl}/admin/\">Admin</a> | <a href=\"{$this->baseUrl}/data/\">Data</a> | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
 		
 		# Return the user details
 		return $_SESSION['user'];
@@ -1593,6 +1596,9 @@ class telluswhere
 			$html .= "\n<p>You are not logged in.</p>";
 			$html .= "\n<p><a href=\"" . htmlspecialchars ($loginLocation) . '">Please click here to continue.</a></p>';
 		}
+		
+		# Clear the login status indicator
+		$this->template['login-status'] = '';
 		
 		# Register the HTML
 		$this->template['text'] = $html;

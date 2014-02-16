@@ -14,7 +14,6 @@ class telluswhere
 			'cssFileLocation'		=> NULL,
 			'apiKey'				=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
-			'termsPageHtml'			=> NULL,
 			'defaultLatitude'		=> NULL,
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
@@ -265,6 +264,7 @@ class telluswhere
 			  `earliestDate` DATE,							-- Earliest date to appear in export
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
+			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
 			  `aboutPageHtml` TEXT NOT NULL					-- About page text
 			);
 		";

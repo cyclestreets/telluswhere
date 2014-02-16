@@ -8,7 +8,6 @@ $config = array (
 	'defaultLatitude'	=> NULL,
 	'defaultLongitude'	=> NULL,
 	'defaultZoom'		=> NULL,
-	'bbox'				=> NULL,	// W,S,E,N
 	'username'			=> NULL,
 	'password'			=> NULL,
 );

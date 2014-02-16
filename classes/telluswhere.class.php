@@ -17,7 +17,6 @@ class telluswhere
 			'defaultLatitude'		=> NULL,
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
-			'bbox'					=> NULL,	// W,S,E,N
 			'username'				=> NULL,
 			'password'				=> NULL,
 		);
@@ -264,7 +263,8 @@ class telluswhere
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
-			  `aboutPageHtml` TEXT NOT NULL					-- About page text
+			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
+			  `bbox` VARCHAR(225) NOT NULL					-- Bounding box for export
 			);
 		";
 		
@@ -1366,8 +1366,9 @@ class telluswhere
 			'intelligence' => true,
 			'data' => $this->settings,
 			'attributes' => array (
-				'url'	=> array ('default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
-				'style'	=> array ('type' => 'select', 'values' => $this->getStyles (), ),
+				'url'			=> array ('default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
+				'style'			=> array ('type' => 'select', 'values' => $this->getStyles (), ),
+				'bbox'			=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

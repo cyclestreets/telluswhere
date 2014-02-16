@@ -674,7 +674,8 @@ class telluswhere
 		$result = json_decode ($result, true);
 		
 		# Thank the user
-		$html  = "\n<p><strong>Thank you for your submission</strong>, which is number {$result['id']}.</p>";
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$result['id']}.</p>";
 		$html .= "\n<p><a href=\"{$this->actions[$this->action]['url']}\">Add another?</a></p>";
 		
 		// Mailing list addition - uses mailinglist,name,email fields

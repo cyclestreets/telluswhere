@@ -248,7 +248,7 @@ class telluswhere
 		}
 		
 		# Add in the database settings
-		$settings += $databaseSettings;
+		$settings = array_merge ($settings, $databaseSettings);
 		
 		# Return the settings
 		return $settings;
@@ -263,12 +263,26 @@ class telluswhere
 			CREATE TABLE IF NOT EXISTS main.settings (
 			  `id` INTEGER PRIMARY KEY,			-- Site number
 			  `url` VARCHAR(255) NOT NULL,		-- URL of site (match)
+			  `style` VARCHAR(255) NOT NULL,	-- Style
 			  `contactsPageHtml` TEXT NOT NULL	-- Contact page text
 			);
 		";
 		
 		# Create the table structure
 		$this->databaseConnection->query ($query);
+	}
+	
+	
+	# Function to get the available styles
+	private function getStyles ()
+	{
+		# Get the folders in the directory
+		$directory = $_SERVER['DOCUMENT_ROOT'] . '/style/';
+		require_once ('directories.php');
+		$folderNames = directories::listContainedDirectories ($directory, array (), '^([a-zA-Z0-9]+)$');
+		
+		# Return the list
+		return $folderNames;
 	}
 	
 	
@@ -1352,6 +1366,7 @@ class telluswhere
 			'data' => $this->settings,
 			'attributes' => array (
 				'url'	=> array ('default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
+				'style'	=> array ('type' => 'select', 'values' => $this->getStyles (), ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

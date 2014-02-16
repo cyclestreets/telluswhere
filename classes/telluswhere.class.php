@@ -18,7 +18,6 @@ class telluswhere
 			'defaultLongitude'		=> NULL,
 			'defaultZoom'			=> NULL,
 			'bbox'					=> NULL,	// W,S,E,N
-			'earliestDate'			=> false,	// e.g. '2010-01-01',
 			'apiUrlGeocoder'		=> '/v2/geocoder',
 			'username'				=> NULL,
 			'password'				=> NULL,

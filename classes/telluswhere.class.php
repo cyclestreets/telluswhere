@@ -59,12 +59,12 @@ class telluswhere
 			'data' => array (
 				'description' => false,
 				'url' => '/data/',
-				'administrator' => true,
+				'downloader' => true,
 			),
 			'download' => array (
 				'description' => false,
 				'url' => false,
-				'administrator' => true,
+				'downloader' => true,
 			),
 			'admin' => array (
 				'description' => false,
@@ -93,6 +93,8 @@ class telluswhere
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	private $tmpDirectory = '/tmp/';
+	private $userIsAdministrator = false;
+	private $userIsDownloader = false;
 	
 	# Cycle parking type presets
 	private $parkingTypes = array (
@@ -181,7 +183,7 @@ class telluswhere
 		if ($this->isFirstRun) {
 			if ($this->isFirstRun) {$this->forcedAction = 'admin';}
 			if ($this->user) {
-				$this->settings['administratorsList'] = array ($this->user['email']);
+				$this->userIsAdministrator = true;
 			}
 		}
 		
@@ -196,18 +198,24 @@ class telluswhere
 		}
 		
 		# Require authentication if specified
-		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator'])) {
+		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator']) || isSet ($this->actions[$this->action]['downloader'])) {
 			if (!$this->user) {
 				$this->action = 'login';
 			}
 		}
 		
-		# Determine if the user is an administrator
-		$this->userIsAdministrator = ($this->user && in_array ($this->user['email'], $this->settings['administratorsList']));
-		
 		# Require administrative privileges if specified
 		if (isSet ($this->actions[$this->action]['administrator'])) {
 			if (!$this->userIsAdministrator) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+		}
+		
+		# Require downloader privileges if specified
+		if (isSet ($this->actions[$this->action]['downloader'])) {
+			if (!$this->userIsDownloader) {
 				$html = $this->page404 ();
 				echo $html;
 				return false;
@@ -255,7 +263,7 @@ class telluswhere
 		# Obtain the settings
 		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('id' => 1))) {
 			$this->isFirstRun = true;
-			$databaseSettings = array ('administrators' => false);	// $databaseSettings = false would crash array_merge below
+			$databaseSettings = array ('administrators' => false, 'downloaders' => false);	// $databaseSettings = false would crash array_merge below
 		}
 		
 		# Add in the database settings
@@ -263,6 +271,10 @@ class telluswhere
 		
 		# Assemble the administrators list as an array (done as an extra setting so that the original string can be maintained if the settings form is being edited)
 		$settings['administratorsList'] = ($settings['administrators'] ? preg_split ("/\s+/", trim ($settings['administrators'])) : array ());
+		
+		# Assemble the downloaders list as an array
+		$settings['downloadersList'] = ($settings['downloaders'] ? preg_split ("/\s+/", trim ($settings['downloaders'])) : array ());
+		$settings['downloadersList'] = array_merge ($settings['downloadersList'], $settings['administratorsList']);		// Admins also get download privileges
 		
 		# Return the settings
 		return $settings;
@@ -283,7 +295,8 @@ class telluswhere
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
-			  `administrators` TEXT NOT NULL,				-- E-mail addresses of administrators
+			  `administrators` TEXT NOT NULL,				-- E-mail logins of administrators
+			  `downloaders` TEXT NOT NULL,					-- E-mail logins for access to downloads
 			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
 			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
@@ -1445,6 +1458,7 @@ class telluswhere
 				'aboutPageHtml'		=> array ('heading' => array (3 => 'Page texts'), ),
 				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
 				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
+				'downloaders'		=> array ('description' => 'One e-mail address per line', ),
 				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: http://stackoverflow.com/questions/15303940/
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
@@ -1648,8 +1662,12 @@ class telluswhere
 		# Return false if no user
 		if (!isSet ($_SESSION['user'])) {return false;}
 		
+		# Determine user privileges
+		$this->userIsAdministrator = (in_array ($_SESSION['user']['email'], $this->settings['administratorsList']));
+		$this->userIsDownloader = (in_array ($_SESSION['user']['email'], $this->settings['downloadersList']));
+		
 		# Write the login status in the top-right
-		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($_SESSION['user']['email']) . " | <a href=\"{$this->baseUrl}/admin/\">Admin</a> | <a href=\"{$this->baseUrl}/data/\">Data</a> | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
+		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($_SESSION['user']['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
 		
 		# Return the user details
 		return $_SESSION['user'];

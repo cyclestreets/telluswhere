@@ -1103,19 +1103,14 @@ class telluswhere
 	}
 	
 	
-	# Contact form
+	# Location submission form
 	private function locationSubmissionForm ($current = false, &$html = '')
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Unpack user details cookie if present from a previous submission
-		$data = array ();
-		if (isSet ($_COOKIE['userdetails'])) {
-			if (preg_match ('/^(.+) <([^>]+)>$/', $_COOKIE['userdetails'], $matches)) {
-				$data = array ('name' => $matches[1], 'email' => $matches['2']);
-			}
-		}
+		$data = $this->getCourtesyUserdetails ();
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -1229,13 +1224,36 @@ class telluswhere
 		
 		# Upon a successful submission, save the name and e-mail in a cookie for a short period to save the user having to re-type these
 		if ($result) {
-			$cookiePeriodHours = 12;
-			$userdetails = "{$result['name']} <{$result['email']}>";
-			setcookie ('userdetails', $userdetails, time () + ($cookiePeriodHours * 60*60), $this->baseUrl . '/');
+			$this->setCourtesyUserdetails ($result['name'], $result['email']);
 		}
 		
 		# Return the result
 		return $result;
+	}
+	
+	
+	# Function to get retrieved user cookie details; there is no security involved - this is merely a courtesy to the user
+	private function getCourtesyUserdetails ()
+	{
+		# Get the data, if any
+		$data = array ();
+		if (isSet ($_COOKIE['userdetails'])) {
+			if (preg_match ('/^(.+) <([^>]+)>$/', $_COOKIE['userdetails'], $matches)) {
+				$data = array ('name' => $matches[1], 'email' => $matches['2']);
+			}
+		}
+		
+		# Return the data
+		return $data;
+	}
+	
+	
+	# Function to set retrieved user cookie details; there is no security involved - this is merely a courtesy to the user
+	private function setCourtesyUserdetails ($name, $email)
+	{
+		$cookiePeriodHours = 12;
+		$userdetails = "{$name} <{$email}>";
+		setcookie ('userdetails', $userdetails, time () + ($cookiePeriodHours * 60*60), $this->baseUrl . '/');
 	}
 	
 	
@@ -1293,6 +1311,9 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# Unpack user details cookie if present from a previous submission
+		$data = $this->getCourtesyUserdetails ();
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -1317,12 +1338,13 @@ class telluswhere
 			'name'		=> 'name',
 			'title'		=> 'Your name',
 			'required'	=> true,
+			'default'	=> ($data ? $data['name'] : false),
 		));
 		$form->email (array (
 			'name'		=> 'email',
 			'title'		=> 'E-mail',
 			'required'	=> true,
-			#!# Needs to prefill e-mail address when logged in
+			'default'	=> ($data ? $data['email'] : false),
 		));
 		
 		# Set the processing options
@@ -1331,6 +1353,11 @@ class telluswhere
 		
 		# Process the form
 		$result = $form->process ($html);
+		
+		# Upon a successful submission, save the name and e-mail in a cookie for a short period to save the user having to re-type these
+		if ($result) {
+			$this->setCourtesyUserdetails ($result['name'], $result['email']);
+		}
 		
 		# Return the HTML
 		return $html;

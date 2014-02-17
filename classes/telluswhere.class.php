@@ -709,7 +709,12 @@ class telluswhere
 		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$result['id']}.</p>";
 		$html .= "\n<p><a href=\"{$this->actions[$this->action]['url']}\">Add another?</a></p>";
 		
-		// Mailing list addition - uses mailinglist,name,email fields
+		# Add to mailing list data if required
+		if ($data['mailinglist'] == 'Yes') {
+			$file = $_SERVER['DOCUMENT_ROOT'] . '/db/mailinglist.csv';
+			$string = $data['email'] . ',' . $data['name'] . ',' . $result['id'] . "\n";
+			file_put_contents ($file, $string, FILE_APPEND);
+		}
 		
 		# Return the HTML
 		return $html;

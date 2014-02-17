@@ -1083,11 +1083,28 @@ class telluswhere
 					currentDataLayer.addData(ajaxResponse);
 				}
 				
+				// Detect requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
+				var Browser = {
+					IsIe: function () {
+						return navigator.appVersion.indexOf('MSIE') != -1;
+					},
+					Navigator: navigator.appVersion,
+						Version: function() {
+						var version = 999; // we assume a sane browser
+						if (navigator.appVersion.indexOf('MSIE') != -1)
+						// bah, IE again, lets downgrade version number
+						version = parseFloat(navigator.appVersion.split('MSIE')[1]);
+						return version;
+					}
+				};
+				var useJsonpTransport = (Browser.IsIe && Browser.Version() <= 9);
+				
 				function getData() {
 					var data='bbox=' + map.getBounds().toBBoxString();
 					\$.ajax({
 						url: browsingApiUrl,
-						dataType: 'json',
+						dataType: (useJsonpTransport ? 'jsonp' : 'json'),
+						crossDomain: true,	// Needed for IE<=9; see: http://stackoverflow.com/a/12644252/180733
 						data: data,
 						success: showCurrentData
 					});

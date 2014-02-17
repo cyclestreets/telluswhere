@@ -731,6 +731,11 @@ class telluswhere
 		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
 		$additionalMetadata = application::arrayFields ($rawdata, $additionalMetadataFields);
 		
+		# If the message is empty, add a generic message as the API sets caption as a required field
+		if (empty ($rawdata['message'])) {
+			$rawdata['message'] = 'Cycle parking ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
+		}
+		
 		# Map the fields to the API
 		$data = array (
 			#!# Currently a fixed username/password
@@ -1207,7 +1212,7 @@ class telluswhere
 		$form->textarea (array (
 			'name'			=> 'message',
 			'title'			=> 'Additional info / comments',
-			'required'		=> true,
+			'required'		=> false,
 			'rows'			=> 2,
 			'cols'			=> 20,
 		));

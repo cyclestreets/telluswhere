@@ -40,7 +40,8 @@ class telluswhere
 			'current' => array (
 				'description' => false,
 				'url' => '/current/',
-				'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl',
+				// 'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
 			),
@@ -1030,8 +1031,8 @@ class telluswhere
 					return (str + \'\').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, \'$1\' + breakTag + \'$2\');
 				}' . "
 				
-				// Define HTML to be used in the popup (suggest)
-				function popupHtmlSuggest(properties) {
+				// Define HTML to be used in the popup (submitted items)
+				function popupHtmlSubmitted(properties) {
 					
 					var html = ''
 					+ '<div class=\"' + (properties.hasPhoto == 'yes' ? 'photo' : 'placeholder') + 'bubble' + '\">'
@@ -1044,8 +1045,8 @@ class telluswhere
 					return html;
 				}
 				
-				// Define HTML to be used in the popup (current)
-				function popupHtmlCurrent(properties) {
+				// Define HTML to be used in the popup (OSM data)
+				function popupHtmlOsm(properties) {
 					
 					var html = ''
 					+ '<div class=\"current\">'
@@ -1066,7 +1067,7 @@ class telluswhere
 				
 				function setIcon(feature,latlng) {
 					var marker = L.marker(latlng, {icon: icons['already']});
-					marker.bindPopup(popupHtml" . ucfirst ($this->action) . "(feature.properties));
+					marker.bindPopup(popupHtmlSubmitted(feature.properties));
 					return marker;
 				}
 				

@@ -77,7 +77,7 @@
 	</fieldset>
 	
 	<fieldset>
-		<label><span>* </span>Would you like to be kept up-to-date via e-mail? </label>
+		<label><span>* </span>Would you like to be kept up-to-date via e-mail?</label>
 		<!-- {$mailinglist} -->
 		<select name="mailinglist" required="required">
 			<option value="test1">Yes</option>
@@ -87,8 +87,11 @@
 	</fieldset>
 	           
 	<fieldset>
+		<label><span>* </span>Do you accept our <a href="/terms/" target="_blank">terms &amp; conditions</a>?</label>
 		<!-- {$terms} -->
-		<input type="checkbox" name="terms" id="terms" value="true" checked="checked" /><label for="terms">I accept the terms &amp; conditions</label>
+		<select name="terms" required="required">
+			<option value="yes">Yes</option>
+		</select>
 		<!-- /{$terms} -->
 	</fieldset>
 	

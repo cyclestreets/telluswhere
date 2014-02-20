@@ -905,7 +905,7 @@ class telluswhere
 				setMarkerInitially = {$setMarkerInitiallyJs};
 				if(setMarkerInitially){
 					var latlng = L.latLng({$mapLocation['latitude']}, {$mapLocation['longitude']});
-					setMarker(latlng);
+					setMarker(latlng, useIcon);
 					map.setView(latlng,{$mapLocation['zoom']});
 				}
 				
@@ -941,7 +941,7 @@ class telluswhere
 					}
 					
 					// Set the marker
-					setMarker(e.latlng);
+					setMarker(e.latlng, useIcon);
 					
 					// Remove the help text
 					\$('#helptext').removeClass('display').addClass('hide');
@@ -952,15 +952,15 @@ class telluswhere
 				function setMarkerLatitudeLongitude(latitude, longitude) {
 					var latlng = L.latLng(latitude, longitude);
 					map.setView(latlng, maxZoom);
-					setMarker(latlng);
+					setMarker(latlng, useIcon);
 				}
 				
 				// Function to set the marker
-				function setMarker(latlng) {
+				function setMarker(latlng, useIcon) {
 					// Set marker position
 					marker = new L.Marker(latlng, {icon: icons[useIcon], draggable: true, zIndexOffset: 1000});
 					map.addLayer(marker);
-					marker.bindPopup('Cycle parking is needed here').openPopup();
+					marker.bindPopup('Cycle parking is ' + (useIcon == 'suggest' ? 'needed' : 'present') + ' here').openPopup();
 					
 					// Register dragend processing function
 					marker.on('dragend', markerDrag);
@@ -1083,8 +1083,7 @@ class telluswhere
 				
 				currentDataLayer = L.geoJson(null, {
 					pointToLayer: setIcon
-					}
-				);
+				});
 				
 				currentDataLayer.addTo(map);
 				

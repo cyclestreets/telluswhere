@@ -841,7 +841,7 @@ class telluswhere
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
 		
-		<p id="helptext">Zoom all the way in, then click on the map to set the marker.</p>
+		<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>
 		<div id="map"></div>
 		
 		';

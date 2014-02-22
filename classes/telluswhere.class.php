@@ -33,14 +33,14 @@ class telluswhere
 			'suggest' => array (
 				'description' => false,
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype',
 			),
 			'current' => array (
 				'description' => false,
 				'url' => '/current/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
 				// 'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
@@ -1052,6 +1052,15 @@ class telluswhere
 					
 					// Image
 					+ (properties.hasPhoto == 'yes' ? '<img src=\"' + properties.thumbnailUrl + '\" alt=\"Image\" />' : '')
+					
+					// Internal data (packed as JSON)
+					+ (properties.additionalMetadata ? 
+						  '<table class=\"lines compressed\">'
+						+ (typeof properties.additionalMetadata.landtype !== 'undefined' ? '<tr><td>Land type:</td><td>' + nl2br(properties.additionalMetadata.landtype) + '</td></tr>' : '')
+						+ (typeof properties.additionalMetadata.type !== 'undefined' ? '<tr><td>Type:</td><td>' + nl2br(properties.additionalMetadata.type) + '</td></tr>' : '')
+						+ (typeof properties.additionalMetadata.capacity !== 'undefined' ? '<tr><td>Capacity:</td><td>' + properties.additionalMetadata.capacity + '</td></tr>' : '')
+						+ '</table>'
+					  : '')
 					
 					// OSM tags
 					+ (typeof properties.osmTags !== 'undefined' ? 

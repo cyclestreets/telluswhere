@@ -826,9 +826,8 @@ class telluswhere
 			#helptext.hide {background-color: transparent;}
 			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
 			.leaflet-popup-content-wrapper {width: 250px;}
-			.placeholderbubble p.caption {padding-left: 20px;}
-			.leaflet-popup-content p {margin-bottom: 5px;}
-			.placeholderbubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -10px; vertical-align: bottom;}
+			.bubble p {margin-bottom: 5px;}
+			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}
@@ -1045,7 +1044,7 @@ class telluswhere
 				function popupHtmlSubmitted(properties) {
 					
 					var html = ''
-					+ '<div class=\"' + (properties.hasPhoto == 'yes' ? 'photo' : 'placeholder') + 'bubble' + '\">'
+					+ '<div class=\"bubble\">'
 					// + '<p class=\"metadata small\">#<strong>' + properties.id + '</strong>' + '</p>'
 					+ '<p class=\"caption\">' + nl2br(properties.name,true) + '</p>'
 					+ (properties.hasPhoto == 'yes' ? '<img src=\"' + properties.thumbnailUrl + '\" alt=\"Image\" />' : '')
@@ -1059,8 +1058,7 @@ class telluswhere
 				function popupHtmlOsm(properties) {
 					
 					var html = ''
-					+ '<div class=\"current\">'
-					+ ''
+					+ '<div class=\"bubble\">'
 					+ (properties.osmTags ? 
 						  '<p>Current cycle parking:</p>'
 						+ '<table class=\"lines compressed\">'

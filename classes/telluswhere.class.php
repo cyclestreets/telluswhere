@@ -1040,33 +1040,29 @@ class telluswhere
 					return (str + \'\').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, \'$1\' + breakTag + \'$2\');
 				}' . "
 				
-				// Define HTML to be used in the popup (submitted items)
-				function popupHtmlSubmitted(properties) {
+				// Define HTML to be used in the popup
+				function popupHtml(properties) {
 					
 					var html = ''
 					+ '<div class=\"bubble\">'
+					
+					// Caption and ID
 					// + '<p class=\"metadata small\">#<strong>' + properties.id + '</strong>' + '</p>'
 					+ '<p class=\"caption\">' + nl2br(properties.name,true) + '</p>'
+					
+					// Image
 					+ (properties.hasPhoto == 'yes' ? '<img src=\"' + properties.thumbnailUrl + '\" alt=\"Image\" />' : '')
-					+ '</div>';
 					
-					// Return HTML
-					return html;
-				}
-				
-				// Define HTML to be used in the popup (OSM data)
-				function popupHtmlOsm(properties) {
-					
-					var html = ''
-					+ '<div class=\"bubble\">'
-					+ (properties.osmTags ? 
+					// OSM tags
+					+ (typeof properties.osmTags !== 'undefined' ? 
 						  '<p>Current cycle parking:</p>'
 						+ '<table class=\"lines compressed\">'
 						+ (typeof properties.osmTags.bicycle_parking !== 'undefined' ? '<tr><td>Type:</td><td>' + nl2br(properties.osmTags.bicycle_parking) + '</td></tr>' : '')
 						+ (typeof properties.osmTags.capacity !== 'undefined' ? '<tr><td>Capacity:</td><td>' + properties.osmTags.capacity + '</td></tr>' : '')
 						+ (typeof properties.osmTags.covered !== 'undefined' ? '<tr><td>Covered:</td><td>' + properties.osmTags.covered + '</td></tr>' : '')
 						+ '</table>'
-					  : '<p>Current cycle parking</p>')
+					  : '')
+					
 					+ '</div>';
 					
 					// Return HTML
@@ -1075,7 +1071,7 @@ class telluswhere
 				
 				function setIcon(feature,latlng) {
 					var marker = L.marker(latlng, {icon: icons['already']});
-					marker.bindPopup(popupHtmlSubmitted(feature.properties));
+					marker.bindPopup(popupHtml(feature.properties));
 					return marker;
 				}
 				

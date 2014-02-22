@@ -825,7 +825,7 @@ class telluswhere
 			#helptext.display {background-color: yellow;}
 			#helptext.hide {background-color: transparent;}
 			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
-			.leaflet-popup-content-wrapper {width: 250px;}
+			.leaflet-popup-content-wrapper {width: 250px; min-height: 80px;}
 			.bubble p {margin-bottom: 5px;}
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			

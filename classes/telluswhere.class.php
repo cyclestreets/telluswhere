@@ -1040,6 +1040,11 @@ class telluswhere
 					return (str + \'\').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, \'$1\' + breakTag + \'$2\');
 				}' . "
 				
+				// String truncate function to avoid over-long caption texts causing large bubbles
+				function truncateString(str, length) {
+					return (str.length > length ? str.substring(0, length - 3) + '...' : str);
+				}
+				
 				// Define HTML to be used in the popup
 				function popupHtml(properties) {
 					
@@ -1048,7 +1053,7 @@ class telluswhere
 					
 					// Caption and ID
 					// + '<p class=\"metadata small\">#<strong>' + properties.id + '</strong>' + '</p>'
-					+ '<p class=\"caption\">' + nl2br(properties.name,true) + '</p>'
+					+ '<p class=\"caption\">' + nl2br(truncateString(properties.name, 200),true) + '</p>'
 					
 					// Image
 					+ (properties.hasPhoto == 'yes' ? '<img src=\"' + properties.thumbnailUrl + '\" alt=\"Image\" />' : '')

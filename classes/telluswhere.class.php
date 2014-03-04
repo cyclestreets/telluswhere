@@ -818,8 +818,8 @@ class telluswhere
 		
 		# Create the map application HTML
 		$html .= '
-		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
-		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+		<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
 		<style type="text/css">
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}

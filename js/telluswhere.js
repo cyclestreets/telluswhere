@@ -1,0 +1,381 @@
+
+// Telluswhere javascript module
+var telluswhere = (function ($) {
+	'use strict';
+	
+	
+	/* Class properties */
+	
+	// Internal class properties
+	var map;	// Should be _map but makes pasting from leaflet examples (which always use map) easier
+	var _marker;
+	var _icons;
+	var _useJsonpTransport;
+	var _currentDataLayer;
+	var _geolocationData;
+	var _maxZoom;
+	
+	// Initial map location
+	var _initialLatitude;
+	var _initialLongitude;
+	var _initialZoom;
+	
+	// The API endpoint to use for browsing
+	var _browsingApiUrl;
+	
+	// The icon to use
+	var _useIcon;
+	
+	// Whether to set a marker initially
+	var _setMarkerInitially;
+	
+	
+	
+	return {
+		
+// Public functions
+		
+		// Main function
+		createMap: function(initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially) {
+			
+			// Set class properties
+			_initialLatitude = initialLatitude;
+			_initialLongitude = initialLongitude;
+			_initialZoom = initialZoom;
+			_browsingApiUrl = browsingApiUrl;
+			_useIcon = useIcon;
+			_setMarkerInitially = setMarkerInitially;
+		
+			// Set map centre location
+			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
+			
+			// Set tile layer
+			var tileUrl = 'http://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
+			var tileAttribution = 'Map data &copy; <a href=\"http://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>)';
+			_maxZoom = 18;
+			L.tileLayer(tileUrl, {
+				attribution: tileAttribution,
+				maxZoom: _maxZoom
+			}).addTo(map);
+			
+			// Define the icon set; see: http://leafletjs.com/examples/custom-icons.html
+			_icons = telluswhere.getIcons();
+			
+			// Determine whether to set the marker initially
+			if(_setMarkerInitially){
+				var latlng = L.latLng(_initialLatitude, _initialLongitude);
+				telluswhere.setMarker(latlng, _useIcon);
+				map.setView(latlng,_initialZoom);
+			}
+			
+			// Register click handler
+			map.on('click', telluswhere.onMapClick);
+			
+			// Add the data layer to the map
+			_currentDataLayer = L.geoJson(null, {
+				pointToLayer: telluswhere.setIcon
+			});
+			_currentDataLayer.addTo(map);
+			
+			// Determine whether to use JSONP transport instead of JSON for the marker layer calls (for older browsers)
+			_useJsonpTransport = telluswhere.useJsonpTransport();
+			
+			// Register moveend
+			map.on('moveend', telluswhere.whenMapMoves);
+			
+			// Get the data on initial view
+			telluswhere.getData();
+			
+			// Show the help text also if the user zooms
+			map.on('zoomstart', function() {
+				$('#helptext').addClass('display');
+			});
+			
+			// EXIF callback for file upload
+			try {
+				$('#form_file_0').change(function() {
+					$(this).fileExif(telluswhere.exifCallback);
+				});
+			}
+			catch (e) {
+				alert(e);
+			}
+		},
+		
+		
+// Private functions
+
+		/* Core map functions */
+		
+		
+		// Icon definition
+		getIcons: function() {
+			
+			// Define basic large and small icons
+			var largeIcon = L.Icon.extend({
+				options: {
+					shadowUrl: '/images/markers/shadow-large.png',
+					iconSize:     [34, 40],
+					shadowSize:   [51, 38],
+					iconAnchor:   [17, 40],
+					shadowAnchor: [0, 38],
+					popupAnchor:  [0, -36]
+				}
+			});
+			var smallIcon = L.Icon.extend({
+				options: {
+					shadowUrl: '/images/markers/shadow-small.png',
+					iconSize:     [27, 30],
+					shadowSize:   [43, 34],
+					iconAnchor:   [13, 30],
+					shadowAnchor: [0, 34],
+					popupAnchor:  [0, -26]
+				}
+			});
+			
+			// Assemble the icons list
+			var icons = {
+				suggest: new largeIcon({iconUrl: '/images/markers/suggest.png'}),
+				current: new largeIcon({iconUrl: '/images/markers/current.png'}),
+				already: new smallIcon({iconUrl: '/images/markers/already.png'})
+			};
+			
+			// Return the icons
+			return icons;
+		},
+		
+		
+		// Create marker and popup when clicking on the map
+		onMapClick: function(e) {
+			
+			// Show the help text
+			$('#helptext').addClass('display');
+			
+			// Remove any marker present
+			if(telluswhere._marker){
+				map.removeLayer(telluswhere._marker);
+			}
+			
+			// Define minimum zoom level to set
+			var minZoomLevelToSet = 18;
+			
+			// Zoom if too far out and end
+			if(map.getZoom() < minZoomLevelToSet){
+				telluswhere.setFormValues (null, null, null);	// Clear any saved values
+				var currentZoomLevel = map.getZoom();
+				var zoomBy = (((minZoomLevelToSet - currentZoomLevel) <= 2) ? 1 : 2);	// When very zoomed in, zoom in less far, to avoid disorientation
+				var newZoomLevel = currentZoomLevel + zoomBy;
+				// alert('Current zoom: ' + currentZoomLevel + '; zooming by: ' + zoomBy + ' to: ' + newZoomLevel);
+				map.setZoomAround(e.latlng, newZoomLevel);
+				return;
+			}
+			
+			// Set the marker
+			telluswhere.setMarker(e.latlng, _useIcon);
+			
+			// Remove the help text
+			$('#helptext').removeClass('display').addClass('hide');
+		},
+		
+		
+		// Wrapper function to set the marker by supplying raw latitude and longitude markers
+		setMarkerLatitudeLongitude: function(latitude, longitude) {
+			var latlng = L.latLng(latitude, longitude);
+			map.setView(latlng, _maxZoom);
+			telluswhere.setMarker(latlng, _useIcon);
+		},
+		
+		
+		// Function to set the marker
+		setMarker: function(latlng, useIcon) {
+			
+			// Clear any previously-set marker
+			if(_marker){
+				map.removeLayer(_marker);
+			}
+			
+			// Set marker position
+			_marker = new L.Marker(latlng, {icon: _icons[useIcon], draggable: true, zIndexOffset: 1000});
+			map.addLayer(_marker);
+			_marker.bindPopup('Cycle parking is ' + (useIcon == 'suggest' ? 'needed' : 'present') + ' here').openPopup();
+			
+			// Register dragend processing function
+			_marker.on('dragend', telluswhere.markerDrag);
+			
+			// Transmit the value to the form
+			telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom());
+		},
+		
+		
+		// After dragging, transmit the value to the form, and reopen the popup
+		markerDrag: function(e) {
+			telluswhere.setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom());
+			_marker.openPopup();
+		},
+		
+		
+		// Function to transmit the values to the form
+		setFormValues: function(lat, lng, zoom) {
+			$('#form_latitude').val(lat);
+			$('#form_longitude').val(lng);
+			$('#form_zoom').val(zoom);
+		},
+		
+		
+		/* EXIF image marker setting functions */
+		
+		// Register function for adding to map
+		exifCallback: function(exifObject) {
+			if(_marker){
+				map.removeLayer(_marker);
+			}
+			_geolocationData = telluswhere.extractGeolocationData(exifObject);
+			if(_geolocationData) {
+				telluswhere.setMarkerLatitudeLongitude(_geolocationData.latitude, _geolocationData.longitude);
+			}
+			//console.log(exifObject);
+		},
+		
+		
+		// Function to convert the complex EXIF geolocation data structure into standard lat,lon,bearing; see: https://confluence.videoplaza.org/display/BLOG/2012/07/22/Geolocation+data+from+Images
+		extractGeolocationData: function(exifObject) {
+			
+			// End if no data
+			var aLat = exifObject.GPSLatitude;
+			var aLon = exifObject.GPSLongitude;
+			if (!aLat || !aLon) {return;}
+			
+			// Convert from minutes/seconds/degrees to decimal
+			var strLatRef = exifObject.GPSLatitudeRef || 'N';
+			var strLongRef = exifObject.GPSLongitudeRef || 'W';
+			var latitude = (aLat[0] + aLat[1]/60 + aLat[2]/3600) * (strLatRef == 'N' ? 1 : -1);
+			var longitude = (aLon[0] + aLon[1]/60 + aLon[2]/3600) * (strLongRef == 'W' ? -1 : 1);
+			
+			// Assemble the object to be returned
+			var geolocationData = new Array;
+			geolocationData['latitude'] = latitude;
+			geolocationData['longitude'] = longitude;
+			
+			// Return the object
+			return geolocationData;
+		},
+		
+		
+		
+		/* Existing locations browsing functions; see: http://chris-osm.blogspot.co.uk/2013/11/using-leaflet-with-database.html */
+		
+		
+		// Newline-to-breaks helper function
+		nl2br: function(str, is_xhtml) {
+			var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
+			return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
+		},
+		
+		
+		// String truncate function to avoid over-long caption texts causing large bubbles
+		truncateString: function(str, length) {
+			return (str.length > length ? str.substring(0, length - 3) + '...' : str);
+		},
+		
+		
+		// Define HTML to be used in the popup
+		popupHtml: function(properties) {
+			
+			var html = ''
+			+ '<div class="bubble">'
+			
+			// Caption and ID
+			// + '<p class="metadata small">#<strong>' + properties.id + '</strong>' + '</p>'
+			+ '<p class="caption">' + telluswhere.nl2br(telluswhere.truncateString(properties.name, 200),true) + '</p>'
+			
+			// Image
+			+ (properties.hasPhoto == 'yes' ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')
+			
+			// Internal data (packed as JSON)
+			+ (properties.additionalMetadata ? 
+				  '<table class="lines compressed">'
+				+ (typeof properties.additionalMetadata.landtype !== 'undefined' ? '<tr><td>Land type:</td><td>' + telluswhere.nl2br(properties.additionalMetadata.landtype) + '</td></tr>' : '')
+				+ (typeof properties.additionalMetadata.type !== 'undefined' ? '<tr><td>Type:</td><td>' + telluswhere.nl2br(properties.additionalMetadata.type) + '</td></tr>' : '')
+				+ (typeof properties.additionalMetadata.capacity !== 'undefined' ? '<tr><td>Capacity:</td><td>' + properties.additionalMetadata.capacity + '</td></tr>' : '')
+				+ '</table>'
+			  : '')
+			
+			// OSM tags
+			+ (typeof properties.osmTags !== 'undefined' ? 
+				  '<p>Current cycle parking:</p>'
+				+ '<table class="lines compressed">'
+				+ (typeof properties.osmTags.bicycle_parking !== 'undefined' ? '<tr><td>Type:</td><td>' + telluswhere.nl2br(properties.osmTags.bicycle_parking) + '</td></tr>' : '')
+				+ (typeof properties.osmTags.capacity !== 'undefined' ? '<tr><td>Capacity:</td><td>' + properties.osmTags.capacity + '</td></tr>' : '')
+				+ (typeof properties.osmTags.covered !== 'undefined' ? '<tr><td>Covered:</td><td>' + properties.osmTags.covered + '</td></tr>' : '')
+				+ '</table>'
+			  : '')
+			
+			+ '</div>';
+			
+			// Return HTML
+			return html;
+		},
+		
+		
+		// Function to set the icon
+		setIcon: function(feature,latlng) {
+			var icon = L.marker(latlng, {icon: _icons['already']});
+			icon.bindPopup(telluswhere.popupHtml(feature.properties));
+			return icon;
+		},
+		
+		
+		// Function to show current data
+		showCurrentData: function(ajaxResponse) {
+			_currentDataLayer.clearLayers();
+			_currentDataLayer.addData(ajaxResponse);
+		},
+		
+		
+		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
+		useJsonpTransport: function() {
+			
+			// Determine details of the current browser
+			var Browser = {
+				IsIe: function () {
+					return navigator.appVersion.indexOf('MSIE') != -1;
+				},
+				Navigator: navigator.appVersion,
+					Version: function() {
+					var version = 999; // we assume a sane browser
+					if (navigator.appVersion.indexOf('MSIE') != -1)
+					// bah, IE again, lets downgrade version number
+					version = parseFloat(navigator.appVersion.split('MSIE')[1]);
+					return version;
+				}
+			};
+			
+			// Test browser version
+			var useJsonpTransport = (Browser.IsIe && Browser.Version() <= 9);
+			
+			// Return the result
+			return useJsonpTransport;
+		},
+		
+		
+		// Function to fetch current marker data
+		getData: function() {
+			var data='bbox=' + map.getBounds().toBBoxString();
+			$.ajax({
+				url: _browsingApiUrl,
+				dataType: (_useJsonpTransport ? 'jsonp' : 'json'),
+				crossDomain: true,	// Needed for IE<=9; see: http://stackoverflow.com/a/12644252/180733
+				data: data,
+				success: telluswhere.showCurrentData
+			});
+		},
+		
+		
+		// Define mapmove action
+		whenMapMoves: function(e) {
+			telluswhere.getData();
+		}
+		
+	};
+	
+})(jQuery);

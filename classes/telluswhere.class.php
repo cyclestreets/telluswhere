@@ -753,6 +753,7 @@ class telluswhere
 		);
 		
 		# Add the mediaupload field if a file has been submitted
+		$filePath = false;
 		if ($rawdata['file']) {
 			$filePath = $this->tmpDirectory . $rawdata['file'];
 			if (function_exists ('curl_file_create')) {
@@ -766,16 +767,16 @@ class telluswhere
 		# Post the file
 		$result = application::file_post_contents ($apiUrl, $data, true, $error);
 		
+		# Delete the temporary file if a file was uploaded
+		if ($filePath) {
+			unlink ($filePath);
+		}
+		
 		# Report any transport error
 		if ($error) {
 			// echo $error;	// Debugging
 			$error = 'Sorry, a technical error occured - please try again later.';
 			return false;
-		}
-		
-		# Delete the temporary file if a file was uploaded
-		if ($rawdata['file']) {
-			unlink ($filePath);
 		}
 		
 		# Return the result

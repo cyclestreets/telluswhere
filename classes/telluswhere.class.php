@@ -704,6 +704,13 @@ class telluswhere
 		# Unpack the response
 		$result = json_decode ($result, true);
 		
+		# End if the API returned an error
+		if (isSet ($result['error'])) {
+			// echo $result['error'];	// Debugging
+			$html = 'Sorry, a technical error occured - please try again later.';
+			return $html;
+		}
+		
 		# Thank the user
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
 		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$result['id']}.</p>";

@@ -777,7 +777,7 @@ class telluswhere
 		# Register HTML components
 		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
 		$this->template['map'] = $this->locationsMap ($action, $id);
-		$this->template['form'] = $metadataHtml;
+		$this->template['metadata'] = $metadataHtml;
 	}
 	
 	

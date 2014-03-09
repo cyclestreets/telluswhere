@@ -293,11 +293,13 @@ var telluswhere = (function ($) {
 			+ '<div class="bubble">'
 			
 			// Caption and ID
-			// + '<p class="metadata small">#<strong>' + properties.id + '</strong>' + '</p>'
+			+ '<p class="id"><a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>' + '</p>'
 			+ '<p class="caption">' + telluswhere.nl2br(telluswhere.truncateString(properties.name, 200),true) + '</p>'
 			
 			// Image
 			+ (properties.hasPhoto == 'yes' ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')
+			
+			// #!# Currently hardcoded field lists and labels:
 			
 			// Internal data (packed as JSON)
 			+ (properties.additionalMetadata ? 

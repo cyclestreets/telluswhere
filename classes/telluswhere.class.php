@@ -931,7 +931,9 @@ class telluswhere
 			#helptext.hide {background-color: transparent;}
 			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
 			.leaflet-popup-content-wrapper {width: 250px; min-height: 80px;}
-			.bubble p {margin-bottom: 5px;}
+			.bubble p {margin: 0 0 5px;}
+			.bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}
+			.bubble p.id a {color: #bbb;}
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			
 			/* \'Lines\' table style */
@@ -944,7 +946,6 @@ class telluswhere
 			table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
-		
 		<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>
 		<div id="map"></div>
 		

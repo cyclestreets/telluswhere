@@ -1371,7 +1371,7 @@ class telluswhere
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',
-			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,thumbnailUrl,shortlink,license",
+			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,shortlink,license",
 		);
 		
 		# Assemble the API call URL
@@ -1379,6 +1379,10 @@ class telluswhere
 		
 		# Obtain the data
 		$csv = file_get_contents ($apiUrl);
+		
+		# Replace cycle.st links with internal links
+		#!# Bit of a dirty way to do this - should have an API parameter, e.g. shortlink=http://{$_SERVER['SERVER_NAME']}/location/%s/
+		$csv = preg_replace ('|,http://cycle.st/p([0-9]+),|', ",http://{$_SERVER['SERVER_NAME']}/location/\$1/,", $csv);
 		
 		# Serve the file
 		$filenameBase = $dataset . '_savedAt' . date ('Ymd-His');

@@ -551,7 +551,7 @@ class telluswhere
 				$replacements[$placeholder] = '{[[SUBMIT]]}';
 			}
 			if ($placeholder == 'map') {
-				$replacements[$placeholder] = $this->locationsMap ();
+				$replacements[$placeholder] = $this->locationsMap ($this->action);
 			}
 		}
 		
@@ -792,7 +792,7 @@ class telluswhere
 	
 	
 	# Map of current locations
-	private function locationsMap ($selectedId = false)
+	private function locationsMap ($showLayer, $selectedId = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -822,7 +822,7 @@ class telluswhere
 		
 		# Determine the URL for the browsing API
 		#!# Improve way key is added here
-		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . ($selectedId ? "&selectedid={$selectedId}" : '') . '&key=' . $this->settings['apiKey'];
+		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . ($selectedId ? "&selectedid={$selectedId}" : '') . '&key=' . $this->settings['apiKey'];
 		
 		# Create the map application HTML
 		$html .= '
@@ -861,7 +861,7 @@ class telluswhere
 		$selectedIdJs = ($selectedId ? $selectedId : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			telluswhere.createMap({$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$this->action}', {$setMarkerInitiallyJs}, {$selectedIdJs});
+			telluswhere.createMap({$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$selectedIdJs});
 		</script>
 		";
 		

@@ -948,10 +948,11 @@ class telluswhere
 			table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
-		<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>
-		<div id="map"></div>
-		
 		';
+		if (!$selectedId) {
+			$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
+		}
+		$html .= "\n" . '<div id="map"></div>';
 		
 		# Load EXIF Filereader support
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/jquery.exif.js\"></script>";

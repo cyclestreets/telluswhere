@@ -15,6 +15,9 @@ var telluswhere = (function ($) {
 	var _geolocationData;
 	var _maxZoom;
 	
+	// baseUrl of application
+	var _baseUrl;
+	
 	// Initial map location
 	var _initialLatitude;
 	var _initialLongitude;
@@ -39,9 +42,10 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, selectedId) {
+		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, selectedId) {
 			
 			// Set class properties
+			_baseUrl = baseUrl;
 			_initialLatitude = initialLatitude;
 			_initialLongitude = initialLongitude;
 			_initialZoom = initialZoom;

@@ -711,7 +711,7 @@ class telluswhere
 		# Get the data for this location
 		$id = $_GET['id'];
 		#!# API call output needs to rename metacategoryTag and categoryTag to metacategory and category
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryTag,categoryTag,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata';
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryTag,categoryTag,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl' . '&thumbnailsize=200';
 		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
@@ -883,16 +883,20 @@ class telluswhere
 			'additionalMetadata'	=> json_encode ($additionalMetadata),
 		);
 		
+		#!# Currently no support for deleting an existing image when doing an update
+		
 		# Add the mediaupload field if a file has been submitted
 		$filePath = false;
-		if ($rawdata['file']) {
-			$filePath = $this->tmpDirectory . $rawdata['file'];
-			if (function_exists ('curl_file_create')) {
-				$mediaupload = curl_file_create ($filePath);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
-			} else {
-				$mediaupload = '@' . $filePath;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
+		if (isSet ($rawdata['file'])) {		// If there is an existing photo, this field will not be present
+			if ($rawdata['file']) {
+				$filePath = $this->tmpDirectory . $rawdata['file'];
+				if (function_exists ('curl_file_create')) {
+					$mediaupload = curl_file_create ($filePath);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
+				} else {
+					$mediaupload = '@' . $filePath;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
+				}
+				$data['mediaupload'] = $mediaupload;
 			}
-			$data['mediaupload'] = $mediaupload;
 		}
 		
 		# Post the data
@@ -1040,13 +1044,23 @@ class telluswhere
 		# Determine whether to select an existing marker on the map
 		$selectedId = ($existingData ? $existingData['id'] : false);
 		
+		# Determine the form template
+		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, $selectedId);
+		
+		# Determine whether an existing photo already exists
+		$existingPhoto = ($existingData && $existingData['hasPhoto'] == 'yes' ? $existingData['thumbnailUrl'] : false);
+		if ($existingPhoto) {
+			#!# Slightly hacky - ultimateForm::upload needs support for uneditable existing photos by supplying a URL to show the image instead of the form widget
+			$displayTemplate = str_replace ('{file}', "<img src=\"{$existingPhoto}\" alt=\"Existing image\" />", $displayTemplate);
+		}
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'display'					=> 'template',
-			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}" . $this->placeholderHtmlToFormTemplate ('form', $action),
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}" . $displayTemplate,
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Submit',
 			'submitButtonAccesskey'		=> false,
@@ -1054,18 +1068,20 @@ class telluswhere
 		));
 		
 		# Widgets
-		$allowedExtensions = array ('jpg');
-		$form->upload (array (
-			'name'				=> 'file',
-			'title'				=> 'Select an image from your device/computer',
-			'description'		=> '<span class="small comment">(' . strtoupper (implode ('/', $allowedExtensions)) . ' only, maximum size: ' . ini_get ('upload_max_filesize') . ')</span>',
-			'required'			=> false,
-			'size'				=> 40,
-			'directory'				=> $this->tmpDirectory,
-			'allowedExtensions'		=> $allowedExtensions,
-			'lowercaseExtension'	=> true,
-			'flatten'			=> true,
-		));
+		if (!$existingPhoto) {
+			$allowedExtensions = array ('jpg');
+			$form->upload (array (
+				'name'				=> 'file',
+				'title'				=> 'Select an image from your device/computer',
+				'description'		=> '<span class="small comment">(' . strtoupper (implode ('/', $allowedExtensions)) . ' only, maximum size: ' . ini_get ('upload_max_filesize') . ')</span>',
+				'required'			=> false,
+				'size'				=> 40,
+				'directory'				=> $this->tmpDirectory,
+				'allowedExtensions'		=> $allowedExtensions,
+				'lowercaseExtension'	=> true,
+				'flatten'			=> true,
+			));
+		}
 		if ($action == 'current') {
 			$form->select (array (
 				'name'			=> 'type',

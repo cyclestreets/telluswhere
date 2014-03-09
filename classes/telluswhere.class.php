@@ -792,7 +792,7 @@ class telluswhere
 	
 	
 	# Map of current locations
-	private function locationsMap ()
+	private function locationsMap ($selectedId = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -822,7 +822,7 @@ class telluswhere
 		
 		# Determine the URL for the browsing API
 		#!# Improve way key is added here
-		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . '&key=' . $this->settings['apiKey'];
+		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . ($selectedId ? "&selectedid={$selectedId}" : '') . '&key=' . $this->settings['apiKey'];
 		
 		# Create the map application HTML
 		$html .= '
@@ -858,13 +858,12 @@ class telluswhere
 		
 		# Load the map application Javascript and run it
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
+		$selectedIdJs = ($selectedId ? $selectedId : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			telluswhere.createMap({$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$this->action}', {$setMarkerInitiallyJs});
+			telluswhere.createMap({$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$this->action}', {$setMarkerInitiallyJs}, {$selectedIdJs});
 		</script>
 		";
-		
-		
 		
 		# Add autocomplete name search
 		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];

@@ -29,6 +29,9 @@ var telluswhere = (function ($) {
 	// Whether to set a marker initially
 	var _setMarkerInitially;
 	
+	// Selected ID, if any
+	var _selectedId;
+	
 	
 	
 	return {
@@ -36,7 +39,7 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially) {
+		createMap: function(initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, selectedId) {
 			
 			// Set class properties
 			_initialLatitude = initialLatitude;
@@ -45,7 +48,8 @@ var telluswhere = (function ($) {
 			_browsingApiUrl = browsingApiUrl;
 			_useIcon = useIcon;
 			_setMarkerInitially = setMarkerInitially;
-		
+			_selectedId = selectedId;
+			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
 			
@@ -317,11 +321,33 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to set the icon
+		// Function to set the marker and attach a popup
 		setIcon: function(feature,latlng) {
-			var icon = L.marker(latlng, {icon: _icons['already']});
-			icon.bindPopup(telluswhere.popupHtml(feature.properties));
-			return icon;
+			
+			// Create the marker and bind the popup to it
+			var marker = L.marker(latlng, {icon: _icons['already']});
+			marker.bindPopup(telluswhere.popupHtml(feature.properties));
+			
+			// If an item is selected, open its popup and zoom to its location
+			if (_selectedId) {
+				var id = parseInt(feature.properties.id, 10);	// base 10
+				if (id == _selectedId) {
+					
+					// Open its popup
+					// #!# Not actually working for some reason
+					marker.openPopup();
+					
+					// Zoom to its location
+					var latlng = new L.LatLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+					map.setView(latlng, _maxZoom);
+					
+					// Unset selected ID, so that further map moves won't force reselection/rezooming to this location
+					_selectedId = false;
+				}
+			}
+			
+			// Return the marker
+			return marker;
 		},
 		
 		

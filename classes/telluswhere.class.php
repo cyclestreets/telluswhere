@@ -546,7 +546,7 @@ class telluswhere
 	
 	
 	# Function to take an extracted part of the template and convert to ultimateForm form template format
-	private function placeholderHtmlToFormTemplate ($placeholderName, $action)
+	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $selectedId = false)
 	{
 		# Obtain the form template which was extracted during the template pre-processing
 		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
@@ -562,7 +562,7 @@ class telluswhere
 				$replacements[$placeholder] = '{[[SUBMIT]]}';
 			}
 			if ($placeholder == 'map') {
-				$replacements[$placeholder] = $this->locationsMap ($action);
+				$replacements[$placeholder] = $this->locationsMap ($action, $selectedId);
 			}
 		}
 		
@@ -668,13 +668,13 @@ class telluswhere
 	
 	
 	# Suggest a location page
-	private function suggest ()
+	private function suggest ($existingData = array ())
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__);
+		$html = $this->submissionPage (__FUNCTION__, $existingData);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -682,13 +682,13 @@ class telluswhere
 	
 	
 	# Page for auditing of current locations
-	private function current ()
+	private function current ($existingData = array ())
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__);
+		$html = $this->submissionPage (__FUNCTION__, $existingData);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -748,6 +748,22 @@ class telluswhere
 		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
 		$action = $supportedMetacategories[$data['metacategoryTag']];
 		
+		# Divert to CRUD action if required
+		if (isSet ($_GET['mode'])) {
+			
+			# Validate requested action
+			$crudActions = array ('edit', );
+			if (!in_array ($_GET['mode'], $crudActions)) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+			
+			# Run the CRUD method
+			$method = __FUNCTION__ . ucfirst ($_GET['mode']);	// e.g. locationEdit()
+			return $this->$method ($id, $action, $data);	// Pass in existing data $data
+		}
+		
 		# Start the metadata panel with the caption
 		$metadataHtml = '';
 		if ($data['caption']) {
@@ -780,19 +796,30 @@ class telluswhere
 	}
 	
 	
+	# Editing of location
+	private function locationEdit ($id, $action, $data)
+	{
+		# Overwrite the default template
+		$this->templateHtml = $this->getTemplateHtml ($action);
+		
+		# Hand off to current/suggest in edit mode
+		return $this->$action ($data);
+	}
+	
+	
 	# Submission page logic
-	private function submissionPage ($action)
+	private function submissionPage ($action, $existingData = array ())
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Create the form and process the data
-		if (!$data = $this->locationSubmissionForm ($action, $html)) {		// &html written into by reference
+		if (!$data = $this->locationSubmissionForm ($action, $existingData, $html)) {		// &html written into by reference
 			return $html;
 		}
 		
 		# Send the data (including any image) to the API
-		if (!$result = $this->postSubmission ($data, $action, $error)) {
+		if (!$result = $this->postSubmission ($data, $action, $existingData, $error)) {
 			$html = $error;
 			return $html;
 		}
@@ -825,10 +852,11 @@ class telluswhere
 	
 	
 	# Function to post submissions to the API
-	private function postSubmission ($rawdata, $action, &$error = '')
+	private function postSubmission ($rawdata, $action, $existingData, &$error = '')
 	{
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.add' . '?key=' . $this->settings['apiKey'];
+		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
+		$apiUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
 		
 		# Assemble the additional metadata
 		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
@@ -867,7 +895,7 @@ class telluswhere
 			$data['mediaupload'] = $mediaupload;
 		}
 		
-		# Post the file
+		# Post the data
 		$result = application::file_post_contents ($apiUrl, $data, true, $error);
 		
 		# Delete the temporary file if a file was uploaded
@@ -990,13 +1018,27 @@ class telluswhere
 	
 	
 	# Location submission form
-	private function locationSubmissionForm ($action, &$html = '')
+	private function locationSubmissionForm ($action, $existingData, &$html = '')
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Unpack user details cookie if present from a previous submission
 		$data = $this->getCourtesyUserdetails ();
+		
+		#!# Need to get fieldnames in API in sync with form template
+		# Map the data structure to the form data
+		if ($existingData) {
+			$data['message'] = $existingData['caption'];
+			if ($existingData['additionalMetadata']) {
+				foreach ($existingData['additionalMetadata'] as $field => $value) {
+					$data[$field] = $value;
+				}
+			}
+		}
+		
+		# Determine whether to select an existing marker on the map
+		$selectedId = ($existingData ? $existingData['id'] : false);
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -1030,11 +1072,13 @@ class telluswhere
 				'title'			=> $this->metadataFieldLabels['type'],
 				'required'		=> true,
 				'values'		=> $this->parkingTypes,
+				'default'		=> (isSet ($data['type']) ? $data['type'] : false),
 			));
 			$form->number (array (
 				'name'			=> 'capacity',
 				'title'			=> $this->metadataFieldLabels['capacity'],
 				'required'		=> true,
+				'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
 			));
 		}
 		$form->select (array (
@@ -1042,6 +1086,7 @@ class telluswhere
 			'title'			=> $this->metadataFieldLabels['landtype'],
 			'required'		=> true,
 			'values'		=> $this->landTypes,
+			'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
 		));
 		$form->textarea (array (
 			'name'			=> 'message',
@@ -1049,18 +1094,19 @@ class telluswhere
 			'required'		=> false,
 			'rows'			=> 2,
 			'cols'			=> 20,
+			'default'		=> (isSet ($data['message']) ? $data['message'] : false),
 		));
 		$form->input (array (
 			'name'			=> 'name',
 			'title'			=> 'Your name',
 			'required'		=> true,
-			'default'		=> ($data ? $data['name'] : false),
+			'default'		=> (isSet ($data['name']) ? $data['name'] : false),
 		));
 		$form->email (array (
 			'name'			=> 'email',
 			'title'			=> 'Your e-mail address',
 			'required'		=> true,
-			'default'		=> ($data ? $data['email'] : false),
+			'default'		=> (isSet ($data['email']) ? $data['email'] : false),
 		));
 		$form->select (array (
 			'name'			=> 'mailinglist',

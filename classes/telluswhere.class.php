@@ -31,19 +31,23 @@ class telluswhere
 				'url' => '/',
 			),
 			'suggest' => array (
-				'description' => false,
+				'description' => 'Suggested cycle parking location',
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype',
 			),
 			'current' => array (
-				'description' => false,
+				'description' => 'Current cycle parking location',
 				'url' => '/current/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
 				// 'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
+			),
+			'location' => array (
+				'description' => false,
+				'url' => '/location/',	// Will have id after
 			),
 			'about' => array (
 				'description' => false,
@@ -97,6 +101,14 @@ class telluswhere
 	private $userIsAdministrator = false;
 	private $userIsDownloader = false;
 	
+	# Labels for metadata fields
+	private $metadataFieldLabels = array (
+		'type'		=> 'Type of parking',
+		'capacity'	=> 'How many cycles can be parked?',
+		'landtype'	=> 'Land type',
+		'message'	=> 'Additional info / comments',
+	);
+	
 	# Cycle parking type presets
 	private $parkingTypes = array (
 		'stand'				=> 'Sheffield stand',
@@ -118,7 +130,6 @@ class telluswhere
 		'riverpier'			=> 'Riverside pier',
 		'unknown'			=> 'Not sure',
 	);
-	
 	
 	
 	# Constructor
@@ -684,6 +695,92 @@ class telluswhere
 	}
 	
 	
+	# Page showing an existing location
+	private function location ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Ensure there is an ID
+		if (!isSet ($_GET['id']) || !ctype_digit ($_GET['id'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Get the data for this location
+		$id = $_GET['id'];
+		#!# API call output needs to rename metacategoryTag and categoryTag to metacategory and category
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&fields=id,metacategoryTag,categoryTag,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata';
+		
+		# Obtain the data
+		$data = file_get_contents ($apiUrl);
+		
+		# Decode to JSON
+		$data = json_decode ($data, true);
+		
+		# End if no such ID
+		if (isSet ($data['error'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Determine the supported metacategories, and the marker layer for each
+		$supportedMetacategories = array ();
+		foreach ($this->actions as $action => $attributes) {
+			if (isSet ($attributes['metacategory'])) {
+				$supportedMetacategories[$attributes['metacategory']] = $action;
+			}
+		}
+		
+		# Determine the supported categories
+		#!# Generalise to setting
+		$supportedCategories = array ('cycleparking');
+		
+		# End if not a supported metacategory or category
+		$properties = $data['features'][0]['properties'];
+		$metacategory = $properties['metacategoryTag'];
+		$category = $properties['categoryTag'];
+		if (!array_key_exists ($metacategory, $supportedMetacategories) || !in_array ($category, $supportedCategories)) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
+		$action = $supportedMetacategories[$metacategory];
+		
+		# Determine the available fields for this action
+		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
+		
+		# Create a table of metadata, filtered only to supported fields
+		$table = application::arrayFields ($properties['additionalMetadata'], $additionalMetadataFields);
+		
+		# Substitute internal names in table
+		if (isSet ($table['type'])) {
+			$table['type'] = $this->parkingTypes[$table['type']];
+		}
+		if (isSet ($table['landtype'])) {
+			$table['landtype'] = $this->landTypes[$table['landtype']];
+		}
+		
+		# Compile the metadata panel HTML
+		$metadataHtml = '';
+		if ($properties['caption']) {
+			$metadataHtml .= application::formatTextBlock (htmlspecialchars ($properties['caption']), 'metadata');
+		}
+		if ($table) {
+			$metadataHtml .= application::htmlTableKeyed ($table, $this->metadataFieldLabels, true, 'lines metadatatable');
+		}
+		
+		# Register HTML components
+		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
+		$this->template['map'] = $this->locationsMap ($action, $id);
+		$this->template['form'] = $metadataHtml;
+	}
+	
+	
 	# Submission page logic
 	private function submissionPage ($current = false)
 	{
@@ -911,6 +1008,8 @@ class telluswhere
 			'nullText'					=> false,
 		));
 		
+		#!# Need to get fieldnames in API in sync with form template
+		
 		# Widgets
 		$allowedExtensions = array ('jpg');
 		$form->upload (array (
@@ -927,25 +1026,25 @@ class telluswhere
 		if ($current) {
 			$form->select (array (
 				'name'			=> 'type',
-				'title'			=> 'Type of parking',
+				'title'			=> $this->metadataFieldLabels['type'],
 				'required'		=> true,
 				'values'		=> $this->parkingTypes,
 			));
 			$form->number (array (
 				'name'			=> 'capacity',
-				'title'			=> 'How many cycles can be parked?',
+				'title'			=> $this->metadataFieldLabels['capacity'],
 				'required'		=> true,
 			));
 		}
 		$form->select (array (
 			'name'			=> 'landtype',
-			'title'			=> 'Land type',
+			'title'			=> $this->metadataFieldLabels['landtype'],
 			'required'		=> true,
 			'values'		=> $this->landTypes,
 		));
 		$form->textarea (array (
 			'name'			=> 'message',
-			'title'			=> 'Additional info / comments',
+			'title'			=> $this->metadataFieldLabels['message'],
 			'required'		=> false,
 			'rows'			=> 2,
 			'cols'			=> 20,

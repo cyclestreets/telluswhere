@@ -935,6 +935,8 @@ class telluswhere
 			.bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}
 			.bubble p.id a {color: #bbb;}
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
+			table.metadatatable td.value, p.metadata {font-weight: bold;}
+			p.metadata {margin-bottom: 2em;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}

@@ -106,7 +106,7 @@ class telluswhere
 		'type'		=> 'Type of parking',
 		'capacity'	=> 'How many cycles can be parked?',
 		'landtype'	=> 'Land type',
-		'message'	=> 'Additional info / comments',
+		'caption'	=> 'Additional info / comments',
 	);
 	
 	# Cycle parking type presets
@@ -863,8 +863,8 @@ class telluswhere
 		$additionalMetadata = application::arrayFields ($rawdata, $additionalMetadataFields);
 		
 		# If the message is empty, add a generic message as the API sets caption as a required field
-		if (empty ($rawdata['message'])) {
-			$rawdata['message'] = 'Cycle parking ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
+		if (empty ($rawdata['caption'])) {
+			$rawdata['caption'] = 'Cycle parking ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
 		}
 		
 		# Map the fields to the API
@@ -874,7 +874,7 @@ class telluswhere
 			'password'				=> $this->settings['password'],
 			'metacategory'			=> $this->actions[$action]['metacategory'],
 			'category'				=> 'cycleparking',
-			'caption'				=> $rawdata['message'],
+			'caption'				=> $rawdata['caption'],
 			'latitude'				=> $rawdata['latitude'],
 			'longitude'				=> $rawdata['longitude'],
 			'zoom'					=> $rawdata['zoom'],
@@ -1030,10 +1030,9 @@ class telluswhere
 		# Unpack user details cookie if present from a previous submission
 		$data = $this->getCourtesyUserdetails ();
 		
-		#!# Need to get fieldnames in API in sync with form template
-		# Map the data structure to the form data
+		# Map the data structure to the form data, flattening out the additional metadata if present
 		if ($existingData) {
-			$data['message'] = $existingData['caption'];
+			$data['caption'] = $existingData['caption'];
 			if ($existingData['additionalMetadata']) {
 				foreach ($existingData['additionalMetadata'] as $field => $value) {
 					$data[$field] = $value;
@@ -1105,12 +1104,12 @@ class telluswhere
 			'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
 		));
 		$form->textarea (array (
-			'name'			=> 'message',
-			'title'			=> $this->metadataFieldLabels['message'],
+			'name'			=> 'caption',
+			'title'			=> $this->metadataFieldLabels['caption'],
 			'required'		=> false,
 			'rows'			=> 2,
 			'cols'			=> 20,
-			'default'		=> (isSet ($data['message']) ? $data['message'] : false),
+			'default'		=> (isSet ($data['caption']) ? $data['caption'] : false),
 		));
 		$form->input (array (
 			'name'			=> 'name',

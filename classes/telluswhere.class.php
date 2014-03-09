@@ -235,13 +235,13 @@ class telluswhere
 		}
 		
 		# Load the template
-		$templateHtml = $this->getTemplateHtml ($this->action);
+		$this->templateHtml = $this->getTemplateHtml ($this->action);
 		
 		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
 		
 		# Render the page
-		$html = $this->doTemplateSubstitution ($templateHtml, $this->template);
+		$html = $this->doTemplateSubstitution ($this->templateHtml, $this->template);
 		
 		# Show the HTML
 		echo $html;

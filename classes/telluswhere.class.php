@@ -711,7 +711,7 @@ class telluswhere
 		# Get the data for this location
 		$id = $_GET['id'];
 		#!# API call output needs to rename metacategoryTag and categoryTag to metacategory and category
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&fields=id,metacategoryTag,categoryTag,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata';
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryTag,categoryTag,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata';
 		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
@@ -739,38 +739,37 @@ class telluswhere
 		$supportedCategories = array ('cycleparking');
 		
 		# End if not a supported metacategory or category
-		$properties = $data['features'][0]['properties'];
-		$metacategory = $properties['metacategoryTag'];
-		$category = $properties['categoryTag'];
-		if (!array_key_exists ($metacategory, $supportedMetacategories) || !in_array ($category, $supportedCategories)) {
+		if (!array_key_exists ($data['metacategoryTag'], $supportedMetacategories) || !in_array ($data['categoryTag'], $supportedCategories)) {
 			$html = $this->page404 ();
 			echo $html;
 			return false;
 		}
 		
 		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
-		$action = $supportedMetacategories[$metacategory];
+		$action = $supportedMetacategories[$data['metacategoryTag']];
 		
-		# Determine the available fields for this action
-		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
-		
-		# Create a table of metadata, filtered only to supported fields
-		$table = application::arrayFields ($properties['additionalMetadata'], $additionalMetadataFields);
-		
-		# Substitute internal names in table
-		if (isSet ($table['type'])) {
-			$table['type'] = $this->parkingTypes[$table['type']];
-		}
-		if (isSet ($table['landtype'])) {
-			$table['landtype'] = $this->landTypes[$table['landtype']];
-		}
-		
-		# Compile the metadata panel HTML
+		# Start the metadata panel with the caption
 		$metadataHtml = '';
-		if ($properties['caption']) {
-			$metadataHtml .= application::formatTextBlock (htmlspecialchars ($properties['caption']), 'metadata');
+		if ($data['caption']) {
+			$metadataHtml .= application::formatTextBlock (htmlspecialchars ($data['caption']), 'metadata');
 		}
-		if ($table) {
+		
+		# Show additional metadata table
+		if ($data['additionalMetadata']) {
+			
+			# Filter to supported fields for this action
+			$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
+			$table = application::arrayFields ($data['additionalMetadata'], $additionalMetadataFields);
+			
+			# Substitute internal names in table
+			if (isSet ($table['type'])) {
+				$table['type'] = $this->parkingTypes[$table['type']];
+			}
+			if (isSet ($table['landtype'])) {
+				$table['landtype'] = $this->landTypes[$table['landtype']];
+			}
+			
+			# Add to the HTML
 			$metadataHtml .= application::htmlTableKeyed ($table, $this->metadataFieldLabels, true, 'lines metadatatable');
 		}
 		
@@ -1011,8 +1010,6 @@ class telluswhere
 			'submitButtonAccesskey'		=> false,
 			'nullText'					=> false,
 		));
-		
-		#!# Need to get fieldnames in API in sync with form template
 		
 		# Widgets
 		$allowedExtensions = array ('jpg');

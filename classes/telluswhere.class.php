@@ -24,7 +24,7 @@ class telluswhere
 	# Register actions
 	private function actions ()
 	{
-		# Specify available actions
+		# Specify available actions; URL refers both to the public URL and the template location
 		$actions = array (
 			'home' => array (
 				'description' => false,
@@ -47,7 +47,7 @@ class telluswhere
 			),
 			'location' => array (
 				'description' => false,
-				'url' => '/location/',	// Will have id after
+				'url' => '/location/',	// Will be /location/<id>/
 			),
 			'about' => array (
 				'description' => false,
@@ -546,7 +546,7 @@ class telluswhere
 	
 	
 	# Function to take an extracted part of the template and convert to ultimateForm form template format
-	private function placeholderHtmlToFormTemplate ($placeholderName)
+	private function placeholderHtmlToFormTemplate ($placeholderName, $action)
 	{
 		# Obtain the form template which was extracted during the template pre-processing
 		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
@@ -562,7 +562,7 @@ class telluswhere
 				$replacements[$placeholder] = '{[[SUBMIT]]}';
 			}
 			if ($placeholder == 'map') {
-				$replacements[$placeholder] = $this->locationsMap ($this->action);
+				$replacements[$placeholder] = $this->locationsMap ($action);
 			}
 		}
 		
@@ -674,7 +674,7 @@ class telluswhere
 		$html = '';
 		
 		# Show the submission page
-		$html = $this->submissionPage ($current = false);
+		$html = $this->submissionPage (__FUNCTION__);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -688,7 +688,7 @@ class telluswhere
 		$html = '';
 		
 		# Show the submission page
-		$html = $this->submissionPage ($current = true);
+		$html = $this->submissionPage (__FUNCTION__);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -782,18 +782,18 @@ class telluswhere
 	
 	
 	# Submission page logic
-	private function submissionPage ($current = false)
+	private function submissionPage ($action)
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Create the form and process the data
-		if (!$data = $this->locationSubmissionForm ($current, $html)) {		// &html written into by reference
+		if (!$data = $this->locationSubmissionForm ($action, $html)) {		// &html written into by reference
 			return $html;
 		}
 		
 		# Send the data (including any image) to the API
-		if (!$result = $this->postSubmission ($data, $this->action, $error)) {
+		if (!$result = $this->postSubmission ($data, $action, $error)) {
 			$html = $error;
 			return $html;
 		}
@@ -811,7 +811,7 @@ class telluswhere
 		# Thank the user
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
 		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$result['id']}.</p>";
-		$html .= "\n<p><a href=\"{$this->actions[$this->action]['url']}\">Add another?</a></p>";
+		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}\">Add another?</a></p>";
 		
 		# Add to mailing list data if required
 		if ($data['mailinglist'] == 'Yes') {
@@ -991,7 +991,7 @@ class telluswhere
 	
 	
 	# Location submission form
-	private function locationSubmissionForm ($current = false, &$html = '')
+	private function locationSubmissionForm ($action, &$html = '')
 	{
 		# Start the HTML
 		$html = '';
@@ -1005,7 +1005,7 @@ class telluswhere
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'display'					=> 'template',
-			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}" . $this->placeholderHtmlToFormTemplate ('form'),
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}" . $this->placeholderHtmlToFormTemplate ('form', $action),
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Submit',
 			'submitButtonAccesskey'		=> false,
@@ -1027,7 +1027,7 @@ class telluswhere
 			'lowercaseExtension'	=> true,
 			'flatten'			=> true,
 		));
-		if ($current) {
+		if ($action == 'current') {
 			$form->select (array (
 				'name'			=> 'type',
 				'title'			=> $this->metadataFieldLabels['type'],
@@ -1209,7 +1209,7 @@ class telluswhere
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> "Many thanks for your message - we'll be in touch shortly if applicable.",
 			'display'					=> 'template',
-			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form'),
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form', $this->action),
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Send message',
 			'submitButtonAccesskey'		=> false,
@@ -1430,7 +1430,7 @@ class telluswhere
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'display'					=> 'template',
-			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form'),
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form', $this->action),
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Login',
 			'submitButtonAccesskey'		=> false,

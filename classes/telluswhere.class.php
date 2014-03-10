@@ -1009,6 +1009,7 @@ class telluswhere
 			p#editlink {clear: both; float: right; padding: 0; margin: 0 0 10px 10px;}
 			p#editlink a {border: 1px solid #ddd; display: block; padding: 5px 10px; border-radius: 4px; background-color: #f7f7f7; font-weight: bold;}
 			p#editlink a:hover {text-decoration: none; background-color: #eee;}
+			form div.error {clear: both; border: 2px solid red; background-color: #f7f7f7; padding: 10px; margin: 1em 0 2em;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}
@@ -1046,16 +1047,6 @@ class telluswhere
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">autocompleteNS.addTo(map, \"input[name='location']\", \"{$geocoderApiUrl}\");</script>";
-		// Stop a return keypress causing the whole form to be submitted
-		$html .= "\n" . "<script type=\"text/javascript\">var $ = jQuery.noConflict();</script>";
-		$html .= "\n" . '<script type="text/javascript">
-		$("input[name=\'location\']").keypress(function(e) {
-		    var code = (e.keyCode ? e.keyCode : e.which);
-		    if(code == 13) { //Enter keycode
-		        return false;
-		    }
-		});
-		</script>';
 		
 		# Return the HTML
 		return $html;
@@ -1485,7 +1476,7 @@ class telluswhere
 		
 		# Serve the file
 		$filenameBase = $dataset . '_savedAt' . date ('Ymd-His');
-		header ('Content-type: application/octet-stream');
+		header ('Content-type: text/csv');	// Note that Chrome will still give "Resource interpreted as Document but transferred with MIME type text/csv" - see: http://stackoverflow.com/a/3899453/180733
 		header ('Content-Disposition: attachment; filename="' . $filenameBase . '.csv"');
 		echo $csv;
 	}

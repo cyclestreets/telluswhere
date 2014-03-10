@@ -1687,6 +1687,14 @@ class telluswhere
 	# Function to get the current session data
 	private function sessionGet ($field)
 	{
+		# End session if basic fingerprint match fails
+		if (!isSet ($_SESSION['_fingerprint'])) {return false;}
+		if ($_SESSION['_fingerprint'] != md5 ($_SERVER['HTTP_USER_AGENT'])) {
+			$this->sessionDestroy ($field);
+			return false;
+		}
+		
+		# Return the field's data if present
 		return (isSet ($_SESSION[$field]) ? $_SESSION[$field] : false);
 	}
 	
@@ -1694,6 +1702,10 @@ class telluswhere
 	# Function to write into the session
 	private function sessionWrite ($field, $data)
 	{
+		# Add fingerprint
+		$_SESSION['_fingerprint'] = md5 ($_SERVER['HTTP_USER_AGENT']);
+		
+		# Write the value
 		$_SESSION[$field] = $data;
 	}
 	

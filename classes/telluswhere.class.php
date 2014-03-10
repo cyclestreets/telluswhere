@@ -937,7 +937,7 @@ class telluswhere
 		}
 		
 		# Post the data
-		$result = application::file_post_contents ($apiUrl, $data, true, $error);
+		$result = application::file_post_contents ($apiUrl, $data, true, $transportError);
 		
 		# Delete the temporary file if a file was uploaded
 		if ($filePath) {
@@ -945,8 +945,8 @@ class telluswhere
 		}
 		
 		# Report any transport error
-		if ($error) {
-			// echo $error;	// Debugging
+		if ($transportError) {
+			// echo $transportError;	// Debugging
 			$error = 'Sorry, a technical error occured - please try again later.';
 			return false;
 		}

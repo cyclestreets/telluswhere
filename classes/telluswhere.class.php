@@ -799,9 +799,20 @@ class telluswhere
 			}
 		}
 		
+		# Determine whether the user can edit
+		#!# TODO
+		$userCanEdit = true;
+		
+		# Add an edit link
+		$editlink = false;
+		if ($userCanEdit) {
+			$editlink = "\n<p id=\"editlink\"><a href=\"{$this->baseUrl}/location/{$id}/edit/\"><img src=\"{$this->baseUrl}/images/pencil.png\" alt=\"\" width=\"16\" height=\"16\" border=\"0\" /> Edit</a></p>";
+		}
+		
 		# Register HTML components
 		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
 		$this->template['message'] = $flashMessage;
+		$this->template['editlink'] = $editlink;
 		$this->template['map'] = $this->locationsMap ($action, $id);
 		$this->template['metadata'] = $metadataHtml;
 	}
@@ -995,6 +1006,9 @@ class telluswhere
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
 			#flashmessage {clear: both; border: 1px solid #603; background-color: #f7f7f7; padding: 10px; margin: 1em 0 2em;}
+			p#editlink {clear: both; float: right; padding: 0; margin: 0 0 10px 10px;}
+			p#editlink a {border: 1px solid #ddd; display: block; padding: 5px 10px; border-radius: 4px; background-color: #f7f7f7; font-weight: bold;}
+			p#editlink a:hover {text-decoration: none; background-color: #eee;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}

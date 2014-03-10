@@ -792,10 +792,13 @@ class telluswhere
 		
 		# Set the flash message message, if any
 		$flashMessage = false;
-		if ($confirmationId = application::getFlashMessage ($this->settings['flashMessageName'], $this->baseUrl . '/')) {
-			if ($confirmationId == $id) {
-				$flashMessage = $this->confirmationMessage ($confirmationId, $action);
-				$flashMessage = "\n<div id=\"flashmessage\">" . $flashMessage . "\n</div>";
+		if ($confirmationString = application::getFlashMessage ($this->settings['flashMessageName'], $this->baseUrl . '/')) {
+			if (preg_match ('/^([1-9][0-9]*)-([a-z]+)$/', $confirmationString, $matches)) {		// e.g. 80-update or 80-insert
+				list ($confirmationId, $type) = array ($matches[1], $matches[2]);
+				if ($confirmationId == $id) {
+					$flashMessage = $this->confirmationMessage ($confirmationId, ($type == 'update'), $action);
+					$flashMessage = "\n<div id=\"flashmessage\">" . $flashMessage . "\n</div>";
+				}
 			}
 		}
 		
@@ -867,11 +870,12 @@ class telluswhere
 		$redirectToPath = $this->baseUrl . "/location/{$result['id']}/";
 		
 		# Thank the user, resetting the HTML
-		$html  = $this->confirmationMessage ($result['id'], $action);
+		$html  = $this->confirmationMessage ($result['id'], $existingData, $action);
 		$html .= "\n<p><a href=\"{$redirectToPath}\">Click here to continue to the next page.</a></p>";
 		
 		# Set a flash message and redirect the user (which will override the confirmation above)
-		application::setFlashMessage ($this->settings['flashMessageName'], $result['id'], $redirectToPath, $html, $this->baseUrl . '/');
+		$valueString = $result['id'] . ($existingData ? '-update' : '-insert');
+		application::setFlashMessage ($this->settings['flashMessageName'], $valueString, $redirectToPath, $html, $this->baseUrl . '/');
 		
 		# Return the HTML
 		return $html;
@@ -879,10 +883,10 @@ class telluswhere
 	
 	
 	# Function to set the addition confirmation message
-	private function confirmationMessage ($id, $action)
+	private function confirmationMessage ($id, $isUpdate, $action)
 	{
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
-		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$id}.</p>";
+		$html  = "\n<p>{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number {$id}.") . '</p>';
 		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}\">Add another?</a></p>";
 		return $html;
 	}
@@ -936,8 +940,13 @@ class telluswhere
 			}
 		}
 		
+		# If editing an existing location, include the ID
+		if ($existingData) {
+			$data['id'] = $existingData['id'];
+		}
+		
 		# Post the data
-		$result = application::file_post_contents ($apiUrl, $data, true, $error);
+		$result = application::file_post_contents ($apiUrl, $data, true, $transportError);
 		
 		# Delete the temporary file if a file was uploaded
 		if ($filePath) {
@@ -945,8 +954,8 @@ class telluswhere
 		}
 		
 		# Report any transport error
-		if ($error) {
-			// echo $error;	// Debugging
+		if ($transportError) {
+			// echo $transportError;	// Debugging
 			$error = 'Sorry, a technical error occured - please try again later.';
 			return false;
 		}

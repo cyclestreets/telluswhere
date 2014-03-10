@@ -54,7 +54,14 @@ var autocompleteNS = (function ($) {
 							.appendTo( ul );
 					}
 		    }
-		
+			
+			// Disable return key from submitting the whole form
+			$( inputElement ).keypress(function(e) {
+				var code = (e.keyCode ? e.keyCode : e.which);
+				if(code == 13) { //Enter keycode
+					return false;
+				}
+			});
 		
 			// Run on document ready
 		    $(function() {

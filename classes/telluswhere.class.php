@@ -1047,16 +1047,6 @@ class telluswhere
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">autocompleteNS.addTo(map, \"input[name='location']\", \"{$geocoderApiUrl}\");</script>";
-		// Stop a return keypress causing the whole form to be submitted
-		$html .= "\n" . "<script type=\"text/javascript\">var $ = jQuery.noConflict();</script>";
-		$html .= "\n" . '<script type="text/javascript">
-		$("input[name=\'location\']").keypress(function(e) {
-		    var code = (e.keyCode ? e.keyCode : e.which);
-		    if(code == 13) { //Enter keycode
-		        return false;
-		    }
-		});
-		</script>';
 		
 		# Return the HTML
 		return $html;

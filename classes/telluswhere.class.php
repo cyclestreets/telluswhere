@@ -15,6 +15,7 @@ class telluswhere
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'username'				=> NULL,
 			'password'				=> NULL,
+			'flashMessageName'		=> 'confirmation',
 		);
 		
 		# Return the defaults
@@ -789,8 +790,18 @@ class telluswhere
 			$metadataHtml .= application::htmlTableKeyed ($table, $this->metadataFieldLabels, true, 'lines metadatatable');
 		}
 		
+		# Set the flash message message, if any
+		$flashMessage = false;
+		if ($confirmationId = application::getFlashMessage ($this->settings['flashMessageName'], $this->baseUrl . '/')) {
+			if ($confirmationId == $id) {
+				$flashMessage = $this->confirmationMessage ($confirmationId, $action);
+				$flashMessage = "\n<div id=\"flashmessage\">" . $flashMessage . "\n</div>";
+			}
+		}
+		
 		# Register HTML components
 		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
+		$this->template['message'] = $flashMessage;
 		$this->template['map'] = $this->locationsMap ($action, $id);
 		$this->template['metadata'] = $metadataHtml;
 	}
@@ -834,11 +845,6 @@ class telluswhere
 			return $html;
 		}
 		
-		# Thank the user
-		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
-		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$result['id']}.</p>";
-		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}\">Add another?</a></p>";
-		
 		# Add to mailing list data if required
 		if ($data['mailinglist'] == 'Yes') {
 			$file = $_SERVER['DOCUMENT_ROOT'] . '/db/mailinglist.csv';
@@ -846,7 +852,27 @@ class telluswhere
 			file_put_contents ($file, $string, FILE_APPEND);
 		}
 		
+		# Determine the redirection target, namely the location page
+		$redirectToPath = $this->baseUrl . "/location/{$result['id']}/";
+		
+		# Thank the user, resetting the HTML
+		$html  = $this->confirmationMessage ($result['id'], $action);
+		$html .= "\n<p><a href=\"{$redirectToPath}\">Click here to continue to the next page.</a></p>";
+		
+		# Set a flash message and redirect the user (which will override the confirmation above)
+		application::setFlashMessage ($this->settings['flashMessageName'], $result['id'], $redirectToPath, $html, $this->baseUrl . '/');
+		
 		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to set the addition confirmation message
+	private function confirmationMessage ($id, $action)
+	{
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$html  = "\n<p><strong>{$unicodeTick} Thank you for your submission</strong>, which is number {$id}.</p>";
+		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}\">Add another?</a></p>";
 		return $html;
 	}
 	
@@ -968,6 +994,7 @@ class telluswhere
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
+			#flashmessage {clear: both; border: 1px solid #603; background-color: #f7f7f7; padding: 10px; margin: 1em 0 2em;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}

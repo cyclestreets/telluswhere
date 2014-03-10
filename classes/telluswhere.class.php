@@ -16,6 +16,7 @@ class telluswhere
 			'username'				=> NULL,
 			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
+			'editabilityPeriod'		=> 20* 60,		// In seconds
 		);
 		
 		# Return the defaults
@@ -749,7 +750,16 @@ class telluswhere
 		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
 		$action = $supportedMetacategories[$data['metacategoryTag']];
 		
+		# Start an editing rights session and determine if the user has edit rights
+		$userCanEdit = NULL;
+		$this->sessionInit ();
+		if ($locationCreationTime = $this->sessionGet ("id_{$id}")) {
+			$editableUntilUnixtime = $locationCreationTime + $this->settings['editabilityPeriod'];
+			$userCanEdit = (time () < $editableUntilUnixtime);
+		}
+		
 		# Divert to CRUD action if required
+		$userEditMessage = false;
 		if (isSet ($_GET['mode'])) {
 			
 			# Validate requested action
@@ -760,9 +770,21 @@ class telluswhere
 				return false;
 			}
 			
-			# Run the CRUD method
-			$method = __FUNCTION__ . ucfirst ($_GET['mode']);	// e.g. locationEdit()
-			return $this->$method ($id, $action, $data);	// Pass in existing data $data
+			# End if no editing rights
+			if ($userCanEdit === NULL) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+			
+			# Run the CRUD method if the user can edit
+			if ($userCanEdit) {
+				$method = __FUNCTION__ . ucfirst ($_GET['mode']);	// e.g. locationEdit()
+				return $this->$method ($id, $action, $data);	// Pass in existing data $data
+			} else {
+				$userEditMessage = "\n<p>Editing of this entry is no longer possible.</p>";
+				// Drop back to page viewing as below
+			}
 		}
 		
 		# Start the metadata panel with the caption
@@ -802,10 +824,6 @@ class telluswhere
 			}
 		}
 		
-		# Determine whether the user can edit
-		#!# TODO
-		$userCanEdit = true;
-		
 		# Add an edit link
 		$editlink = false;
 		if ($userCanEdit) {
@@ -814,7 +832,7 @@ class telluswhere
 		
 		# Register HTML components
 		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
-		$this->template['message'] = $flashMessage;
+		$this->template['message'] = $flashMessage . $userEditMessage;
 		$this->template['editlink'] = $editlink;
 		$this->template['map'] = $this->locationsMap ($action, $id);
 		$this->template['metadata'] = $metadataHtml;
@@ -872,6 +890,9 @@ class telluswhere
 		# Thank the user, resetting the HTML
 		$html  = $this->confirmationMessage ($result['id'], $existingData, $action);
 		$html .= "\n<p><a href=\"{$redirectToPath}\">Click here to continue to the next page.</a></p>";
+		
+		# Add editing rights into the session, by logging the current time for this ID
+		$this->sessionWrite ("id_{$result['id']}", time ());
 		
 		# Set a flash message and redirect the user (which will override the confirmation above)
 		$valueString = $result['id'] . ($existingData ? '-update' : '-insert');
@@ -1702,7 +1723,7 @@ class telluswhere
 	# Function to write into the session
 	private function sessionWrite ($field, $data)
 	{
-		# Add fingerprint
+		# Add/update fingerprint
 		$_SESSION['_fingerprint'] = md5 ($_SERVER['HTTP_USER_AGENT']);
 		
 		# Write the value

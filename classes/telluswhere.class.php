@@ -1476,7 +1476,7 @@ class telluswhere
 		
 		# Serve the file
 		$filenameBase = $dataset . '_savedAt' . date ('Ymd-His');
-		header ('Content-type: application/octet-stream');
+		header ('Content-type: text/csv');	// Note that Chrome will still give "Resource interpreted as Document but transferred with MIME type text/csv" - see: http://stackoverflow.com/a/3899453/180733
 		header ('Content-Disposition: attachment; filename="' . $filenameBase . '.csv"');
 		echo $csv;
 	}

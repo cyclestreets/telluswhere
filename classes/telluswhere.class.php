@@ -936,6 +936,11 @@ class telluswhere
 			}
 		}
 		
+		# If editing an existing location, include the ID
+		if ($existingData) {
+			$data['id'] = $existingData['id'];
+		}
+		
 		# Post the data
 		$result = application::file_post_contents ($apiUrl, $data, true, $transportError);
 		

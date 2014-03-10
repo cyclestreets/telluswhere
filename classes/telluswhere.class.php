@@ -1009,6 +1009,7 @@ class telluswhere
 			p#editlink {clear: both; float: right; padding: 0; margin: 0 0 10px 10px;}
 			p#editlink a {border: 1px solid #ddd; display: block; padding: 5px 10px; border-radius: 4px; background-color: #f7f7f7; font-weight: bold;}
 			p#editlink a:hover {text-decoration: none; background-color: #eee;}
+			form div.error {clear: both; border: 2px solid red; background-color: #f7f7f7; padding: 10px; margin: 1em 0 2em;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}

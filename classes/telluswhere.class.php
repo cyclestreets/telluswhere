@@ -16,6 +16,7 @@ class telluswhere
 			'username'				=> NULL,
 			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
+			'editabilityPeriod'		=> 20* 60,		// In seconds
 		);
 		
 		# Return the defaults
@@ -749,7 +750,16 @@ class telluswhere
 		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
 		$action = $supportedMetacategories[$data['metacategoryTag']];
 		
+		# Start an editing rights session and determine if the user has edit rights
+		$userCanEdit = NULL;
+		$this->sessionInit ();
+		if ($locationCreationTime = $this->sessionGet ("id_{$id}")) {
+			$editableUntilUnixtime = $locationCreationTime + $this->settings['editabilityPeriod'];
+			$userCanEdit = (time () < $editableUntilUnixtime);
+		}
+		
 		# Divert to CRUD action if required
+		$userEditMessage = false;
 		if (isSet ($_GET['mode'])) {
 			
 			# Validate requested action
@@ -760,9 +770,21 @@ class telluswhere
 				return false;
 			}
 			
-			# Run the CRUD method
-			$method = __FUNCTION__ . ucfirst ($_GET['mode']);	// e.g. locationEdit()
-			return $this->$method ($id, $action, $data);	// Pass in existing data $data
+			# End if no editing rights
+			if ($userCanEdit === NULL) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+			
+			# Run the CRUD method if the user can edit
+			if ($userCanEdit) {
+				$method = __FUNCTION__ . ucfirst ($_GET['mode']);	// e.g. locationEdit()
+				return $this->$method ($id, $action, $data);	// Pass in existing data $data
+			} else {
+				$userEditMessage = "\n<p>Editing of this entry is no longer possible.</p>";
+				// Drop back to page viewing as below
+			}
 		}
 		
 		# Start the metadata panel with the caption
@@ -802,10 +824,6 @@ class telluswhere
 			}
 		}
 		
-		# Determine whether the user can edit
-		#!# TODO
-		$userCanEdit = true;
-		
 		# Add an edit link
 		$editlink = false;
 		if ($userCanEdit) {
@@ -814,7 +832,7 @@ class telluswhere
 		
 		# Register HTML components
 		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
-		$this->template['message'] = $flashMessage;
+		$this->template['message'] = $flashMessage . $userEditMessage;
 		$this->template['editlink'] = $editlink;
 		$this->template['map'] = $this->locationsMap ($action, $id);
 		$this->template['metadata'] = $metadataHtml;
@@ -872,6 +890,9 @@ class telluswhere
 		# Thank the user, resetting the HTML
 		$html  = $this->confirmationMessage ($result['id'], $existingData, $action);
 		$html .= "\n<p><a href=\"{$redirectToPath}\">Click here to continue to the next page.</a></p>";
+		
+		# Add editing rights into the session, by logging the current time for this ID
+		$this->sessionWrite ("id_{$result['id']}", time ());
 		
 		# Set a flash message and redirect the user (which will override the confirmation above)
 		$valueString = $result['id'] . ($existingData ? '-update' : '-insert');
@@ -1600,36 +1621,30 @@ class telluswhere
 	# Get user details (from the session)
 	private function getUser ()
 	{
-		# Lock down PHP session management
-		ini_set ('session.name', 'session');
-		ini_set ('session.use_only_cookies', 1);
-		
-		# Start the session handling
-		if (!session_id ()) {session_start ();}
-		
-		# Regenerate the session ID
-		session_regenerate_id ($deleteOldSession = true);
+		# Begin the session
+		$this->sessionInit ();
 		
 		# Set the top-right login area
 		// At present, the login box is not shown
 		$this->template['login-status'] = '';
 		
 		# Return false if no user
-		if (!isSet ($_SESSION['user'])) {return false;}
+		$user = $this->sessionGet ('user');
+		if (!$user) {return false;}
 		
 		# Determine if the user is an administrator
 		$administratorsList = ($this->settings['administrators'] ? preg_split ("/\s+/", trim ($this->settings['administrators'])) : array ());
-		$this->userIsAdministrator = (in_array ($_SESSION['user']['email'], $administratorsList));
+		$this->userIsAdministrator = (in_array ($user['email'], $administratorsList));
 		
 		# Determine if the user is a downloader
 		$downloadersList = ($this->settings['downloaders'] ? preg_split ("/\s+/", trim ($this->settings['downloaders'])) : array ());
-		$this->userIsDownloader = (in_array ($_SESSION['user']['email'], $downloadersList) || $this->userIsAdministrator);
+		$this->userIsDownloader = (in_array ($user['email'], $downloadersList) || $this->userIsAdministrator);
 		
 		# Write the login status in the top-right
-		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($_SESSION['user']['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
+		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
 		
 		# Return the user details
-		return $_SESSION['user'];
+		return $user;
 	}
 	
 	
@@ -1637,7 +1652,7 @@ class telluswhere
 	private function doLogin ($result)
 	{
 		# Create the session entry
-		$_SESSION['user'] = $result;
+		$this->sessionWrite ('user', $result);
 		
 		# Refresh the page to ensure the session cookie is written
 		application::sendHeader ('refresh');
@@ -1651,14 +1666,10 @@ class telluswhere
 		$html = '';
 		
 		# Cache whether the user presented session data
-		$userHadSessionData = (isSet ($_SESSION['user']));
+		$userHadSessionData = ($this->sessionGet ('user'));
 		
 		# Explicitly destroy the session
-		session_unset ();
-		session_destroy ();
-		unset ($_SESSION['user']);
-		$params = session_get_cookie_params ();
-		setcookie (session_name (), '', time () - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+		$this->sessionDestroy ('user');
 		
 		# Confirm logout if there was a session, and redirect the user to the login page if necessary
 		$loginLocation = $this->baseUrl . $this->actions['login']['url'];
@@ -1676,6 +1687,58 @@ class telluswhere
 		
 		# Register the HTML
 		$this->template['text'] = $html;
+	}
+	
+	
+	# Function to start session handling if not already running
+	private function sessionInit ()
+	{
+		# Lock down PHP session management
+		ini_set ('session.name', 'session');
+		ini_set ('session.use_only_cookies', 1);
+		
+		# Start the session handling
+		if (!session_id ()) {session_start ();}
+		
+		# Regenerate the session ID
+		session_regenerate_id ($deleteOldSession = true);
+	}
+	
+	
+	# Function to get the current session data
+	private function sessionGet ($field)
+	{
+		# End session if basic fingerprint match fails
+		if (!isSet ($_SESSION['_fingerprint'])) {return false;}
+		if ($_SESSION['_fingerprint'] != md5 ($_SERVER['HTTP_USER_AGENT'])) {
+			$this->sessionDestroy ($field);
+			return false;
+		}
+		
+		# Return the field's data if present
+		return (isSet ($_SESSION[$field]) ? $_SESSION[$field] : false);
+	}
+	
+	
+	# Function to write into the session
+	private function sessionWrite ($field, $data)
+	{
+		# Add/update fingerprint
+		$_SESSION['_fingerprint'] = md5 ($_SERVER['HTTP_USER_AGENT']);
+		
+		# Write the value
+		$_SESSION[$field] = $data;
+	}
+	
+	
+	# Function to destroy a session
+	private function sessionDestroy ($field)
+	{
+		session_unset ();
+		session_destroy ();
+		unset ($_SESSION[$field]);
+		$params = session_get_cookie_params ();
+		setcookie (session_name (), '', time () - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 	}
 }
 

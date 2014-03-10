@@ -108,6 +108,9 @@ var telluswhere = (function ($) {
 			catch (e) {
 				alert(e);
 			}
+			
+			// Return map
+			return map;
 		},
 		
 		

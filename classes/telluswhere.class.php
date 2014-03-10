@@ -1034,7 +1034,7 @@ class telluswhere
 		$selectedIdJs = ($selectedId ? $selectedId : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$selectedIdJs});
+			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$selectedIdJs});
 		</script>
 		";
 		
@@ -1044,10 +1044,10 @@ class telluswhere
 		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$html .= "\n" . "<script type=\"text/javascript\">var $ = jQuery.noConflict();</script>";
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
-		$html .= "\n" . "<script type=\"text/javascript\">addAutocomplete(\"input[name='location']\", \"{$geocoderApiUrl}\");</script>";
+		$html .= "\n" . "<script type=\"text/javascript\">autocompleteNS.addTo(map, \"input[name='location']\", \"{$geocoderApiUrl}\");</script>";
 		// Stop a return keypress causing the whole form to be submitted
+		$html .= "\n" . "<script type=\"text/javascript\">var $ = jQuery.noConflict();</script>";
 		$html .= "\n" . '<script type="text/javascript">
 		$("input[name=\'location\']").keypress(function(e) {
 		    var code = (e.keyCode ? e.keyCode : e.which);

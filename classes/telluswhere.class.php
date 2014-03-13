@@ -16,7 +16,7 @@ class telluswhere
 			'username'				=> NULL,
 			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
-			'editabilityPeriod'		=> 20* 60,		// In seconds
+			'editabilityPeriod'		=> 20 * 60,		// In seconds
 		);
 		
 		# Return the defaults
@@ -491,6 +491,8 @@ class telluswhere
 			
 			# Prefix remainder, which are "from here" paths, e.g. "path/to" becomes "/prefix/path/to"
 			$paths[$i] = $prefix . $paths[$i];
+			
+			#!# Not yet baseUrl -compliant
 		}
 		
 		# Construct the find/replace entry; $match[1] is href/src; $match[2] is the original path
@@ -819,7 +821,7 @@ class telluswhere
 				list ($confirmationId, $type) = array ($matches[1], $matches[2]);
 				if ($confirmationId == $id) {
 					$flashMessage = $this->confirmationMessage ($confirmationId, ($type == 'update'), $action);
-					$flashMessage = "\n<div id=\"flashmessage\">" . $flashMessage . "\n</div>";
+					$flashMessage = "\n<div class=\"notification success\">" . $flashMessage . "\n</div>";
 				}
 			}
 		}
@@ -1035,11 +1037,9 @@ class telluswhere
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
-			#flashmessage {clear: both; border: 1px solid #603; background-color: #f7f7f7; padding: 10px; margin: 1em 0 2em;}
 			p#editlink {clear: both; float: right; padding: 0; margin: 0 0 10px 10px;}
 			p#editlink a {border: 1px solid #ddd; display: block; padding: 5px 10px; border-radius: 4px; background-color: #f7f7f7; font-weight: bold;}
 			p#editlink a:hover {text-decoration: none; background-color: #eee;}
-			form div.error {clear: both; border: 2px solid red; background-color: #f7f7f7; padding: 10px; margin: 1em 0 2em;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}
@@ -1126,6 +1126,7 @@ class telluswhere
 			'submitButtonText'			=> 'Submit',
 			'submitButtonAccesskey'		=> false,
 			'nullText'					=> false,
+			'errorsCssClass'			=> 'notification error'
 		));
 		
 		# Widgets

@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
- * Version 1.5.7
+ * Version 1.5.8
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -95,7 +95,7 @@ class application
 	
 	
 	# Generalised support function to display errors
-	public static function showUserErrors ($errors, $parentTabLevel = 0, $heading = '', $nested = false)
+	public static function showUserErrors ($errors, $parentTabLevel = 0, $heading = '', $nested = false, $divClass = 'error')
 	{
 		# Convert the error(s) to an array if it is not already
 		$errors = self::ensureArray ($errors);
@@ -103,7 +103,7 @@ class application
 		# Build up a list of errors if there are any
 		$html = '';
 		if (count ($errors) > 0) {
-			if (!$nested) {$html .= "\n" . str_repeat ("\t", ($parentTabLevel)) . '<div class="error">';}
+			if (!$nested) {$html .= "\n" . str_repeat ("\t", ($parentTabLevel)) . "<div class=\"{$divClass}\">";}
 			if ($heading != '') {$html .= ((!$nested) ? "\n" . str_repeat ("\t", ($parentTabLevel + 1)) . '<p>' : '') . $heading . ((!$nested) ? '</p>' : '');}
 			$html .= "\n" . str_repeat ("\t", ($parentTabLevel + 1)) . '<ul>';
 			foreach ($errors as $error) {
@@ -645,7 +645,7 @@ class application
 	}
 	
 	
-	# Function to return only the specified fields of an existing array
+	# Function to return only the specified fields of an existing array, returning in the order of the specified fields
 	public static function arrayFields ($array, $fields)
 	{
 		# Return unamended if not an array
@@ -654,7 +654,7 @@ class application
 		# Ensure the fields are an array
 		$fields = self::ensureArray ($fields);
 		
-		# Loop through the array and extract only the wanted fields
+		# Loop through the array and extract only the wanted fields, returning in the order of the specified fields
 		$filteredArray = array ();
 		foreach ($fields as $field) {
 			if (array_key_exists ($field, $array)) {

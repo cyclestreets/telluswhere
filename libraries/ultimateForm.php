@@ -57,7 +57,7 @@
  * @license	http://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
  * @copyright Copyright  2003-14, Martin Lucas-Smith, University of Cambridge
- * @version 1.20.12
+ * @version 1.20.13
  */
 class form
 {
@@ -206,6 +206,7 @@ class form
 		'jQuery'							=> true,							# If using DHTML features, where to load jQuery from (true = default, or false if already loaded elsewhere on the page)
 		'scripts'							=> false,							# Where to load GitHub files from; false = use default, string = library files in this URL/path location
 		'autofocus'							=> false,							# Place HTML5 autofocus on the first widget (true/false)
+		'errorsCssClass'					=> 'error'							# CSS class for div of errors box
 	);
 	
 	
@@ -4713,7 +4714,7 @@ class form
 		
 		# If there are any form setup errors - a combination of those just defined and those assigned earlier in the form processing, show them
 		if (!empty ($this->formSetupErrors)) {
-			$setupErrorText = application::showUserErrors ($this->formSetupErrors, $parentTabLevel = 1, (count ($this->formSetupErrors) > 1 ? 'Various errors were' : 'An error was') . " found in the setup of the form. The website's administrator needs to correct the configuration before the form will work:");
+			$setupErrorText = application::showUserErrors ($this->formSetupErrors, $parentTabLevel = 1, (count ($this->formSetupErrors) > 1 ? 'Various errors were' : 'An error was') . " found in the setup of the form. The website's administrator needs to correct the configuration before the form will work:", false, $this->settings['errorsCssClass']);
 			$this->html .= $setupErrorText;
 			
 			# E-mail the errors to the admin if wanted
@@ -5366,7 +5367,7 @@ class form
 		}
 		
 		# Return a constructed list of problems (or empty string)
-		return $html = (($this->formPosted && $problemsList) ? application::showUserErrors ($problemsList, $parentTabLevel = 0, ($this->settings['warningMessage'] ? $this->settings['warningMessage'] : (count ($problemsList) > 1 ? 'Various problems were' : 'A problem was') . ' found with the form information you submitted, as detailed below; please make the necessary corrections and re-submit the form:')) : '');
+		return $html = (($this->formPosted && $problemsList) ? application::showUserErrors ($problemsList, $parentTabLevel = 0, ($this->settings['warningMessage'] ? $this->settings['warningMessage'] : (count ($problemsList) > 1 ? 'Various problems were' : 'A problem was') . ' found with the form information you submitted, as detailed below; please make the necessary corrections and re-submit the form:'), false, $this->settings['errorsCssClass']) : '');
 	}
 	
 	

@@ -550,7 +550,7 @@ class telluswhere
 	
 	
 	# Function to take an extracted part of the template and convert to ultimateForm form template format
-	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $selectedId = false)
+	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $selectedIdData = false)
 	{
 		# Obtain the form template which was extracted during the template pre-processing
 		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
@@ -566,7 +566,8 @@ class telluswhere
 				$replacements[$placeholder] = '{[[SUBMIT]]}';
 			}
 			if ($placeholder == 'map') {
-				$replacements[$placeholder] = $this->locationsMap ($action, $selectedId);
+				$mapLocation = (isSet ($selectedIdData['latitude']) ? $selectedIdData : array ());
+				$replacements[$placeholder] = $this->locationsMap ($action, $mapLocation, true);
 			}
 		}
 		
@@ -836,7 +837,7 @@ class telluswhere
 		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
 		$this->template['message'] = $flashMessage . $userEditMessage;
 		$this->template['editlink'] = $editlink;
-		$this->template['map'] = $this->locationsMap ($action, $id);
+		$this->template['map'] = $this->locationsMap ($action, $data, false);
 		$this->template['metadata'] = $metadataHtml;
 	}
 	
@@ -989,7 +990,7 @@ class telluswhere
 	
 	
 	# Map of current locations
-	private function locationsMap ($showLayer, $selectedId = false)
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -1004,6 +1005,16 @@ class telluswhere
 			'zoom'		=> $this->settings['defaultZoom'],
 		);
 		
+		# If a selected ID was supplied, use that data
+		if ($selectedIdData) {
+			$mapLocation = array (
+				'latitude'	=> $selectedIdData['latitude'],
+				'longitude'	=> $selectedIdData['longitude'],
+				'zoom'		=> $selectedIdData['zoom'],
+			);
+			$setMarkerInitially = true;
+		}
+		
 		# If the form is posted, and a map location was set, extract the map location
 		#!# This hack is only necessary until ultimateForm has built-in support for a native map widget, which means this whole method can then be replaced
 		if (isSet ($_POST['form'])) {
@@ -1017,9 +1028,9 @@ class telluswhere
 			}
 		}
 		
-		# Determine the URL for the browsing API
+		# Determine the URL for the browsing API; if a selected ID is requested, request that this always be included in the returned data
 		#!# Improve way key is added here
-		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . ($selectedId ? "&selectedid={$selectedId}" : '') . '&key=' . $this->settings['apiKey'];
+		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') . '&key=' . $this->settings['apiKey'];
 		
 		# Create the map application HTML
 		$html .= '
@@ -1052,7 +1063,7 @@ class telluswhere
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
 		';
-		if (!$selectedId) {
+		if (!$selectedIdData) {
 			$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
 		}
 		$html .= "\n" . '<div id="map"></div>';
@@ -1062,10 +1073,11 @@ class telluswhere
 		
 		# Load the map application Javascript and run it
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
-		$selectedIdJs = ($selectedId ? $selectedId : 'false');
+		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
+		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$selectedIdJs});
+			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs});
 		</script>
 		";
 		
@@ -1094,19 +1106,17 @@ class telluswhere
 		
 		# Map the data structure to the form data, flattening out the additional metadata if present
 		if ($existingData) {
-			$data['caption'] = $existingData['caption'];
+			$data = array_merge ($data, $existingData);
 			if ($existingData['additionalMetadata']) {
 				foreach ($existingData['additionalMetadata'] as $field => $value) {
 					$data[$field] = $value;
 				}
+				unset ($existingData['additionalMetadata']);
 			}
 		}
 		
-		# Determine whether to select an existing marker on the map
-		$selectedId = ($existingData ? $existingData['id'] : false);
-		
 		# Determine the form template
-		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, $selectedId);
+		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, $data);
 		
 		# Determine whether an existing photo already exists
 		$existingPhoto = ($existingData && $existingData['hasPhoto'] == 'yes' ? $existingData['thumbnailUrl'] : false);

@@ -32,7 +32,7 @@ var telluswhere = (function ($) {
 	// Whether to set a marker initially
 	var _setMarkerInitially;
 	
-	// Selected ID, if any
+	// Selected ID, if any, and whether it is moveable
 	var _selectedId;
 	
 	
@@ -42,7 +42,7 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, selectedId) {
+		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId) {
 			
 			// Set class properties
 			_baseUrl = baseUrl;
@@ -52,7 +52,7 @@ var telluswhere = (function ($) {
 			_browsingApiUrl = browsingApiUrl;
 			_useIcon = useIcon;
 			_setMarkerInitially = setMarkerInitially;
-			_selectedId = selectedId;
+			_selectedId = selectedId;	// ID of selected item
 			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
@@ -72,7 +72,7 @@ var telluswhere = (function ($) {
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
-				telluswhere.setMarker(latlng, _useIcon);
+				telluswhere.setMarker(latlng, _useIcon, markerSetInitiallyIsDraggable);
 				map.setView(latlng,_initialZoom);
 			}
 			
@@ -81,7 +81,8 @@ var telluswhere = (function ($) {
 			
 			// Add the data layer to the map
 			_currentDataLayer = L.geoJson(null, {
-				pointToLayer: telluswhere.setIcon
+				pointToLayer: telluswhere.setIcon,
+				filter: telluswhere.setIconFilter
 			});
 			_currentDataLayer.addTo(map);
 			
@@ -182,7 +183,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Set the marker
-			telluswhere.setMarker(e.latlng, _useIcon);
+			telluswhere.setMarker(e.latlng, _useIcon, true);
 			
 			// Remove the help text
 			$('#helptext').removeClass('display').addClass('hide');
@@ -193,12 +194,12 @@ var telluswhere = (function ($) {
 		setMarkerLatitudeLongitude: function(latitude, longitude) {
 			var latlng = L.latLng(latitude, longitude);
 			map.setView(latlng, _maxZoom);
-			telluswhere.setMarker(latlng, _useIcon);
+			telluswhere.setMarker(latlng, _useIcon, true);
 		},
 		
 		
 		// Function to set the marker
-		setMarker: function(latlng, useIcon) {
+		setMarker: function(latlng, useIcon, markerIsDraggable) {
 			
 			// Clear any previously-set marker
 			if(_marker){
@@ -206,7 +207,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Set marker position
-			_marker = new L.Marker(latlng, {icon: _icons[useIcon], draggable: true, zIndexOffset: 1000});
+			_marker = new L.Marker(latlng, {icon: _icons[useIcon], draggable: markerIsDraggable, zIndexOffset: 1000});
 			map.addLayer(_marker);
 			_marker.bindPopup('Cycle parking is ' + (useIcon == 'suggest' ? 'needed' : 'present') + ' here').openPopup();
 			
@@ -227,9 +228,11 @@ var telluswhere = (function ($) {
 		
 		// Function to transmit the values to the form
 		setFormValues: function(lat, lng, zoom) {
-			$('#form_latitude').val(lat);
-			$('#form_longitude').val(lng);
-			$('#form_zoom').val(zoom);
+			if ($('#form_latitude').length > 0) {
+				$('#form_latitude').val(lat);
+				$('#form_longitude').val(lng);
+				$('#form_zoom').val(zoom);
+			}
 		},
 		
 		
@@ -333,30 +336,28 @@ var telluswhere = (function ($) {
 		// Function to set the marker and attach a popup
 		setIcon: function(feature,latlng) {
 			
-			// Create the marker and bind the popup to it
+			// Create a marker and bind the popup to it
 			var marker = L.marker(latlng, {icon: _icons['already']});
 			marker.bindPopup(telluswhere.popupHtml(feature.properties));
 			
-			// If an item is selected, open its popup and zoom to its location
+			// Return the marker
+			return marker;
+		},
+		
+		
+		// Filter to control visibility of items set with setIcon
+		setIconFilter: function(feature,layer) {
+		
+			// If an item is selected, skip, as this will already be on the map
 			if (_selectedId) {
 				var id = parseInt(feature.properties.id, 10);	// base 10
 				if (id == _selectedId) {
-					
-					// Open its popup
-					// #!# Not actually working for some reason
-					marker.openPopup();
-					
-					// Zoom to its location
-					var latlng = new L.LatLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
-					map.setView(latlng, _maxZoom);
-					
-					// Unset selected ID, so that further map moves won't force reselection/rezooming to this location
-					_selectedId = false;
+					return false;
 				}
 			}
 			
-			// Return the marker
-			return marker;
+			// Show icon by default
+			return true;
 		},
 		
 		

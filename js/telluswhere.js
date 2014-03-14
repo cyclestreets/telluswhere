@@ -1,4 +1,3 @@
-
 // Telluswhere javascript module
 var telluswhere = (function ($) {
 	'use strict';
@@ -362,8 +361,16 @@ var telluswhere = (function ($) {
 		
 		// Function to show current data
 		showCurrentData: function(ajaxResponse) {
-			_currentDataLayer.clearLayers();
-			_currentDataLayer.addData(ajaxResponse);
+			
+			// Remove all markers except those with open popups
+			_currentDataLayer.eachLayer (function (layer) {if (!layer._popup._isOpen) {_currentDataLayer.removeLayer (layer);}});
+
+			// Add the data
+			_currentDataLayer.addData (ajaxResponse);
+
+			// Markers with opened popups remain - this brings the old ones back on top
+			// Note: the previous markers are still there underneath - put are probably benign.
+			_currentDataLayer.eachLayer (function (layer) {if (layer._popup._isOpen) { _currentDataLayer.bringToFront (layer);}});
 		},
 		
 		

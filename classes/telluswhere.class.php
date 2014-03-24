@@ -16,7 +16,7 @@ class telluswhere
 			'username'				=> NULL,
 			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
-			'editabilityPeriod'		=> 3 * 60 * 60,		// In seconds
+			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
 		);
 		
 		# Return the defaults
@@ -1048,9 +1048,6 @@ class telluswhere
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
-			p#editlink {clear: both; float: right; padding: 0; margin: 0 0 10px 10px;}
-			p#editlink a {border: 1px solid #ddd; display: block; padding: 5px 10px; border-radius: 4px; background-color: #f7f7f7; font-weight: bold;}
-			p#editlink a:hover {text-decoration: none; background-color: #eee;}
 			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}

@@ -16,7 +16,7 @@ class telluswhere
 			'username'				=> NULL,
 			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
-			'editabilityPeriod'		=> 3 * 60 * 60,		// In seconds
+			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
 		);
 		
 		# Return the defaults

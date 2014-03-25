@@ -37,7 +37,7 @@ class telluswhere
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
 				'metacategory' => 'bad',
-				'additionalMetadata' => 'landtype',
+				'additionalMetadata' => 'landtype,capacity',
 			),
 			'current' => array (
 				'description' => 'Current cycle parking location',
@@ -1159,13 +1159,13 @@ class telluswhere
 				'values'		=> $this->parkingTypes,
 				'default'		=> (isSet ($data['type']) ? $data['type'] : false),
 			));
-			$form->number (array (
-				'name'			=> 'capacity',
-				'title'			=> $this->metadataFieldLabels['capacity'],
-				'required'		=> true,
-				'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
-			));
 		}
+		$form->number (array (
+			'name'			=> 'capacity',
+			'title'			=> $this->metadataFieldLabels['capacity'],
+			'required'		=> true,
+			'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
+		));
 		$form->select (array (
 			'name'			=> 'landtype',
 			'title'			=> $this->metadataFieldLabels['landtype'],

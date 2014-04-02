@@ -796,6 +796,12 @@ class telluswhere
 			$metadataHtml .= application::formatTextBlock (htmlspecialchars ($data['caption']), 'metadata');
 		}
 		
+		# Show the thumbnail if present (workaround until this and the metadata can be shown in the bubble)
+		if ($data['hasPhoto'] == 'yes') {
+			$thumbnailUrl = str_replace ('-size200', '-size400', $data['thumbnailUrl']);
+			$metadataHtml .= "<p><img src=\"{$thumbnailUrl}\" alt=\"\" border=\"0\"></p>";
+		}
+		
 		# Show additional metadata table
 		if ($data['additionalMetadata']) {
 			

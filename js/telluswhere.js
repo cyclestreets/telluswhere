@@ -68,6 +68,11 @@ var telluswhere = (function ($) {
 			// Define the icon set; see: http://leafletjs.com/examples/custom-icons.html
 			_icons = telluswhere.getIcons();
 			
+			// Geolocate the user on first run
+			if(!_setMarkerInitially){
+				telluswhere.geolocateUser();
+			}
+			
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
@@ -153,6 +158,13 @@ var telluswhere = (function ($) {
 			
 			// Return the icons
 			return icons;
+		},
+		
+		
+		// Function to geolocate the user
+		geolocateUser: function()
+		{
+			map.locate({setView: true, maxZoom: 18});
 		},
 		
 		

@@ -11,6 +11,7 @@ var telluswhere = (function ($) {
 	var _icons;
 	var _useJsonpTransport;
 	var _currentDataLayer;
+	var _currentDataLayer2;
 	var _geolocationData;
 	var _maxZoom;
 	
@@ -24,6 +25,7 @@ var telluswhere = (function ($) {
 	
 	// The API endpoint to use for browsing
 	var _browsingApiUrl;
+	var _browsingApiUrl2;
 	
 	// The icon to use
 	var _useIcon;
@@ -41,7 +43,7 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId) {
+		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2) {
 			
 			// Set class properties
 			_baseUrl = baseUrl;
@@ -49,6 +51,7 @@ var telluswhere = (function ($) {
 			_initialLongitude = initialLongitude;
 			_initialZoom = initialZoom;
 			_browsingApiUrl = browsingApiUrl;
+			_browsingApiUrl2 = browsingApiUrl2;
 			_useIcon = useIcon;
 			_setMarkerInitially = setMarkerInitially;
 			_selectedId = selectedId;	// ID of selected item
@@ -89,6 +92,14 @@ var telluswhere = (function ($) {
 				filter: telluswhere.setIconFilter
 			});
 			_currentDataLayer.addTo(map);
+			
+			// Add second data layer to the map if defined
+			if(_browsingApiUrl2) {
+				_currentDataLayer2 = L.geoJson(null, {
+					pointToLayer: telluswhere.setIcon,
+				});
+				_currentDataLayer2.addTo(map);
+			}
 			
 			// Determine whether to use JSONP transport instead of JSON for the marker layer calls (for older browsers)
 			_useJsonpTransport = telluswhere.useJsonpTransport();
@@ -309,9 +320,14 @@ var telluswhere = (function ($) {
 			var html = ''
 			+ '<div class="bubble">'
 			
-			// Caption and ID
-			+ '<p class="id"><a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>' + '</p>'
-			+ '<p class="caption">' + telluswhere.nl2br(telluswhere.truncateString(properties.name, 200),true) + '</p>'
+			// Caption and ID; if nodeId exists then this is a location from OSM and so is fixed, read-only data
+			+ '<p class="id">'
+			+ (properties.nodeId
+				? '<a href="' + 'http://www.openstreetmap.org' + '/node/' + properties.nodeId + '/" target="_blank">' + '(From OpenStreetMap)' + '</a>'
+				: '<a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>'
+			)
+			+ '</p>'
+			+ '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br(telluswhere.truncateString(properties.name, 200),true)) + '</p>'
 			
 			// Image
 			+ (properties.hasPhoto == 'yes' ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')
@@ -372,18 +388,30 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to show current data
+		// Show data layer (wrapper to implementation function)
 		showCurrentData: function(ajaxResponse) {
+			telluswhere.showCurrentDataLayer (ajaxResponse, _currentDataLayer);
+		},
+		
+		
+		// Show second data layer (wrapper to implementation function)
+		showCurrentData2: function(ajaxResponse) {
+			telluswhere.showCurrentDataLayer (ajaxResponse, _currentDataLayer2);
+		},
+		
+		
+		// Inner function to fetch current marker data
+		showCurrentDataLayer: function(ajaxResponse, selectedLayer) {
 			
 			// Remove all markers except those with open popups
-			_currentDataLayer.eachLayer (function (layer) {if (!layer._popup._isOpen) {_currentDataLayer.removeLayer (layer);}});
+			selectedLayer.eachLayer (function (layer) {if (!layer._popup._isOpen) {selectedLayer.removeLayer (layer);}});
 
 			// Add the data
-			_currentDataLayer.addData (ajaxResponse);
+			selectedLayer.addData (ajaxResponse);
 
 			// Markers with opened popups remain - this brings the old ones back on top
 			// Note: the previous markers are still there underneath - put are probably benign.
-			_currentDataLayer.eachLayer (function (layer) {if (layer._popup._isOpen) { _currentDataLayer.bringToFront (layer);}});
+			selectedLayer.eachLayer (function (layer) {if (layer._popup._isOpen) { selectedLayer.bringToFront (layer);}});
 		},
 		
 		
@@ -413,15 +441,28 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to fetch current marker data
+		// Wrapper function to fetch current marker data layer/layers
 		getData: function() {
+			
+			// Get data layer (pass to implementation function)
+			telluswhere.getDataLayer(_browsingApiUrl, telluswhere.showCurrentData);
+			
+			// Get second data layer if defined
+			if(_browsingApiUrl2) {
+				telluswhere.getDataLayer(_browsingApiUrl2, telluswhere.showCurrentData2);
+			}
+		},
+		
+		
+		// Inner function to fetch current marker data
+		getDataLayer: function (browsingApiUrl, successFunction) {
 			var data='bbox=' + map.getBounds().toBBoxString();
 			$.ajax({
-				url: _browsingApiUrl,
+				url: browsingApiUrl,
 				dataType: (_useJsonpTransport ? 'jsonp' : 'json'),
 				crossDomain: true,	// Needed for IE<=9; see: http://stackoverflow.com/a/12644252/180733
 				data: data,
-				success: telluswhere.showCurrentData
+				success: successFunction
 			});
 		},
 		

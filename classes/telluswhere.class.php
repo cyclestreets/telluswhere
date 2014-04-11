@@ -43,7 +43,7 @@ class telluswhere
 				'description' => 'Current cycle parking location',
 				'url' => '/current/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
-				// 'apiUrl' => '/v2/pois?type=cycleparking&limit=40',
+				// 'apiUrl2' => '/v2/pois?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
 			),
@@ -883,7 +883,10 @@ class telluswhere
 		
 		# Determine the URL for the browsing API; if a selected ID is requested, request that this always be included in the returned data
 		#!# Improve way key is added here
-		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') . '&key=' . $this->settings['apiKey'];
+		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '');
+		
+		# Define a second browsing layer if required
+		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
 		
 		# Create the map application HTML
 		$html .= '
@@ -927,7 +930,7 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs});
+			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2});
 		</script>
 		";
 		

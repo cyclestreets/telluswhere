@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
- * Version 1.5.10
+ * Version 1.5.11
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -163,6 +163,10 @@ class application
 				header ("Location: {$url}");
 				return $redirectMessage;
 				
+			case '400':
+				header ('HTTP/1.0 400 Bad Request');
+				break;
+				
 			case '401':
 				header ('HTTP/1.0 401 Authorization Required');
 				break;
@@ -173,6 +177,10 @@ class application
 				
 			case '410':
 				header ('HTTP/1.0 410 Gone');
+				break;
+				
+			case '422':
+				header ('HTTP/1.0 422 Unprocessable Entity');
 				break;
 				
 			case '500':

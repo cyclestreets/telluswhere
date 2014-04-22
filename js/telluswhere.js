@@ -110,6 +110,11 @@ var telluswhere = (function ($) {
 			// Get the data on initial view
 			telluswhere.getData();
 			
+			// Register reporting link function
+			if (_useIcon == 'current') {
+				map.on('popupopen', telluswhere.problemForm);
+			}
+			
 			// Show the help text also if the user zooms
 			map.on('zoomstart', function() {
 				$('#helptext').addClass('display');
@@ -355,6 +360,11 @@ var telluswhere = (function ($) {
 			
 			+ '</div>';
 			
+			// If on the current page, provide a link to report problems
+			if(_useIcon == 'current') {
+				html += '<p class="problem"><a href="#" data-id="' + (properties.nodeId ? properties.nodeId : properties.id) + '">Gone or details wrong?</a></p>';
+			}
+			
 			// Return HTML
 			return html;
 		},
@@ -470,6 +480,116 @@ var telluswhere = (function ($) {
 		// Define mapmove action
 		whenMapMoves: function(e) {
 			telluswhere.getData();
+		},
+		
+		
+		// Function run when clicking on the problem link to provide a mini correction updates form
+		problemForm: function () {
+			
+			// If the link is clicked, replace the popup content
+			$('p.problem a').click(function(e){
+				
+				// Create a form
+				var formHtml = $("<form />", {name: 'problem', id: 'problem', method: 'POST', action: _baseUrl + '/location/' + $('p.problem a').data('id') + '/problem/'});
+				
+				// Add input fields to the form
+				var formContentHtml = '';
+				formContentHtml += '<input type="hidden" name="id" value="' + $('p.problem a').data('id') + '" autofocus="autofocus" />';
+				formContentHtml += '<p>What is the issue with this entry?</p>';
+				formContentHtml += '<textarea name="message" required="required"></textarea>';
+				formContentHtml += '<p>In case we need to contact you for more info, what is your e-mail address?</p>';
+				formContentHtml += '<input type="email" name="email" required="required" />';
+				formContentHtml += '<p><input type="submit" id="submit" value="Submit" /></p>';
+				formHtml.append(formContentHtml);
+				
+				// Replace the popup content with the form
+				$('.leaflet-popup-content').html(formHtml);
+				
+				// Submit the form via AJAX
+				var ajaxform = $('#problem');
+				ajaxform.submit(function (e) {
+					
+					// Determine if form not complete, showing any error
+					var thisFormOk = telluswhere.formOk('#problem', e);
+					
+					// Submit the form if no problem detected; based on: http://stackoverflow.com/questions/1960240/jquery-ajax-submit-form
+					if (thisFormOk) {
+						$.ajax({
+							type: ajaxform.attr('method'),
+							url: ajaxform.attr('action'),
+							data: ajaxform.serialize(),
+							success: function (data) {
+								$('.leaflet-popup-content').html('<p>' + data.response + '</p>');
+							},
+							error: function (xhr, status, error) {
+								var data = JSON.parse(xhr.responseText);
+								$('.leaflet-popup-content').html('<p>' + data.response + '</p>');
+							}
+						});
+						e.preventDefault();
+					}
+				});
+				
+				// Prevent link click taking effect
+				e.preventDefault();
+			});
+		},
+		
+		
+		// Function to check the form is complete; based on: http://toddmotto.com/progressively-enhancing-html5-forms-creating-a-required-attribute-fallback-with-jquery/
+		formOk: function (formId, e){
+			
+			// Do feature detection of 'required' support
+			var supportsRequired = 'required' in document.createElement('input');
+			
+			// Swap 'required' attribute with a class 'required', as non-HTML5 browsers do not see the required attribute
+			$(formId + ' [required]').each(function () {
+				if (!supportsRequired) {
+					var self = $(this);
+					self.removeAttr('required').addClass('required');
+					//self.parent().append('<span class="form-error">Required</span>');
+				}
+			});
+			
+			// Loop through class name required
+			var formOk = true;	// No problems at the start
+			$(formId + ' .required').each(function () {
+				var self = $(this);
+				
+				// Check shorthand if statement for input[type] detection
+				var checked = ((self.is(':checkbox') || self.is(':radio')) 
+					? self.is(':not(:checked)') && $('input[name=' + self.attr('name') + ']:checked').length === 0 
+					: false);
+				
+				// Run the empty/not:checked test
+				if (self.val() === '' || checked) {
+					
+					// Show error if the values are empty still (or re-emptied); this will fire after it's already been checked once
+					//self.siblings('.form-error').show();
+					//self.addClass('required');
+					
+					// Stop form submitting
+					e.preventDefault();
+					
+					// Register problem
+					formOk = false;
+					
+				// Hide error if passed the check
+				} else {
+					//self.siblings('.form-error').hide();
+				}
+			});
+			
+			// State form problem if not complete
+			if (!formOk) {
+				if (!$("#formwarning").length){
+					$(formId).prepend('<p id="formwarning"></p>');
+				}
+				$('#formwarning').html('The form is not complete so has not yet been submitted:');
+			}
+			
+			// Return the status
+			return formOk;
 		}
 		
 	};

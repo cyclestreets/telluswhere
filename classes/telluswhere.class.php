@@ -51,6 +51,10 @@ class telluswhere
 				'description' => false,
 				'url' => '/location/',	// Will be /location/<id>/
 			),
+			'problem' => array (
+				'description' => false,
+				'url' => false,	// No template; Will be /location/<id>/problem/
+			),
 			'about' => array (
 				'description' => false,
 				'url' => '/about/',
@@ -902,6 +906,11 @@ class telluswhere
 			.bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}
 			.bubble p.id a {color: #bbb;}
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
+			p.problem {text-align: right; margin: 4px 0 0; padding: 0; font-size: 0.92em;}
+			p.problem a {color: #ccc;}
+			.leaflet-popup-content form#problem p {margin-bottom: 5px; padding-bottom: 0;}
+			.leaflet-popup-content form#problem input, .leaflet-popup-content form#problem textarea {margin-top: 0; padding-top: 0;}
+			p#formwarning {color: red;}
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
 			
@@ -928,7 +937,7 @@ class telluswhere
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?2\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?3\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2});
 		</script>
@@ -1127,6 +1136,39 @@ class telluswhere
 		$cookiePeriodHours = 12;
 		$userdetails = "{$name} <{$email}>";
 		setcookie ('userdetails', $userdetails, time () + ($cookiePeriodHours * 60*60), $this->baseUrl . '/');
+	}
+	
+	
+	# Problem reporting AJAX endpoint
+	public function problem ()
+	{
+		# Response always returns JSON
+		header ('Content-type: application/json');
+		
+		# End if no/incomplete posted data
+		if (!isSet ($_POST) || !isSet ($_POST['id']) || !isSet ($_POST['email']) || !isSet ($_POST['message'])) {
+			application::sendHeader (400);
+			echo json_encode (array ('response' => 'Sorry, there was a problem submitting your comment. Please try again later.'));
+			return;
+		}
+		
+		# Assemble the data to be written
+		$data = array (
+			'timestamp'	=> date ('Y-m-d H:i:s'),
+			'ip'		=> $_SERVER['REMOTE_ADDR'],
+			'type'		=> 'Current',
+			'id'		=> $_POST['id'],
+			'email'		=> $_POST['email'],
+			'message'	=> $_POST['message'],
+		);
+		
+		# Append the data
+		$file = $_SERVER['DOCUMENT_ROOT'] . '/db/problem.csv';
+		$string = implode (',', $data) . "\n";	// #!# Should really be proper CSV writer given message may contain commas
+		file_put_contents ($file, $string, FILE_APPEND);
+		
+		# Return success
+		echo json_encode (array ('response' => 'Many thanks - your comment has been received.'));
 	}
 	
 	

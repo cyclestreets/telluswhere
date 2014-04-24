@@ -362,7 +362,7 @@ var telluswhere = (function ($) {
 			
 			// If on the current page, provide a link to report problems
 			if(_useIcon == 'current') {
-				html += '<p class="problem"><a href="#" data-id="' + (properties.nodeId ? properties.nodeId : properties.id) + '">Gone / details wrong / repair required?</a></p>';
+				html += '<p class="problem"><a href="#" data-id="' + (properties.nodeId ? properties.nodeId : properties.id) + '">Incorrect or repair required?</a></p>';
 			}
 			
 			// Return HTML

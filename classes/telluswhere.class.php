@@ -250,6 +250,9 @@ class telluswhere
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template);
 		
+		# Add stats tracking code if required
+		$html = $this->analyticsTrackingCode ($html);
+		
 		# Show the HTML
 		echo $html;
 	}
@@ -313,7 +316,8 @@ class telluswhere
 			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
 			  `earliestDate` DATE,							-- Earliest date to appear in export
-			  `bbox` VARCHAR(225) NOT NULL					-- Bounding box for export
+			  `bbox` VARCHAR(225) NOT NULL,					-- Bounding box for export
+			  `trackingCode` TEXT NULL						-- Analytics tracking code
 			);
 		";
 		
@@ -431,6 +435,20 @@ class telluswhere
 		
 		# Return the HTML
 		return $templateUltimateFormFormat;
+	}
+	
+	
+	# Function to add analytics tracking code
+	private function analyticsTrackingCode ($html)
+	{
+		# End if not required
+		if (!$this->settings['trackingCode']) {return $html;}
+		
+		# Inject the tracking code
+		$html = preg_replace ('/(<body([^>]*)>)/', "\1\n<!-- Analytics tracking code -->\n" . $this->settings['trackingCode'] . "\n", $html);
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -1341,6 +1359,7 @@ class telluswhere
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
 				'bbox'				=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
+				'trackingCode'		=> array ('heading' => array (3 => 'Analytics'), 'rows' => 11, ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

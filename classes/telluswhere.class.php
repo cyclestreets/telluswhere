@@ -820,6 +820,7 @@ class telluswhere
 			'zoom'					=> $rawdata['zoom'],
 			'basemap'				=> 'mapnik',
 			'credit'				=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
+			'license'				=> 'publicdomain',
 			'additionalMetadata'	=> json_encode ($additionalMetadata),
 		);
 		

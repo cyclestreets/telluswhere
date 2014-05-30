@@ -926,7 +926,7 @@ class telluswhere
 			.bubble p.id a {color: #bbb;}
 			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			p.problem {text-align: right; margin: 4px 0 0; padding: 0; font-size: 0.92em;}
-			p.problem a {color: #999;}
+			p.problem a {color: #898989;}
 			.leaflet-popup-content form#problem p {margin-bottom: 5px; padding-bottom: 0;}
 			.leaflet-popup-content form#problem input, .leaflet-popup-content form#problem textarea {margin-top: 0; padding-top: 0;}
 			p#formwarning {color: red;}

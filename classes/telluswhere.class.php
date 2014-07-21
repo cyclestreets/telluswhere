@@ -85,7 +85,7 @@ class telluswhere
 			'login' => array (
 				'description' => false,
 				'url' => '/login/',
-				'apiUrl' => '/v2/user.validate',
+				'apiUrl' => '/v2/user.authenticate',
 			),
 			'logout' => array (
 				'description' => false,
@@ -1517,7 +1517,7 @@ class telluswhere
 	{
 		# Assemble the data to post
 		$postData = array (
-			'email'		=> $email,
+			'username'		=> $email,
 			'password'	=> $password,
 		);
 		

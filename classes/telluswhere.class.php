@@ -43,7 +43,7 @@ class telluswhere
 				'description' => 'Current cycle parking location',
 				'url' => '/current/',
 				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
-				// 'apiUrl2' => '/v2/pois?type=cycleparking&limit=40',
+				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
 			),

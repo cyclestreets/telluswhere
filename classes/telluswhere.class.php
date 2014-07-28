@@ -35,14 +35,14 @@ class telluswhere
 			'suggest' => array (
 				'description' => 'Suggested cycle parking location',
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype,capacity',
 			),
 			'current' => array (
 				'description' => 'Current cycle parking location',
 				'url' => '/current/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,name,hasPhoto,thumbnailUrl,additionalMetadata',
+				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
@@ -956,7 +956,7 @@ class telluswhere
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?5\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?6\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2});
 		</script>

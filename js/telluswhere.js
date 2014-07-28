@@ -332,7 +332,7 @@ var telluswhere = (function ($) {
 				: '<a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>'
 			)
 			+ '</p>'
-			+ '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br(telluswhere.truncateString(properties.name, 200),true)) + '</p>'
+			+ '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br(telluswhere.truncateString(properties.caption, 200),true)) + '</p>'
 			
 			// Image
 			+ (properties.hasPhoto == 'yes' ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')

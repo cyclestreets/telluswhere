@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-13
- * Version 2.4.0
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
+ * Version 2.4.12
  * Uses prepared statements (see http://stackoverflow.com/questions/60174/best-way-to-stop-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -23,7 +23,7 @@ class database
 	
 	
 	# Function to connect to the database
-	public function __construct ($hostname, $username, $password, $database = NULL, $vendor = 'mysql', $logFile = false, $userForLogging = false, $unicode = true)
+	public function __construct ($hostname, $username, $password, $database = NULL, $vendor = 'mysql', $logFile = false, $userForLogging = false, $unicode = true, $driverOptions = array ())
 	{
 		# Assign the user for logging
 		$this->logFile = $logFile;
@@ -51,7 +51,7 @@ class database
 			$dsn = "{$vendor}:host={$hostname}" . ($database ? ";dbname={$database}" : '');
 		}
 		try {
-			$this->connection = new PDO ($dsn, $username, $password);
+			$this->connection = new PDO ($dsn, $username, $password, $driverOptions);
 		} catch (PDOException $e) {
 			// error_log ("{$e} {$dsn}, {$username}, {$password}");		// Not enabled by default as $e can contain passwords which get dumped to the webserver's error log
 			return false;
@@ -83,6 +83,7 @@ class database
 	
 	
 	# Function to execute a generic SQL query
+	#!# Currently no ability to enable logging for write-based queries; need to allow external callers to specify this, but without this affecting internal use of this function
 	public function query ($query, $preparedStatementValues = array (), $debug = false)
 	{
 		return $this->queryOrExecute (__FUNCTION__, $query, $preparedStatementValues, $debug);
@@ -90,6 +91,7 @@ class database
 	
 	
 	# Function to execute a generic SQL query
+	#!# Currently no ability to enable logging for write-based queries; need to allow external callers to specify this, but without this affecting internal use of this function
 	public function execute ($query, $preparedStatementValues = array (), $debug = false)
 	{
 		return $this->queryOrExecute (__FUNCTION__, $query, $preparedStatementValues, $debug);
@@ -338,8 +340,74 @@ class database
 	}
 	
 	
+	# Function to export data served as a CSV, optimised to use low memory; this is a combination of database::getData() and csv::serve
+	public function serveCsv ($query, $preparedStatementValues = array (), $filenameBase = 'data', $timestamp = true, $headerLabels = array (), $zipped = false)
+	{
+		# Global the query and any values
+		$this->query = $query;
+		$this->queryValues = $preparedStatementValues;
+		
+		# Execute the statement (ending if there is an error in the query or parameters)
+		$this->preparedStatement = $this->connection->prepare ($query);
+		if (!$this->preparedStatement->execute ($preparedStatementValues)) {
+			return false;
+		}
+		
+		# Start a CSV string
+		require_once ('csv.php');
+		$csv = '';
+		
+		# Define the number of records per chunk of CSV string to append, to keep memory usage down
+		$chunksOf = 100;
+		
+		# Set chunking state
+		$data = array ();
+		$i = 0;
+		$includeHeaderRow = true;
+		
+		# Fetch the data
+		$this->preparedStatement->setFetchMode (PDO::FETCH_ASSOC);
+		while ($row = $this->preparedStatement->fetch ()) {
+			$data[] = $row;
+			$i++;
+			
+			# Add data periodically by processing the chunk when limit required
+			if ($i == $chunksOf) {
+				$csv .= csv::dataToCsv ($data, '', ',', $headerLabels, $includeHeaderRow);
+				
+				# Reset chunking state
+				$data = array ();
+				$i = 0;
+				$includeHeaderRow = false;	// Only the first iteration should have headers
+			}
+		}
+		
+		# Add residual data to the CSV if any left over (which will usually happen, unless the amount of data is exactly divisible by $chunksOf
+		if ($data) {
+			$csv .= csv::dataToCsv ($data, '', ',', $headerLabels, $includeHeaderRow);
+		}
+		
+		# Add a timestamp if required
+		if ($timestamp) {
+			$filenameBase .= '_savedAt' . date ('Ymd-His');
+		}
+		
+		# If zipped, emit the data in a zip enclosure
+		if ($zipped) {
+			require_once ('application.php');
+			application::zipFromString ($csv, $filenameBase . '.csv');
+			return;
+		}
+		
+		# Publish, by sending a header and then echoing the data
+		header ('Content-type: application/octet-stream');
+		header ('Content-Disposition: attachment; filename="' . $filenameBase . '.csv"');
+		echo $csv;
+	}
+	
+	
 	# Function to do getData via pagination
-	public function getDataViaPagination ($query, $associative = false, $keyed = true, $preparedStatementValues = array (), $onlyFields = array (), $paginationRecordsPerPage, $page = 1, $searchResultsMaximumLimit = false)
+	public function getDataViaPagination ($query, $associative = false /* or string as "{$database}.{$table}" */, $keyed = true, $preparedStatementValues = array (), $onlyFields = array (), $paginationRecordsPerPage, $page = 1, $searchResultsMaximumLimit = false)
 	{
 		# Prepare the counting query; use a negative lookahead to match the section between SELECT ... FROM - see http://stackoverflow.com/questions/406230
 		$placeholders = array (
@@ -371,6 +439,7 @@ class database
 		
 		# Get the requested page and calculate the pagination
 		require_once ('pagination.php');
+		if (is_int ($page)) {$page = (string) $page;}	// If page is actually an int, ctype_digit would not properly detect it as numeric
 		$requestedPage = (ctype_digit ($page) ? $page : 1);
 		list ($totalPages, $offset, $items, $limitPerPage, $page) = pagination::getPagerData ($totalAvailable, $paginationRecordsPerPage, $requestedPage);
 		
@@ -799,6 +868,23 @@ class database
 	}
 	
 	
+	# Function to select the data where only one field of item will be returned (as per getOneField); this function has the same signature as selectOne, except for the default on associative
+	public function selectOneField ($database, $table, $field, $conditions = array (), $columns = array (), $associative_ArgumentIgnored = false, $orderBy = false, $limit = false)
+	{
+		# Get the data
+		$data = $this->selectOne ($database, $table, $conditions, $columns, false, $orderBy, $limit);
+		
+		# End if no data
+		if (!$data) {return false;}
+		
+		# End if field not present
+		if (!array_key_exists ($field, $data)) {return false;}
+		
+		# Return the data
+		return $data[$field];
+	}
+	
+	
 	# Function to select data and return as pairs
 	public function selectPairs ($database, $table, $conditions = array (), $columns = array (), $associative = true, $orderBy = false, $limit = false)
 	{
@@ -815,7 +901,7 @@ class database
 	
 	
 	# Function to construct and execute an INSERT statement
-	public function insert ($database, $table, $data, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false)
+	public function insert ($database, $table, $data, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, /* Private: */ $private_ReplaceStatement = false)
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($data) || !$data) {return false;}
@@ -839,8 +925,14 @@ class database
 		# Handle ON DUPLICATE KEY UPDATE support
 		$onDuplicateKeyUpdate = $this->onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $data);
 		
+		# Define the statement to use
+		$statement = 'INSERT INTO';
+		if ($private_ReplaceStatement) {
+			$statement = $private_ReplaceStatement;
+		}
+		
 		# Assemble the query
-		$query = "INSERT INTO `{$database}`.`{$table}` ({$fields}) VALUES ({$preparedValuePlaceholders}){$onDuplicateKeyUpdate};\n";
+		$query = "{$statement} `{$database}`.`{$table}` ({$fields}) VALUES ({$preparedValuePlaceholders}){$onDuplicateKeyUpdate};\n";
 		
 		# In safe mode, only show the query
 		if ($safe) {
@@ -855,14 +947,35 @@ class database
 		$result = ($rows !== false);
 		
 		# Log the change
-		$this->logChange ($result);
+		$this->logChange ($result, true);
 		
 		# Return the result
 		return $result;
 	}
 	
 	
-	# Processing of ON DUPLICATE KEY UPDATE clause - see: http://dev.mysql.com/doc/refman/5.1/en/insert-on-duplicate.html
+	# Function to implement the non-standard SQL 'REPLACE INTO' statement
+	public function replace ($database, $table, $data, /* Ignored: */ $ignored_OnDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false)
+	{
+		# Limit to specific vendors
+		switch ($this->vendor) {
+			case 'mysql':
+				$replaceStatement = 'REPLACE INTO';
+				break;
+			case 'sqlite':
+				$replaceStatement = 'REPLACE INTO';	// 'INSERT OR REPLACE INTO' is the SQLite standard, but 'REPLACE INTO' also works; see: http://stackoverflow.com/a/690679/180733
+				break;
+			default:
+				// Return false, as will never succeed
+				return false;
+		}
+		
+		# Delegate to insert() as the behaviour is all the same
+		return $this->insert ($database, $table, $data, false, $emptyToNull, $safe, $showErrors, $replaceStatement);
+	}
+	
+	
+	# Processing of the (non-standard SQL) 'ON DUPLICATE KEY UPDATE' clause - see: http://dev.mysql.com/doc/refman/5.1/en/insert-on-duplicate.html
 	private function onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $data)
 	{
 		# End if not required
@@ -885,7 +998,7 @@ class database
 	
 	
 	# Function to construct and execute an INSERT statement containing many items
-	public function insertMany ($database, $table, $dataSet, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false)
+	public function insertMany ($database, $table, $dataSet, $chunking = false, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, /* Private: */ $private_ReplaceStatement = false)
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($dataSet) || !$dataSet) {return false;}
@@ -897,67 +1010,101 @@ class database
 		# Assemble the field names
 		$fields = '`' . implode ('`,`', $fields) . '`';
 		
-		# Loop through each set of data
-		$valuesPreparedSet = array ();
-		$preparedStatementValues = array ();
-		foreach ($dataSet as $index => $data) {
+		# Define the statement to use
+		$statement = 'INSERT INTO';
+		if ($private_ReplaceStatement) {
+			$statement = $private_ReplaceStatement;
+		}
+		
+		# Chunk the records if required; if not, the entire set will be put into a single container
+		$dataSetChunked = array_chunk ($dataSet, ($chunking ? $chunking : count ($dataSet)), true);
+		
+		# Loop through each chunk (which may be a single chunk containing the whole dataset if chunking is disabled)
+		foreach ($dataSetChunked as $dataSet) {
 			
-			# Ensure the data is an array and that there is data
-			if (!is_array ($data) || !$data) {return false;}
-			
-			# Assemble the values
-			$preparedValuePlaceholders = array ();
-			foreach ($data as $key => $value) {
-				if ($emptyToNull && ($data[$key] === '')) {$data[$key] = NULL;}	// Convert empty to NULL if required
-				if ($this->valueIsFunctionCall ($data[$key])) {	// Special handling for keywords, which are not quoted
-					$preparedValuePlaceholders[] = $data[$key];	// State the value directly rather than use a placeholder
-					unset ($data[$key]);
-					continue;
+			# Loop through each set of data
+			$valuesPreparedSet = array ();
+			$preparedStatementValues = array ();
+			foreach ($dataSet as $index => $data) {
+				
+				# Ensure the data is an array and that there is data
+				if (!is_array ($data) || !$data) {return false;}
+				
+				# Assemble the values
+				$preparedValuePlaceholders = array ();
+				foreach ($data as $key => $value) {
+					if ($emptyToNull && ($data[$key] === '')) {$data[$key] = NULL;}	// Convert empty to NULL if required
+					if ($this->valueIsFunctionCall ($data[$key])) {	// Special handling for keywords, which are not quoted
+						$preparedValuePlaceholders[] = $data[$key];	// State the value directly rather than use a placeholder
+						unset ($data[$key]);
+						continue;
+					}
+					$placeholder = ":{$index}_{$key}";
+					$preparedValuePlaceholders[] = ' ' . $placeholder;
+					$preparedStatementValues[$placeholder] = $data[$key];
 				}
-				$placeholder = ":{$index}_{$key}";
-				$preparedValuePlaceholders[] = ' ' . $placeholder;
-				$preparedStatementValues[$placeholder] = $data[$key];
+				$valuesPreparedSet[$index] = implode (',', $preparedValuePlaceholders);
 			}
-			$valuesPreparedSet[$index] = implode (',', $preparedValuePlaceholders);
-		}
-		
-		# Handle ON DUPLICATE KEY UPDATE support
-		$dataSetValues = array_values ($dataSet);	// This temp has to be used to avoid "Strict Standards: Only variables should be passed by reference"
-		$firstData = array_shift ($dataSetValues);
-		$onDuplicateKeyUpdate = $this->onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $firstData);
-		
-		# Assemble the query
-		$query = "INSERT INTO `{$database}`.`{$table}` ({$fields}) VALUES (" . implode ('),(', $valuesPreparedSet) . "){$onDuplicateKeyUpdate};\n";
-		
-		# Prevent submission of over-long queries
-		if ($maxLength = $this->getVariable ('max_allowed_packet')) {
-			if (strlen ($query) > (int) $maxLength) {
-				return false;
+			
+			# Handle ON DUPLICATE KEY UPDATE support
+			$dataSetValues = array_values ($dataSet);	// This temp has to be used to avoid "Strict Standards: Only variables should be passed by reference"
+			$firstData = array_shift ($dataSetValues);
+			$onDuplicateKeyUpdateThisChunk = $this->onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $firstData);
+			
+			# Assemble the query
+			$query = "{$statement} `{$database}`.`{$table}` ({$fields}) VALUES (" . implode ('),(', $valuesPreparedSet) . "){$onDuplicateKeyUpdateThisChunk};\n";
+			
+			# Prevent submission of over-long queries
+			if ($maxLength = $this->getVariable ('max_allowed_packet')) {
+				if (strlen ($query) > (int) $maxLength) {
+					return false;
+				}
 			}
+			
+			# In safe mode, only show the query
+			if ($safe) {
+				echo $query . "<br />";
+				return true;
+			}
+			
+			# Execute the query
+			$rows = $this->execute ($query, $preparedStatementValues, $showErrors);
+			
+			# Determine the result
+			$result = ($rows !== false);
+			
+			# Log the change
+			$this->logChange ($result, true);
 		}
 		
-		# In safe mode, only show the query
-		if ($safe) {
-			echo $query . "<br />";
-			return true;
-		}
-		
-		# Execute the query
-		$rows = $this->execute ($query, $preparedStatementValues, $showErrors);
-		
-		# Determine the result
-		$result = ($rows !== false);
-		
-		# Log the change
-		$this->logChange ($result);
-		
-		# Return the result
+		# Return the (last) result
 		return $result;
 	}
 	
 	
+	# Function to implement the non-standard SQL 'REPLACE INTO' statement for many replace-inserts
+	public function replaceMany ($database, $table, $dataSet, $chunking = false, /* Ignored: */ $ignored_OnDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false)
+	{
+		# Limit to specific vendors
+		switch ($this->vendor) {
+			case 'mysql':
+				$replaceStatement = 'REPLACE INTO';
+				break;
+			case 'sqlite':
+				$replaceStatement = 'REPLACE INTO';	// 'INSERT OR REPLACE INTO' is the SQLite standard, but 'REPLACE INTO' also works; see: http://stackoverflow.com/a/690679/180733
+				break;
+			default:
+				// Return false, as will never succeed
+				return false;
+		}
+		
+		# Delegate to insertMany() as the behaviour is all the same
+		return $this->insertMany ($database, $table, $dataSet, $chunking, false, $emptyToNull, $safe, $showErrors, $replaceStatement);
+	}
+	
+	
 	# Function to construct and execute an UPDATE statement
-	public function update ($database, $table, $data, $conditions = array (), $emptyToNull = true, $safe = false)
+	public function update ($database, $table, $data, $conditions = array (), $emptyToNull = true, $safe = false, $returnRowCount = false)
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($data) || !$data) {return false;}
@@ -1016,6 +1163,11 @@ class database
 		# Log the change
 		$this->logChange ($result);
 		
+		# Return the row count instead if required
+		if ($returnRowCount) {
+			$result = $rows;
+		}
+		
 		# Return the result
 		return $result;
 	}
@@ -1036,21 +1188,8 @@ class database
 			$uniqueField = $this->getUniqueField ($database, $table);
 		}
 		
-		# Chunk the records if required
-		$dataSetChunked = array ($dataSet);
-		if ($chunking) {
-			$dataSetChunked = array ();
-			$group = 0;
-			$i = 0;	// Record counter for this group
-			foreach ($dataSet as $key => $data) {
-				$dataSetChunked[$group][$key] = $data;
-				$i++;
-				if ($i == $chunking) {
-					$group++;	// Start new group
-					$i = 0;		// Reset the counter for this group
-				}
-			}
-		}
+		# Chunk the records if required; if not, the entire set will be put into a single container
+		$dataSetChunked = array_chunk ($dataSet, ($chunking ? $chunking : count ($dataSet)), true);
 		
 		# Loop through each chunk (which may be a single chunk containing the whole dataset if chunking is disabled)
 		foreach ($dataSetChunked as $dataSet) {
@@ -1573,13 +1712,16 @@ class database
 	
 	# Function to log a change
 	#!# Ideally have some way to throw an error if the logfile is not writable
-	public function logChange ($result)
+	public function logChange ($result, $insertId = false)
 	{
 		# End if logging disabled
 		if (!$this->logFile) {return false;}
 		
 		# Get the query
 		$query = $this->getQuery ();
+		
+		# Ensure the query ends with a newline
+		$query = trim ($query);
 		
 		# End if the file is not writable, or the containing directory is not if the file does not exist
 		if (file_exists ($this->logFile)) {
@@ -1590,7 +1732,18 @@ class database
 		}
 		
 		# Create the log entry
-		$logEntry = '/* ' . ($result ? 'Success' : 'Failure') . ' ' . date ('Y-m-d H:i:s') . ' by ' . $this->userForLogging . ' */ ' . str_replace ("\r\n", '\\r\\n', $query);
+		$logEntry = '/* ' . ($result ? 'Success' : 'Failure') . ' ' . date ('Y-m-d H:i:s') . ' by ' . $this->userForLogging . ' */ ' . trim (str_replace ("\r\n", '\\r\\n', $query));
+		
+		# Append the insert ID as a comment if required
+		if ($insertId) {
+			$insertId = $this->getLatestId ();
+			if ($insertId != 0) {	// Non- auto-increment will have 0 returned; considered unlikely that a real application would start at 0
+				$logEntry .= "\t// RETURNING {$insertId}";
+			}
+		}
+		
+		# Add newline
+		$logEntry .= "\n";
 		
 		# Log the change
 		file_put_contents ($this->logFile, $logEntry, FILE_APPEND);
@@ -1712,6 +1865,24 @@ class database
 		$sql = "TRIM( LEADING '{' FROM TRIM( LEADING '}' FROM TRIM( LEADING '(' FROM TRIM( LEADING '[' FROM TRIM( LEADING '\"' FROM TRIM( LEADING \"'\" FROM TRIM( LEADING '@' FROM TRIM( LEADING 'a ' FROM TRIM( LEADING 'an ' FROM TRIM( LEADING 'the ' FROM LOWER( {$fieldname} ) ) ) ) ) ) ) ) ) ) )";
 		
 		# Return the SQL
+		return $sql;
+	}
+	
+	
+	# Function to assemble a REPLACE() phrase from multiple string replacements; the enclosing quote mark (' or ") must be specified (or false, if the caller has already quoted all keys and values)
+	public function replaceSql ($pairs, $field, $quoteMark)
+	{
+		# Build the SQL string
+		$sql = $field;
+		foreach ($pairs as $find => $replace) {
+			if ($quoteMark) {
+				$find = $quoteMark . $find . $quoteMark;
+				$replace = $quoteMark . $replace . $quoteMark;
+			}
+			$sql = "REPLACE({$sql},{$find},{$replace})";
+		}
+		
+		# Return the string
 		return $sql;
 	}
 	

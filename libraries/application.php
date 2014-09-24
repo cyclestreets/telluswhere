@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
- * Version 1.5.11
+ * Version 1.5.14
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -733,6 +733,32 @@ class application
 				}
 			}
 		}
+	}
+	
+	
+	# Function to clear empty rows
+	public static function clearEmptyRows ($data)
+	{
+		# Work through each row
+		foreach ($data as $id => $row) {
+			
+			# Determine if any column is empty
+			$allEmpty = true;
+			foreach ($row as $key => $value) {
+				if (strlen ($value)) {
+					$allEmpty = false;
+					break;	// Stop if value found
+				}
+			}
+			
+			# If all are empty, unset the row
+			if ($allEmpty) {
+				unset ($data[$id]);
+			}
+		}
+		
+		# Return the data
+		return $data;
 	}
 	
 	
@@ -1608,6 +1634,30 @@ class application
 		
 		# Return the modified array
 		return $data;
+	}
+	
+	
+	# Iterative function to rewrite key names in an array iteratively
+	public static function array_key_str_replace ($search, $replace, $array)
+	{
+		# Work through each array element at the current level
+		foreach ($array as $key => $value) {
+			
+			# Perform substitution if needed
+			if (substr_count ($key, $search)) {
+				unset ($array[$key]);	// Remove current element
+				$key = str_replace ($search, $replace, $key);
+				$array[$key] = $value;
+			}
+			
+			# Iterate if required
+			if (is_array ($value)) {
+				$array[$key] = self::array_key_str_replace ($search, $replace, $value);
+			}
+		}
+		
+		# Return the modified array
+		return $array;
 	}
 	
 	
@@ -2902,6 +2952,64 @@ class application
 		# Return the original page HTML
 		return $output;
 	}
+	
+	
+	# Function to convert an HTML extract to a PDF; uses http://wkhtmltopdf.org/
+	public static function html2pdf ($html, $filename /* Either a filename used for temp download, or a trusted full path where the file will be saved */)
+	{
+		# Create the HTML as a tempfile
+		$inputFile = tempnam (sys_get_temp_dir (), 'tmp') . '.html';	// wkhtmltopdf requires a .html extension for the input file
+		file_put_contents ($inputFile, $html);
+		
+		# Determine whether to output the file; if this is a filename without a directory name, output to browser; if there is a directory path, treat as a save
+		$save = ($filename != basename ($filename));	// Determine if there is a directory component
+		
+		# Determine location of the PDF output file (which may be a tempfile)
+		if ($save) {
+			$outputFile = $filename;
+		} else {
+			$outputFile = tempnam (sys_get_temp_dir (), 'tmp');		// Define a tempfile location for the created PDF
+		}
+		
+		# Convert to PDF; see options at http://wkhtmltopdf.org/usage/wkhtmltopdf.txt
+		$command = "wkhtmltopdf --print-media-type {$inputFile} {$outputFile}";
+		exec ($command, $output, $returnValue);
+		$result = (!$returnValue);
+		
+		# Remove the input HTML tempfile
+		unlink ($inputFile);
+		
+		# End if error
+		if (!$result) {
+			if (file_exists ($outputFile)) {
+				unlink ($outputFile);
+			}
+			echo "\n<p class=\"warning\">Sorry, an error occured creating the PDF file.</p>";
+			return false;
+		}
+		
+		# Deal with on-the-fly distribution scenario
+		if (!$save) {
+			
+			# Send browser headers
+			header ('Content-type: application/pdf');
+			//header ('Content-Transfer-Encoding: binary');
+			header ('Content-Disposition: inline; filename="' . $filename . '"');
+			header ('Content-Length: ' . filesize ($outputFile));
+			
+			# Emit the file, using output buffering to avoid any previous HTML output (e.g. from auto_prepend_file) being included
+			ob_clean ();
+			flush ();
+			readfile ($outputFile);
+			
+			# Remove the output PDF tempfile
+			unlink ($outputFile);
+		}
+		
+		# Return success
+		return true;
+	}
+	
 	
 	
 	# Function to convert ereg to preg

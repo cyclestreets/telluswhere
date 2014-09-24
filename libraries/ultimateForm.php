@@ -57,7 +57,7 @@
  * @license	http://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
  * @copyright Copyright  2003-14, Martin Lucas-Smith, University of Cambridge
- * @version 1.20.13
+ * @version 1.21.3
  */
 class form
 {
@@ -185,10 +185,13 @@ class form
 		'size'								=> 30,								# Global setting for input widget - size
 		'cols'								=> 30,								# Global setting for textarea cols - number of columns
 		'rows'								=> 5,								# Global setting for textarea cols - number of rows
-		'richtextEditorToolbarSet'			=> 'pureContent',					# Global setting for richtext editor toolbar set
-		'richtextEditorAreaCSS'				=> '',								# Global setting for richtext editor CSS
-		'richtextWidth'						=> '100%',							# Global setting for richtext width
-		'richtextHeight'					=> '400px',							# Global setting for richtext height
+		'richtextEditorBasePath'			=> '/_ckeditor/',					# Global default setting for of the editor files
+		'richtextEditorToolbarSet'			=> 'pureContent',					# Global default setting for richtext editor toolbar set
+		'richtextEditorAreaCSS'				=> '',								# Global default setting for richtext editor CSS
+		'richtextEditorConfig.docType'		=> '<!DOCTYPE html>',				# Global default setting for richtext editor config.docType
+		'richtextWidth'						=> '100%',							# Global default setting for richtext width; assumed to be px unless % specified
+		'richtextHeight'					=> 400,								# Global default setting for richtext height; assumed to be px unless % specified
+		'richtextEditorFileBrowser'			=> '/_ckfinder/',					# Global default setting for richtext file browser path (must have trailing slash), or false to disable
 		'mailAdminErrors'					=> false,							# Whether to mail the admin with any errors in the form setup
 		'attachments'						=> false,							# Whether to send uploaded file(s) as attachment(s) (they will not be unzipped)
 		'attachmentsMaxSize'				=> '10M',							# Total maximum attachment(s) size; attachments will be allowed into an e-mail until they reach this limit
@@ -663,6 +666,8 @@ class form
 			'autocomplete'			=> false,	# URL of data provider
 			'autocompleteOptions'	=> false,	# Autocomplete options; see: http://jqueryui.com/demos/autocomplete/#remote (this is the new plugin)
 			'autocompleteTokenised'	=> false,	# URL of data provider
+			'entities'				=> true,	# Convert HTML in value (useful only for editable=false)
+			'displayedValue'		=> false,	# When using editable=false, optional text that should be displayed instead of the value; can be made into HTML using entities=false
 		);
 		
 		# Create a new form widget
@@ -821,7 +826,11 @@ class form
 			}
 			$widgetHtml .= '<textarea' . $this->nameIdHtml ($arguments['name']) . " cols=\"{$arguments['cols']}\" rows=\"{$arguments['rows']}\"" . ($arguments['maxlength'] ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['wrap'] ? " wrap=\"{$arguments['wrap']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml () . '>' . htmlspecialchars ($this->form[$arguments['name']]) . '</textarea>';
 		} else {
-			$widgetHtml  = str_replace ("\t", '&nbsp;&nbsp;&nbsp;&nbsp;', nl2br (htmlspecialchars ($this->form[$arguments['name']])));
+			if ($arguments['displayedValue']) {
+				$widgetHtml  = ($arguments['entities'] ? htmlspecialchars ($arguments['displayedValue']) : $arguments['displayedValue']);
+			} else {
+				$widgetHtml  = str_replace ("\t", '&nbsp;&nbsp;&nbsp;&nbsp;', nl2br (htmlspecialchars ($this->form[$arguments['name']])));
+			}
 			$widgetHtml .= '<input' . $this->nameIdHtml ($arguments['name']) . ' type="hidden" value="' . htmlspecialchars ($this->form[$arguments['name']]) . '" />';
 		}
 		
@@ -876,75 +885,10 @@ class form
 	
 	
 	/**
-	 * Create a rich text editor field based on FCKeditor
+	 * Create a rich text editor field based on CKEditor
 	 * @param array $arguments Supplied arguments - see template
 	 */
-	 
-	/*
-	
 	# Note: make sure php_value file_uploads is on in the upload location!
-	
-	The following source code alterations must be made to FCKeditor 2.6
-	
-	1. Add public patches providing increased control of FCKeditor uploading (note that these two clash in one place which will need manual resolution)
-	Apply the patch (or changed files) which someone has supplied at: http://dev.fckeditor.net/ticket/1650 which provides upload filename regexp checking
-	Apply the patch (or changed files) which someone has supplied at: http://dev.fckeditor.net/ticket/1651 which provides upload filename clash configuration
-	
-	2. Customised configurations which cannot go in the PHP at present
-	Add the supplied file <fckeditor-root>/fckconfig-customised.js
-	
-	3. Open <fckeditor-root>editor/filemanager/browser/connectors/php/config.php and add to the end:
-		
-		# Check for regexp [available from patch in ticket 1650]
-		$Config['Regexp']['File']	= '^([-_a-zA-Z0-9]{1,40})$' ;
-		$Config['Regexp']['Image']	= '^([-_a-zA-Z0-9]{1,40})$' ;
-		$Config['Regexp']['Flash']	= '^([-_a-zA-Z0-9]{1,40})$' ;
-		$Config['Regexp']['Media']	= '^([-_a-zA-Z0-9]{1,40})$' ;
-		
-		# Clash checking [available from patch in ticket 1651]
-		$Config['FilenameClashBehaviour'] = 'renameold';
-		
-		# Security
-		$Config['ChmodOnUpload'] = 0770 ;
-		$Config['ChmodOnFolderCreate'] = 0770 ;
-		
-		# Local settings, which will override the main ones above
-		$Config['Enabled'] = true ;
-		$Config['UserFilesPath'] = '/' ;	// Set to / if you want filebrowsing across the whole site directory
-		$Config['UserFilesAbsolutePath'] = $_SERVER['DOCUMENT_ROOT'];
-		
-		$Config['FileTypesPath']['File']			= $Config['UserFilesPath'];
-		$Config['QuickUploadPath']['File']			= $Config['UserFilesPath'];
-		$Config['FileTypesPath']['Image']			= $Config['UserFilesPath'];
-		$Config['QuickUploadPath']['Image']			= $Config['UserFilesPath'] . 'images/';
-		$Config['FileTypesPath']['Flash']			= $Config['UserFilesPath'];
-		$Config['QuickUploadPath']['Flash']			= $Config['UserFilesPath'];
-		$Config['FileTypesPath']['Media']			= $Config['UserFilesPath'];
-		$Config['QuickUploadPath']['Media']			= $Config['UserFilesPath'];
-		
-		$Config['FileTypesAbsolutePath']['File']			= $Config['UserFilesAbsolutePath'];
-		$Config['QuickUploadAbsolutePath']['File']			= $Config['UserFilesAbsolutePath'];
-		$Config['FileTypesAbsolutePath']['Image']			= $Config['UserFilesAbsolutePath'];
-		$Config['QuickUploadAbsolutePath']['Image']			= $Config['UserFilesAbsolutePath'] . 'images/';
-		$Config['FileTypesAbsolutePath']['Flash']			= $Config['UserFilesAbsolutePath'];
-		$Config['QuickUploadAbsolutePath']['Flash']			= $Config['UserFilesAbsolutePath'];
-		$Config['FileTypesAbsolutePath']['Media']			= $Config['UserFilesAbsolutePath'];
-		$Config['QuickUploadAbsolutePath']['Media']			= $Config['UserFilesAbsolutePath'];
-	
-	
-	FCKeditor 2.6 problems:
-	- Auto-hyperlinking doesn't work in Firefox - see http://dev.fckeditor.net/ticket/302
-	- CSS underlining inheritance seems wrong in Firefox See: http://dev.fckeditor.net/ticket/303
-	- Can't set file browser startup folder; see http://dev.fckeditor.net/ticket/1652
-	- ToolbarSets all have to be set in JS and cannot be done via PHP - see http://dev.fckeditor.net/ticket/30
-	- FormatIndentator = "\t" - has to be set at JS level - see http://dev.fckeditor.net/ticket/304
-	- Replacing the above manual patches with the results of http://dev.fckeditor.net/ticket/1650 and http://dev.fckeditor.net/ticket/1651
-	- Single file for file browser configuration: http://dev.fckeditor.net/ticket/845
-	- Image manager needs thumbnail/resize/rename functionality: http://dev.fckeditor.net/ticket/147
-	- Start editor in source mode: http://dev.fckeditor.net/ticket/593
-	
-	*/
-	
 	function richtext ($suppliedArguments)
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
@@ -962,52 +906,42 @@ class form
 			'disallow'				=> false,		# Regular expression against which the submission must not validate
 			'current'				=> false,	# List of current values which the submitted value must not match
 			'discard'				=> false,	# Whether to process the input but then discard it in the results
-			'width'					=> $this->settings['richtextWidth'],		# Width
-			'height'				=> $this->settings['richtextHeight'],		# Height
-			#!# autofocus not yet supported in fckeditor itself
 			'autofocus'				=> false,	# HTML5 autofocus (true/false)
 			'default'				=> '',		# Default value (optional)
 			'datatype'				=> false,	# Datatype used for database writing emulation (or caching an actual value)
-			'editorBasePath'		=> '/_fckeditor/',	# Location of the editor files
-			'editorToolbarSet'		=> $this->settings['richtextEditorToolbarSet'],	# Editor toolbar set
-			'CKFinder'						=> false,	// Whether to use CKFinder or the standard finder
-			'editorConfig'				=> array (	# Editor configuration - see http://wiki.fckeditor.net/Developer's_Guide/Configuration/Configurations_Settings
-				'CustomConfigurationsPath'	=> '/_fckeditor/fckconfig-customised.js',
-				'FontFormats'				=> 'p;h1;h2;h3;h4;h5;h6;pre',
-				'EditorAreaCSS'				=> $this->settings['richtextEditorAreaCSS'],
-				'StartupFocus'				=> false,
-				'ToolbarCanCollapse'		=> false,
-				'LinkUpload'				=> false,	// Whether the link box includes the [quick]'upload' tab
-				'ImageUpload'				=> false,	// Whether the image box includes the [quick]'upload' tab
-				'BodyId'					=> false,	// Apply value of <body id="..."> to editing window
-				'BodyClass'					=> false,	// Apply value of <body class="..."> to editing window
-				'CleanWordKeepsStructure'	=> true,	// Use Word structure rather than presentation
-				'LinkDlgHideTarget'			=> true,	// Hide link target dialog box
-				'FillEmptyBlocks'			=> false,	// Whether to add &nbsp; into empty table cells
-				'FirefoxSpellChecker'		=> true,	// Enable Firefox 2's spell checker
-				'ForcePasteAsPlainText'		=> false,	// Discard all formatting when pasting text
-				'BaseHref'					=> $_SERVER['_PAGE_URL'],		// Current location (enables relative images to be correct)
-				'CKFinderLinkBrowserURL'	=> '/_ckfinder/ckfinder.html',
-				'CKFinderImageBrowserURL'	=> '/_ckfinder/ckfinder.html',
-				'CKFinderFlashBrowserURL'	=> '/_ckfinder/ckfinder.html',
-				'CKFinderAccessControl'		=> false,	// Access Control List (ACL) passed to CKFinder in the format it requires - false to disable or an array (empty/populated) to enable
-				'CKFinderStartupPath'		=> false,		// CKFinder startup path, or false to disable
-				//'FormatIndentator'			=> '	', // Tabs - still doesn't work in FCKeditor
-				// "ToolbarSets['pureContent']" => "[ ['Source'], ['Cut','Copy','Paste','PasteText','PasteWord','-','SpellCheck'], ['Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat'], ['Bold','Italic','StrikeThrough','-','Subscript','Superscript'], ['OrderedList','UnorderedList','-','Outdent','Indent'], ['Link','Unlink','Anchor'], ['Image','Table','Rule','SpecialChar'/*,'ImageManager','UniversalKey'*/], /*['Form','Checkbox','Radio','Input','Textarea','Select','Button','ImageButton','Hidden']*/ [/*'FontStyleAdv','-','FontStyle','-',*/'FontFormat','-','-'], ['Print','About'] ] ;",
-			),
-			'allowCurlyQuotes' => false,
-			'protectEmailAddresses' => true,	// Whether to obfuscate e-mail addresses
+			'editorBasePath'					=> $this->settings['richtextEditorBasePath'],	# Location of the editor files
+			'editorToolbarSet'					=> $this->settings['richtextEditorToolbarSet'],
+			'editorDefaultTableClass'			=> 'lines',
+			'editorFileBrowser'					=> $this->settings['richtextEditorFileBrowser'],	// Path (must have trailing slash), or false to disable
+			'editorFileBrowserStartupPath'		=> '/',
+			'editorFileBrowserACL'				=> false,
+			'width'								=> $this->settings['richtextWidth'],			// Same as config.width
+			'height'							=> $this->settings['richtextHeight'],			// Same as config.height
+			'config.width'						=> false,										// Takes precedence if 'width' also specified
+			'config.height'						=> false,										// Takes precedence if 'height' also specified
+			'config.contentsCss'				=> $this->settings['richtextEditorAreaCSS'],	// Or array of stylesheets
+			'config.skin'						=> 'moonocolor',								// NB Requires download from http://ckeditor.com/addon/moonocolor
+			'config.bodyId'						=> false,										// Apply value of <body id="..."> to editing window
+			'config.bodyClass'					=> false,										// Apply value of <body class="..."> to editing window
+			'config.format_tags'				=> 'p;h1;h2;h3;h4;h5;h6;pre',
+			'config.stylesSet'					=> "[ { name: 'Warning (paragraph)', element: 'p', attributes: { 'class' : 'warning' } } ]",
+			'config.protectedSource'			=> "[ '/<\?[\s\S]*?\?>/g' ]",					// Protect PHP code
+			'config.disableNativeSpellChecker'	=> false,								// Disables the built-in spell checker if the browser provides one
+			'config.allowedContent'				=> true,										// http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
+			'config.docType'					=> $this->settings['richtextEditorConfig.docType'],	// http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-docType
+			'allowCurlyQuotes'		=> false,
+			'protectEmailAddresses'	=> true,	// Whether to obfuscate e-mail addresses
 			'externalLinksTarget'	=> '_blank',	// The window target name which will be instanted for external links or false
-			'directoryIndex' => 'index.html',		// Default directory index name
+			'directoryIndex'		=> 'index.html',		// Default directory index name
 			'imageAlignmentByClass'	=> true,		// Replace align="foo" with class="foo" for images
-			'nofixTag'	=> '<!-- nofix -->',	// Special marker which indicates that the HTML should not be cleaned (or false to disable)
-			'removeComments' => true,
-			'replacements' => array (),	// Regexp replacements to add before standard replacements are done
+			'nofixTag'				=> '<!-- nofix -->',	// Special marker which indicates that the HTML should not be cleaned (or false to disable)
+			'removeComments'		=> true,
+			'replacements'			=> array (),	// Regexp replacements to add before standard replacements are done
 			'after'					=> false,	# Placing the widget after a specific other widget
 		);
 		
 		# Create a new form widget
-		$widget = new formWidget ($this, $suppliedArguments, $argumentDefaults, __FUNCTION__, $subargument = 'editorConfig');
+		$widget = new formWidget ($this, $suppliedArguments, $argumentDefaults, __FUNCTION__);
 		
 		$arguments = $widget->getArguments ();
 		
@@ -1037,50 +971,320 @@ class form
 		# Define the widget's core HTML
 		if ($arguments['editable']) {
 			
-			# Start the widget HTML
-			$widgetHtml = '';
+			# Determine the ID of the element
+			$id = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}]" : $arguments['name']);
 			
-			# Determine whether to use CKFinder
-			if ($arguments['CKFinder']) {
-				$arguments['editorConfig']['LinkBrowserURL'] = $arguments['editorConfig']['CKFinderLinkBrowserURL'];
-				$arguments['editorConfig']['ImageBrowserURL'] = $arguments['editorConfig']['CKFinderImageBrowserURL'];
-				$arguments['editorConfig']['FlashBrowserURL'] = $arguments['editorConfig']['CKFinderFlashBrowserURL'];
-				unset ($arguments['editorConfig']['CKFinderLinkBrowserURL']);
-				unset ($arguments['editorConfig']['CKFinderImageBrowserURL']);
-				unset ($arguments['editorConfig']['CKFinderFlashBrowserURL']);
+			# Clone HTML5 autofocus into the manual CKEditor config
+			if ($arguments['autofocus']) {
+				$arguments['config.startupFocus'] = true;
+			}
+			
+			# Clone width/height; the config.* one is more specific and will take priority (both are available merely for consistency with both the ultimateForm and CKEditor APIs
+			if ($arguments['width']) {
+				$arguments['config.width'] = ($arguments['config.width'] ? $arguments['config.width'] : $arguments['width']);
+			}
+			if ($arguments['height']) {
+				$arguments['config.height'] = ($arguments['config.height'] ? $arguments['config.height'] : $arguments['height']);
+			}
+			
+			#!# Need support for unsavedDataProtection; see: http://stackoverflow.com/a/12457674
+			
+			#!# Enable native support for protectedSource
+			
+			#!# Image caption and dragging in Chrome: http://ckeditor.com/addon/image2
+			
+			#!# Keyboard focus bug: http://dev.ckeditor.com/ticket/12259
+			
+			#!# Clash-renaming feature needed in uploader; see older implementation: http://dev.ckeditor.com/ticket/1651
+			
+			# Provide pre-configured toolbars
+			if ($arguments['editorToolbarSet']) {
+				
+				# Define available pre-configured toolbars; see: http://ckeditor.com/latest/samples/plugins/toolbar/toolbar.html
+				$toolbars = array (
+					
+					# Do not specify any setting, so that the CKEditor default is used
+					'default' => false,		// Will create what is shown at http://ckeditor.com/latest/samples/plugins/toolbar/toolbar.html
+					
+					# pureContent - cut-down, predominantly semantic toolbar
+					'pureContent' => "
+						[
+							['Source'],
+							['Templates'],
+							['Cut','Copy','Paste','PasteText','PasteWord','-',],
+							['Undo','Redo','-','Find','Replace','-','SelectAll'],
+							['Scayt'],
+							['Maximize'],
+							['About'],
+							'/',
+							['BulletedList','NumberedList','-','Outdent','Indent','Blockquote'],
+							['Subscript','Superscript','SpecialChar'],
+							['HorizontalRule'],
+							['ShowBlocks','CreateDiv'],
+							['Table'],
+							['Link','Unlink','Anchor'],
+							['Image'],
+							'/',
+							['Format'],
+							['Bold','Italic','Strike'],
+							['Styles'],
+							['RemoveFormat']
+						]
+					",
+					
+					# pureContent plus formatting - cut-down, predominantly semantic toolbar, plus formatting
+					'pureContentPlusFormatting' => "
+						[
+							['Source'],
+							['Templates'],
+							['Cut','Copy','Paste','PasteText','PasteWord','-',],
+							['Undo','Redo','-','Find','Replace','-','SelectAll'],
+							['Scayt'],
+							['About'],
+							'/',
+							['BulletedList','NumberedList','-','Outdent','Indent','Blockquote'],
+							['Subscript','Superscript','SpecialChar'],
+							['HorizontalRule'],
+							['ShowBlocks','CreateDiv'],
+							['Table'],
+							['Link','Unlink','Anchor'],
+							['Image'],
+							'/',
+							['Format'],
+							['Bold','Italic','Strike'],
+							['Styles'],
+							['RemoveFormat'],
+							[/* 'Font','FontSize', */ 'TextColor' /* ,'BGColor' */ ],
+							['JustifyLeft','JustifyCenter','JustifyRight','JustifyFull']
+						]
+					",
+					
+					# Basic
+					'Basic' => "
+						[
+							['Bold','Italic'],
+							['BulletedList','NumberedList'],
+							['Link','Unlink'],
+							['About']
+						]
+					",
+					
+					# A slightly more extensive version of the basic toolbar
+					'BasicLonger' => "
+						[
+							['Source'],
+							['Format'],
+							['Bold','Italic','RemoveFormat'],
+							['BulletedList','NumberedList'],
+							['Link','Unlink'],
+							['About']
+						]
+					",
+					
+					# A slightly more extensive version of the basic toolbar, plus formatting
+					'BasicLongerFormat' => "
+						[
+							['Source'],
+							['Format','Styles'],
+							['Bold','Italic','RemoveFormat'],
+							['BulletedList','NumberedList'],
+							['Link','Unlink'],
+							['About']
+						]
+					",
+					
+				);
+				
+				# If supported, copy the selected toolbar to the toolbar config setting
+				if (isSet ($toolbars[$arguments['editorToolbarSet']]) && $toolbars[$arguments['editorToolbarSet']]) {
+					$arguments['config.toolbar'] = $toolbars[$arguments['editorToolbarSet']];
+				}
+			}
+			
+			# Debugging; requires the devtools plugin to be installed; see: http://ckeditor.com/addon/devtools and http://docs.ckeditor.com/#!/guide/dev_howtos_dialog_windows
+			// $arguments['config.extraPlugins'] = 'devtools';
+			
+			# Construct the CKEditor arguments; see: http://docs.ckeditor.com/#!/api/CKEDITOR.editor
+			$editorConfig = array ();
+			foreach ($arguments as $argument => $argumentValue) {
+				if (preg_match ('/^config\.(.+)$/', $argument, $matches)) {
+					$editorConfigKey = $matches[1];
+					$editorConfig[$editorConfigKey]  = "{$editorConfigKey}: ";
+					
+					# Add the config argument value, formatted for JS
+					if (is_bool ($argumentValue)) {
+						$editorConfig[$editorConfigKey] .= ($argumentValue ? 'true' : 'false');	// Appears as native JS true/false type
+					} else if (in_array ($editorConfigKey, array ('toolbar', 'stylesSet', ))) {
+						$editorConfig[$editorConfigKey] .= $argumentValue;	// Native JS string
+					} else if (is_array ($argumentValue)) {
+						foreach ($argumentValue as $index => $argumentSubValue) {
+							$argumentValue[$index] = "'" . $argumentSubValue . "'";	// Quote each value
+						}
+						$editorConfig[$editorConfigKey] .= '[' . implode (', ', $argumentValue) . ']';
+					} else {
+						$editorConfig[$editorConfigKey] .= '"' . str_replace ('"', '\\"', $argumentValue) . '"';	// Appears as quoted string
+					}
+				}
+			}
+			
+			# Define default dialog box settings; see: http://stackoverflow.com/questions/12464395/ and http://docs.ckeditor.com/#!/guide/dev_howtos_dialog_windows
+			$dialogBoxSettings = "
+				// Dialog box configuration
+				CKEDITOR.on( 'dialogDefinition', function( ev ) {
+					var dialogName = ev.data.name;
+					var dialogDefinition = ev.data.definition;
+					
+					// Table dialog
+					if ( dialogName == 'table' ) {
+						
+						// Info tab - remove legacy values
+						var infoTab = dialogDefinition.getContents( 'info' );
+						infoTab.get( 'txtCols' )[ 'default' ] = '3';	// Default columns
+						infoTab.get( 'txtWidth' )[ 'default' ] = '';	// Default table width
+						infoTab.get( 'txtBorder' )[ 'default' ] = '';	// Default border
+						infoTab.get( 'selHeaders' )[ 'default' ] = 'row';	// Default headers
+						infoTab.get( 'txtCellSpace' )[ 'default' ] = '';	// Default cellspacing
+						infoTab.get( 'txtCellPad' )[ 'default' ] = '';	// Default cellpadding
+						
+						// Advanced tab - set class=lines
+						var advanced = dialogDefinition.getContents( 'advanced' );
+						advanced.get( 'advCSSClasses' )[ 'default' ] = '" . $arguments['editorDefaultTableClass'] . "';	// Default class
+					}
+					
+					// Image dialog
+					if ( dialogName == 'image' ) {
+						
+						// Info tab - improve 'Browse server' button, and remove legacy hspace/vspace
+						var infoTab = dialogDefinition.getContents( 'info' );
+						infoTab.get( 'browse' )[ 'label' ] = 'Select image from library...';	// Rename 'Browse server'
+						infoTab.get( 'browse' )[ 'className' ] = 'cke_dialog_ui_button_ok';	// Make button more obvious
+						infoTab.get( 'txtAlt' )[ 'label' ] = '<strong>Alternative text</strong> (for accessibility, slow internet, and Google Image Search)';	// Clearer label
+						infoTab.get( 'txtAlt' )[ 'validate' ] = CKEDITOR.dialog.validate.notEmpty('You must provide alternative text!');	// Require alternative text
+						infoTab.remove( 'txtHSpace' );
+						infoTab.remove( 'txtVSpace' );
+						
+						// Upload tab - remove entirely
+						dialogDefinition.removeContents( 'Upload' );
+					}
+					
+					// Link dialog
+					if ( dialogName == 'link' ) {
+						
+						// Info tab - improve 'Browse server' button, and remove legacy hspace/vspace
+						var infoTab = dialogDefinition.getContents( 'info' );
+						infoTab.get( 'browse' )[ 'label' ] = 'Select page/file to link to, or add PDF/Word/etc document ...';	// Rename 'Browse server'
+						infoTab.get( 'browse' )[ 'className' ] = 'cke_dialog_ui_button_ok';	// Make button more obvious
+						
+						// Upload tab - remove entirely
+						dialogDefinition.removeContents( 'upload' );
+					}
+				});
+			";
+			
+			# Add HTML filtering to deal with <img> tags emitting style=".." rather than height/width/border=".."; see: http://stackoverflow.com/a/11927911
+#!# Border support also needed
+			$htmlFilterSettings = "
+				// Fix <img> tags to use height/width/border rather than style
+				CKEDITOR.on('instanceReady', function (ev) {
+					ev.editor.dataProcessor.htmlFilter.addRules({
+						elements: {
+							$: function (element) {
+								// Output dimensions of images as width and height
+								if (element.name == 'img') {
+									var style = element.attributes.style;
+									
+									if (style) {
+										// Get the width from the style.
+										var match = /(?:^|\s)width\s*:\s*(\d+)px/i.exec(style),
+											width = match && match[1];
+										
+										// Get the height from the style.
+										match = /(?:^|\s)height\s*:\s*(\d+)px/i.exec(style);
+										var height = match && match[1];
+										
+										// Get the align from the style
+										
+										var match = /(?:^|\s)float\s*:\s*(left|right)/i.exec(style),
+										align = match && match[1];
+										
+										if (width) {
+											element.attributes.style = element.attributes.style.replace(/(?:^|\s)width\s*:\s*(\d+)px;?/i, '');
+											element.attributes.width = width;
+										}
+										
+										if (height) {
+											element.attributes.style = element.attributes.style.replace(/(?:^|\s)height\s*:\s*(\d+)px;?/i, '');
+											element.attributes.height = height;
+										}
+										
+										if (align) {
+											element.attributes.style = element.attributes.style.replace(/(?:^|\s)float\s*:\s*(left|right);?/i, '');
+											element.attributes.align = align;
+										}
+									}
+								}
+								
+								if (!element.attributes.style) {
+									delete element.attributes.style;
+								}
+								
+								return element;
+							}
+						}
+					});
+				});
+			";
+			
+			# Add px to width/height if not specified and not a percentage
+			if (ctype_digit ($arguments['config.width'])) {
+				$arguments['config.width'] .= 'px';
+			}
+			$arguments['config.height'] = str_replace ('px', '', $arguments['config.height']);	// Revert to pixels
+			if (ctype_digit ($arguments['config.height'])) {
+				$arguments['config.height'] = $arguments['config.height'] + 71;		// By trial and error
+				$arguments['config.height'] .= 'px';
+			}
+			
+			# Start the widget HTML
+			$widgetHtml  = '
+			<!-- WYSIWYG editor; replace the <textarea> with a CKEditor instance -->
+			<textarea' . $this->nameIdHtml ($arguments['name']) . " style=\"width: {$arguments['config.width']}; height: {$arguments['config.height']}\"" . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . '>' . htmlspecialchars ($elementValue) . '</textarea>
+			<script src="' . $arguments['editorBasePath'] . 'ckeditor.js"></script>
+			<script>
+				var editor = CKEDITOR.replace("' . $id . '", {
+					' . implode (",\n\t\t\t\t\t", $editorConfig) . '
+				});
+				' . $dialogBoxSettings . '
+				' . $htmlFilterSettings . '
+			</script>
+			';
+			
+			# Add the file manager if required; see: http://docs.cksource.com/CKFinder_2.x/Developers_Guide/PHP/CKEditor_Integration and http://docs.cksource.com/ckfinder_2.x_api/symbols/CKFinder.config.html
+			if ($arguments['editorFileBrowser']) {
+				#!# startupFolderExpanded is not clear; see ticket: http://ckeditor.com/forums/Support/Documentation-suggestion-startupFolderExpanded-is-unclear
+				$widgetHtml .= '
+				<!-- File manager -->
+				<script src="' . $arguments['editorFileBrowser'] . 'ckfinder.js"></script>
+				<script>
+					// File manager settings
+					CKFinder.setupCKEditor( editor, {
+						basePath: "' . $arguments['editorFileBrowser'] . '",
+						id: "' . $id . '",
+						startupPath: "' . $_SERVER['SERVER_NAME'] . ':' . ($arguments['editorFileBrowserStartupPath'] ? $arguments['editorFileBrowserStartupPath'] : '/') . '",
+						startupFolderExpanded: true,
+						rememberLastFolder: true
+					});
+				</script>
+				';
 				
 				# Use the ACL functionality if required, by writing it into the session
 				#!# Ideally, CKFinder would have a better way of providing a configuration directly, or pureContentEditor could have a callback that is queried, but this would mean changing all cases of 'echo' and have a non-interactive mode setting in the constructor call
-				if (is_array ($arguments['editorConfig']['CKFinderAccessControl'])) {
+				if ($arguments['editorFileBrowserACL']) {
 					if (!isset ($_SESSION)) {session_start ();}
-					$_SESSION['CKFinderAccessControl'] = $arguments['editorConfig']['CKFinderAccessControl'];
-				}
-				
-				# Use the startup path functionality if required, by writing it into the session
-				#!# Not currently supported in ckfinder_1.3-patched/config.php
-				if ($arguments['editorConfig']['CKFinderStartupPath'] !== false) {
-					if (!isset ($_SESSION)) {session_start ();}
-					$_SESSION['CKFinderStartupPath'] = $arguments['editorConfig']['CKFinderStartupPath'];
+					$_SESSION['CKFinderAccessControl'] = $arguments['editorFileBrowserACL'];
 				}
 			}
 			
-			# Warn IE9 users that they need to enable Compatibility Mode manually
-			#!# Fix by upgrading to CKEditor
-			if (preg_match ('/(?i)msie [9]/', $_SERVER['HTTP_USER_AGENT'])) {
-				$widgetHtml .= "\n<p class=\"warning\">The editor panel below is not fully compatible yet with Internet Explorer 9. Please click on the Compatibility View button <img src=\"http://res2.windows.microsoft.com/resbox/en/Windows%207/main/f080e77f-9b66-4ac8-9af0-803c4f8a859c_15.jpg\" alt=\"\" border=\"0\" /> in the address bar above, or use a different browser such as Firefox or Chrome.</p>";
-			}
-			
-			# Define the widget's core HTML by instantiating the richtext editor module and setting required options
-			require_once ('fckeditor.php');
-			$editor = new FCKeditor ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}]" : $arguments['name']);
-			#!# NB Can't define ID in FCKeditor textarea
-			$editor->BasePath	= $arguments['editorBasePath'];
-			$editor->Width		= $arguments['width'];
-			$editor->Height		= $arguments['height'];
-			$editor->ToolbarSet	= $arguments['editorToolbarSet'];
-			$editor->Value		= $elementValue;
-			$editor->Config		= $arguments['editorConfig'];
-			$widgetHtml .= $editor->CreateHtml ();
 		} else {
 			$widgetHtml = $this->form[$arguments['name']];
 			$widgetHtml .= '<input' . $this->nameIdHtml ($arguments['name']) . ' type="hidden" value="' . htmlspecialchars ($this->form[$arguments['name']]) . '" />';
@@ -1317,7 +1521,7 @@ class form
 		);
 		
 		# Create a new form widget
-		$widget = new formWidget ($this, $suppliedArguments, $argumentDefaults, __FUNCTION__, NULL, $arrayType = true);
+		$widget = new formWidget ($this, $suppliedArguments, $argumentDefaults, __FUNCTION__, $arrayType = true);
 		
 		$arguments = $widget->getArguments ();
 		
@@ -1814,7 +2018,7 @@ class form
 		
 		# Do a sanity-check to check that a non-editable field can succeed
 		#!# Apply to all cases?
-		if (!$arguments['editable'] && $arguments['required'] && !$arguments['default']) {
+		if (!$arguments['editable'] && $arguments['required'] && !strlen ($arguments['default'])) {
 			$this->formSetupErrors['defaultTooMany'] = "In the <strong>{$arguments['name']}</strong> element, you cannot set a non-editable field to be required but have no initial value.";
 		}
 		
@@ -2171,6 +2375,9 @@ class form
 			$elementValue = array ();
 			foreach ($arguments['default'] as $argument) {
 				$elementValue[$argument] = 'true';
+				
+				# Tally the number of items 'checked'
+				$checkedTally++;
 			}
 		}
 		
@@ -3297,7 +3504,7 @@ class form
 		if ($options) {
 			foreach ($options as $key => $value) {
 				switch (true) {
-					case preg_match ('/^function ?\(/', $value):
+					case preg_match ('/^function ?\(/', trim ($value)):
 						$valueFormatted = $value;
 						break;
 					case is_bool ($value):
@@ -5281,7 +5488,7 @@ class form
 		if ($this->jQueryLibraries || $this->jQueryCode) {
 			if ($this->settings['jQuery']) {
 				if ($this->settings['jQuery'] === true) {	// If not a URL, use the default, respecting HTTP/HTTPS to avoid mixed content warnings
-					$this->settings['jQuery'] = $_SERVER['_SERVER_PROTOCOL_TYPE'] . '://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js';
+					$this->settings['jQuery'] = '//code.jquery.com/jquery.min.js';
 				}
 				if ($this->settings['jQuery']) {
 					$html .= "\n<script type=\"text/javascript\" src=\"{$this->settings['jQuery']}\"></script>";
@@ -6406,6 +6613,20 @@ class form
 				
 				# Overwrite the filename if being forced; this always maintains the file extension
 				if ($arguments['forcedFileName']) {
+					
+					# If the forced filename is prefixed with a %, look for a field of that name, and use its value (e.g. '%id' will use a forcedFileName that is the value of the submitted 'id' element)
+					#!# Currently this doesn't check whether %id is sensible, in terms of a missing/non-required/array-type field (and ideally with a suitable regexp)
+					if (preg_match ('/^%(.+)$/', $arguments['forcedFileName'], $matches)) {
+						$matchField = $matches[1];
+						if (isSet ($this->elements[$matchField])) {
+							if (is_string ($this->form[$matchField])) {		// #!# Support only at present for string types; there needs to be a standard way for elements to give a serialised string representation of their output
+								$forcedFilename = $this->form[$matchField];
+								$forcedFilename = str_replace (array ('/', '\\'), '_', $forcedFilename);	// Prevent any kind of directory traversal attacks
+								$arguments['forcedFileName'] = $forcedFilename;
+							}
+						}
+					}
+					
 					$attributes['name'] = $arguments['forcedFileName'] . $fileExtension;
 				}
 				
@@ -6816,6 +7037,7 @@ class form
 			$forceType = false;
 			
 			# Add intelligence rules if required
+			#!# Bug: $int1ToCheckbox should avoid modifications but currently an int like mailToAdmin INT(1) is wrongly getting converted
 			if ($intelligence) {
 				
 				# Fields with 'email' in become e-mail fields
@@ -7111,6 +7333,7 @@ class form
 				# BLOB
 				case (strtolower ($type) == 'blob'):
 				case (strtolower ($type) == 'mediumtext'):
+				case (strtolower ($type) == 'longtext'):
 				case (strtolower ($type) == 'text'):
 					$this->textarea ($standardAttributes + array (
 						// 'cols' => 50,
@@ -7424,7 +7647,7 @@ class formWidget
 	
 	
 	# Constructor
-	function formWidget (&$form, $suppliedArguments, $argumentDefaults, $functionName, $subargument = NULL, $arrayType = false)
+	function __construct (&$form, $suppliedArguments, $argumentDefaults, $functionName, $arrayType = false)
 	{
 		# Inherit the form
 		$this->form =& $form;
@@ -7439,7 +7662,7 @@ class formWidget
 		$this->formSetupErrors =& $form->formSetupErrors;
 		
 		# Assign the arguments
-		$this->arguments = application::assignArguments ($this->formSetupErrors, $suppliedArguments, $argumentDefaults, $functionName, $subargument);
+		$this->arguments = application::assignArguments ($this->formSetupErrors, $suppliedArguments, $argumentDefaults, $functionName);
 		
 		# Add autofocus to the first widget if required
 		$this->addAutofocusToFirstWidget ();

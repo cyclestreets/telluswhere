@@ -143,7 +143,6 @@ class telluswhere
 	{
 		# Set the include path to include libraries
 		set_include_path ($_SERVER['DOCUMENT_ROOT'] . '/libraries/' . PATH_SEPARATOR . get_include_path ());
-		set_include_path ($_SERVER['DOCUMENT_ROOT'] . '/_fckeditor/' . PATH_SEPARATOR . get_include_path ());
 		
 		# Load required libraries
 		require_once ('application.php');
@@ -1335,10 +1334,12 @@ class telluswhere
 			'formCompleteText'			=> false,
 			'reappear'					=> true,
 			'databaseConnection'		=> $this->databaseConnection,
+			'richtextEditorBasePath'	=> $this->baseUrl . '/js/ckeditor/',
 			'richtextEditorToolbarSet'	=> 'BasicLongerFormat',
 			'richtextEditorAreaCSS'		=> $this->settings['cssFileLocation'],
-			'richtextWidth'				=> '500px',
-			'richtextHeight'			=> '250px',
+			'richtextWidth'				=> 500,
+			'richtextHeight'			=> 250,
+			'richtextEditorFileBrowser'	=> false,
 			'picker'					=> true,
 			'displayRestrictions'		=> false,
 		));

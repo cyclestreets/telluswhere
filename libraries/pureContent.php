@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-13
- * Version 1.7.1
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
+ * Version 1.9.3
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/purecontent/
@@ -50,7 +50,7 @@ class pureContent {
 		
 		# Assign the complete page URL (i.e. the full page address requested), with index.html removed if it exists, starting from root
 		if (!isSet ($_SERVER['SERVER_PORT'])) {$_SERVER['SERVER_PORT'] = 80;}	// Emulation for CGI/CLI mode
-		$_SERVER['_PAGE_URL'] = $_SERVER['_SITE_URL'] . ($_SERVER['SERVER_PORT'] != 80 ? ':' . $_SERVER['SERVER_PORT'] : '') . $_SERVER['REQUEST_URI'];
+		$_SERVER['_PAGE_URL'] = $_SERVER['_SITE_URL'] . (($_SERVER['SERVER_PORT'] != 80 && $_SERVER['SERVER_PORT'] != 443) ? ':' . $_SERVER['SERVER_PORT'] : '') . $_SERVER['REQUEST_URI'];
 		
 		# Ensure SCRIPT_URL is present
 		if (!isSet ($_SERVER['SCRIPT_URL'])) {
@@ -89,6 +89,9 @@ class pureContent {
 	 */
 	public static function assignNavigation ($dividingTextOnPage = ' &#187; ', $dividingTextInBrowserLine = ' &#187; ', $introductoryText = 'You are in:  ', $homeText = 'Home', $enforceStrictBehaviour = false, $browserlineFullHierarchy = false, $homeLocation = '/', $sectionTitleFile = '.title.txt', $menuTitleFile = '.menu.html', $tildeRoot = '/home/', $behaviouralHackFile = '/sitetech/assignNavigationHack.html', $linkToCurrent = false)
 	{
+		# Start an array of the navigation hierarchy
+		$navigationHierarchy = array ();
+		
 		# Ensure the home location and tilde root ends with a trailing slash
 		if (substr ($homeLocation, -1) != '/') {$homeLocation .= '/';}
 		if (substr ($tildeRoot, -1) != '/') {$tildeRoot .= '/';}
@@ -118,6 +121,7 @@ class pureContent {
 			
 			# Start the location line and browserline
 			$locationline = str_replace ('  ', '&nbsp; ', $introductoryText) . "<a href=\"$homeLocation\">$homeText</a>";
+			$navigationHierarchy[$homeLocation] = $homeText;
 			$browserline = '';
 			
 			# Assign the starting point for the links
@@ -155,6 +159,9 @@ class pureContent {
 						include ($_SERVER['DOCUMENT_ROOT'] . $behaviouralHackFile);
 					}
 				}
+				
+				# Add navigation hierarchy item
+				$navigationHierarchy[$link] = $contents;
 			}
 			
 			# $menusection which is used for showing the correct menu, stripping off the trailing slash in it
@@ -162,13 +169,13 @@ class pureContent {
 			$menufile = $serverRoot . $homeLocation . $menusection . '/' . $menuTitleFile;
 		}
 		
-		# Return the result
-		return array ($browserline, $locationline, $menusection, $menufile);
+		# Return the properties
+		return array ($browserline, $locationline, $menusection, $menufile, $navigationHierarchy);
 	}
 	
 	
 	# Define a function to generate the menu
-	public static function generateMenu ($menu, $cssSelected = 'selected', $parentTabLevel = 2, $orphanedDirectories = array (), $menufile = '', $id = NULL, $class = NULL, $returnNotEcho = false)
+	public static function generateMenu ($menu, $cssSelected = 'selected', $parentTabLevel = 2, $orphanedDirectories = array (), $menufile = '', $id = NULL, $class = NULL, $returnNotEcho = false, $addSubmenuClass = false, $submenuDuplicateFirstLink = false)
 	{
 		# Start the HTML
 		$html  = '';
@@ -217,12 +224,23 @@ class pureContent {
 			$spaced = false;
 			
 			# Include the menu file
-			if ($match == $location) {
-				if (!empty ($menufile)) {
+			if (!empty ($menufile)) {
+				if ($match == $location || $menufile == '*') {
 					#!# Hacked in 060222 - deals with non-top level sections like /foo/bar/ but hard-codes .menu.html ... ; arguably this is a more sensible system though, and avoids passing menu file along a chain
-					$menufile = $_SERVER['DOCUMENT_ROOT'] . $location . '/.menu.html';
-					if (file_exists ($menufile)) {
-						include ($menufile);
+					$menufileFilename = $_SERVER['DOCUMENT_ROOT'] . $location . '/.menu.html';
+					if (file_exists ($menufileFilename)) {
+						if ($returnNotEcho) {
+							$menuFileHtml = file_get_contents ($menufileFilename);
+							if ($submenuDuplicateFirstLink) {
+								$menuFileHtml = str_replace ('<ul>', '<ul>' . "\n\t<li><a href=\"{$location}\">" . $description . (is_string ($submenuDuplicateFirstLink) ? ' ' . $submenuDuplicateFirstLink : '') . '</a></li>', $menuFileHtml);
+							}
+							if ($addSubmenuClass) {
+								$menuFileHtml = str_replace ('<ul>', "<ul class=\"{$addSubmenuClass}\">", $menuFileHtml);
+							}
+							$html .= $menuFileHtml;
+						} else {
+							include ($menufileFilename);
+						}
 					}
 				}
 			}
@@ -246,6 +264,9 @@ class pureContent {
 	{
 		# Read the contents of the file
 		$html = file_get_contents ($menufile);
+		
+		# Strip out comments first, so that commented-out items do not reappear
+		$html = preg_replace ('/<!--(.*)-->/Uis', '', $html);
 		
 		# Parse the contents
 		if (preg_match ('@^(.*)(<ul[^>]+>)(.+)(</ul>)(.*)$@s', $html, $matches)) {
@@ -330,20 +351,64 @@ class pureContent {
 	
 	
 	# Function to provide an edit link if using pureContentEditor
-	public static function editLink ($internalHostRegexp, $port = 8080, $class = 'editlink')
+	public static function editLink ($internalHostRegexp, $port = 8080, $class = 'editlink', $tag = 'p')
 	{
 		# If the host matches and the port is not the edit port, give a link
 		if (preg_match ('/' . addcslashes ($internalHostRegexp, '/') . '/', gethostbyaddr ($_SERVER['REMOTE_ADDR']))) {
 			if ($_SERVER['SERVER_PORT'] != $port) {
-				return "<p class=\"{$class}\"><a href=\"http://{$_SERVER['SERVER_NAME']}:{$port}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . "\">[Editing&nbsp;mode]</a></p>";
+				return "<{$tag} class=\"" . ($class ? "{$class} " : '') . "noprint\"><a href=\"http://{$_SERVER['SERVER_NAME']}:{$port}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . '"><img src="/images/icons/page_edit.png" class="icon" /> Editing&nbsp;mode</a>' . "</{$tag}>";
 			} else {
-				return "<p class=\"{$class}\"><a href=\"http://{$_SERVER['SERVER_NAME']}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . "\">[Return to live]</a></p>";
+				return "<{$tag} class=\"" . ($class ? "{$class} " : '') . "noprint\"><a href=\"http://{$_SERVER['SERVER_NAME']}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . "\">[Return to live]</a></{$tag}>";
 			}
 		}
 		
 		# Otherwise return an empty string
 		return '';
 	}
+	
+	
+	# Function to provide an SSO link area
+	public static function ssoLinks ($ssoBrandName = false, $profileUrl = false, $profileName = 'My profile')
+	{
+		# End if SSO not installed
+		if (!isSet ($_SERVER['SINGLE_SIGN_ON_ENABLED'])) {return false;}
+		
+		# Start the HTML by opening a list
+		$html  = "\n\t<ul>";
+		
+		# Determine any return-to appended reference
+		$returnTo = ($_SERVER['REQUEST_URI'] && ($_SERVER['REQUEST_URI'] != '/') ? '?' . htmlspecialchars ($_SERVER['REQUEST_URI']) : '');
+		
+		# Show the link
+		if (preg_match ('|^/logout|', $_SERVER['REQUEST_URI'])) {
+			$html .= "\n\t\t<li><span>Logging out&hellip;</span></li>";	// NB the user will actually have been logged out already
+		} else if ($_SERVER['REMOTE_USER']) {
+			$html .= "\n\t\t<li class=\"submenu\">";
+			$html .= "<span>Logged in as <strong>" . htmlspecialchars ($_SERVER['REMOTE_USER']) . "</strong> &#9660;</span>";
+			$html .= "\n\t\t<ul>";
+			if ($profileUrl) {
+				$html .= "\n\t\t\t<li><a href=\"{$profileUrl}\">{$profileName}</a></li>";
+			}
+			$html .= "\n\t\t\t<li><a href=\"/logout/{$returnTo}\">Logout</a></li>";	// Note that this will not maintain any #anchor, because the server doesn't see any hash: http://stackoverflow.com/questions/940905
+			$html .= "\n\t\t</ul>";
+			$html .= "</li>";
+		} else {
+			$html .= "\n\t\t<li><a href=\"/login/{$returnTo}\"><strong>Login</strong>" . ($ssoBrandName ? " with {$ssoBrandName}" : '') . "</a></li>";
+		}
+		
+		# Complete the list
+		$html .= "\n\t</ul>";
+		
+		# Surround with a div
+		$html = "\n<div id=\"ssologin\">" . $html . "\n</div>";
+		
+		# Disable the standard link
+		$html .= "\n" . '<style type="text/css">p.loggedinas {display: none;}</style>';
+		
+		# Return the HTML
+		return $html;
+	}
+	
 	
 	
 	# Function to combine a set of files having a submenu into a single page
@@ -562,14 +627,70 @@ class pureContent {
 	# Function to add social networking links
 	public static function socialNetworkingLinks ($twitterName = false, $prefixText = false)
 	{
+		# End if server port doesn't match, as this can cause JS warnings on modern browser
+		if (($_SERVER['SERVER_PORT'] != '80') && ($_SERVER['SERVER_PORT'] != '443')) {return false;}
+		
 		# Build the HTML
 		$html  = "\n<p id=\"socialnetworkinglinks\">";
 		if ($prefixText) {$html .= $prefixText;}
-		$html .= "\n\t" . '<a class="twitter" href="http://twitter.com/home?status=Loving+' . rawurlencode ($_SERVER['_PAGE_URL']) . ($twitterName ? rawurlencode (" from @{$twitterName}!") : '') . '" title="Follow us on Twitter"><img src="/images/general/twitter.png" alt="Icon" title="Twitter" width="55" height="20" /></a>';
-		$html .= "\n\t" . '<iframe src="http://www.facebook.com/plugins/like.php?href=' . rawurlencode ($_SERVER['_PAGE_URL']) . '&amp;send=false&amp;layout=button_count&amp;show_faces=true&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:20px;"></iframe>';
+		$html .= "\n\t" . '<a class="twitter" href="//twitter.com/home?status=Loving+' . rawurlencode ($_SERVER['_PAGE_URL']) . ($twitterName ? rawurlencode (" from @{$twitterName}!") : '') . '" title="Follow us on Twitter"><img src="/images/general/twitter.png" alt="Icon" title="Twitter" width="55" height="20" /></a>';
+		$html .= "\n\t" . '<iframe src="//www.facebook.com/plugins/like.php?href=' . rawurlencode ($_SERVER['_PAGE_URL']) . '&amp;send=false&amp;layout=button_count&amp;show_faces=true&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:20px;"></iframe>';
 		$html .= "\n</p>";
 		
 		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Social networking metadata
+	public static function socialNetworkingMetadata ($siteName, $twitterHandle = false, $imageLocation /* Starting / */, $description, $title = false, $imageWidth = false, $imageHeight = false, $pageUrl = false)
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Ensure there is an imageLocation
+		if (!$imageLocation) {return false;}
+		
+		# Start an array of meta attributes
+		$attributes = array ();
+		
+		# Type
+		$attributes['og:type'] = 'website';
+		if ($twitterHandle) {
+			$attributes['twitter:card'] = 'photo';
+		}
+		
+		# Site name
+		$attributes['og:site_name'] = $siteName;
+		if ($twitterHandle) {
+			$attributes['twitter:site'] = $twitterHandle;
+		}
+		
+		# Image
+		$attributes['og:image'] = $_SERVER['_SITE_URL'] . $imageLocation;
+		if ($imageWidth) {$attributes['og:image:width'] = $width;}
+		if ($imageHeight) {$attributes['og:image:height'] = $height;}
+		
+		# Text
+		if ($title) {$attributes['og:title'] = (strlen ($title) > 80 ? substr ($title, 0, 80) . '&hellip' : $title);}
+		// $attributes['og:description'] = substr ($description, 0, 220);	// Twitter will then truncate this to 201
+		
+		# Page URL
+		$attributes['og:url'] = ($pageUrl ? $pageUrl : $_SERVER['_PAGE_URL']);
+		
+		# Compile the HTML
+		$metaEntries = array ();
+		foreach ($attributes as $key => $value) {
+			$value = htmlspecialchars ($value, ENT_NOQUOTES);
+			if (preg_match ('/^twitter:/', $key)) {
+				$metaEntries[] = '<meta name="' . $key . '" content="' . $value . '" />';
+			} else {
+				$metaEntries[] = '<meta property="' . $key . '" content="' . $value . '" />';
+			}
+		}
+		$html = "\n\t\t" . implode ("\n\t\t", $metaEntries);
+		
+		# Return the HTML, to put in the <head>
 		return $html;
 	}
 	
@@ -677,7 +798,8 @@ class highlightSearchTerms
 		# Buffer the output
 		if (isSet ($referer['host'])) {
 			if ($referer['host'] != $_SERVER['HTTP_HOST']) {
-				ob_start (array ('highlightSearchTerms', 'outsideWrapper')); 
+				ob_start (array ('highlightSearchTerms', 'outsideWrapper'));
+				ob_get_clean ();
 			}
 		}
 	}

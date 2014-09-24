@@ -583,8 +583,8 @@ class telluswhere
 		
 		# Get the data for this location
 		$id = $_GET['id'];
-		#!# API call output needs to rename metacategoryTag and categoryTag to metacategory and category
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryTag,categoryTag,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl' . '&thumbnailsize=200';
+		#!# /v2/photomap.location metacategoryId,categoryId are inconsistent with metacategory,category in photomap.add/photomap.update
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryId,categoryId,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl' . '&thumbnailsize=200';
 		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
@@ -612,14 +612,14 @@ class telluswhere
 		$supportedCategories = array ('cycleparking');
 		
 		# End if not a supported metacategory or category
-		if (!array_key_exists ($data['metacategoryTag'], $supportedMetacategories) || !in_array ($data['categoryTag'], $supportedCategories)) {
+		if (!array_key_exists ($data['metacategoryId'], $supportedMetacategories) || !in_array ($data['categoryId'], $supportedCategories)) {
 			$html = $this->page404 ();
 			echo $html;
 			return false;
 		}
 		
 		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
-		$action = $supportedMetacategories[$data['metacategoryTag']];
+		$action = $supportedMetacategories[$data['metacategoryId']];
 		
 		# Start an editing rights session and determine if the user has edit rights
 		$userCanEdit = NULL;

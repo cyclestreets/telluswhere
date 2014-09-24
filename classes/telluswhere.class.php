@@ -1578,6 +1578,9 @@ class telluswhere
 	# Function to log the user in
 	private function doLogin ($result)
 	{
+		# Regenerate the session ID
+		session_regenerate_id ($deleteOldSession = true);
+		
 		# Create the session entry
 		$this->sessionWrite ('user', $result);
 		
@@ -1626,9 +1629,6 @@ class telluswhere
 		
 		# Start the session handling
 		if (!session_id ()) {session_start ();}
-		
-		# Regenerate the session ID
-		session_regenerate_id ($deleteOldSession = true);
 	}
 	
 	
@@ -1661,6 +1661,9 @@ class telluswhere
 	# Function to destroy a session
 	private function sessionDestroy ($field)
 	{
+		# Regenerate the session ID
+		session_regenerate_id ($deleteOldSession = true);
+		
 		session_unset ();
 		session_destroy ();
 		unset ($_SESSION[$field]);

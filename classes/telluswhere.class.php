@@ -968,7 +968,16 @@ class telluswhere
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
-		$html .= "\n" . "<script type=\"text/javascript\">autocompleteNS.addTo(map, \"input[name='location']\", \"{$geocoderApiUrl}\");</script>";
+		$html .= "\n" . "<script type=\"text/javascript\">
+			autocomplete.addTo (\"input[name='location']\", {
+				sourceUrl: '{$geocoderApiUrl}&bounded=1&viewbox=-6.6577,57.6924,1.7797,49.9370',
+				select: function (event, ui) {
+					var result = ui.item;
+					map.setView (L.latLng (result.lat, result.lon));
+					event.preventDefault();
+				}
+			});
+		</script>";
 		
 		# Return the HTML
 		return $html;

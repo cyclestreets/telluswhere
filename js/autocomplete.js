@@ -1,278 +1,357 @@
-// Autocomplete module for finding places
-var autocompleteNS = (function ($) {
+/** Attaches autocomplete functionality to the input element
+ * Options is an object with these properties:
+ * source is either a static list of data, or function that returns a list (e.g. via ajax) of results. Each result should have at least these properties: label, value, desc
+ * select is a callback that takes a filtered result as arg, and can be run for side effects such as setting a marker on a map
+ * renderItem is a callback for rendering the menu items, it takes as arguments the menu element and item and should return a rendered list item.
+*  Items are rendered by default with the label on a first line, and a smaller font description on the second.
+*
+* Where possible this file should not assume that cyclestreetsNS has been loaded.
+*/
+/*jslint browser: true, devel: true, passfail: false, continue: true, eqeq: true, forin: true, nomen: true, plusplus: true, regexp: true, unparam: true, vars: true, white: true */
+/*global jQuery, cyclestreetsNS, map, L */
+
+var autocomplete = (function ($) {
     'use strict';
 
-    /* Class properties */
-
-    // Internal class properties
-	var _map;
-    // var _icons;
-	
     return {
 
-		/** Attaches autocomplete functionality to the input element
-		 * Options is an object with these properties:
-		 * source is either a static list of data, or function that returns a list (e.g. via ajax) of results. Each result should have at least these properties: label, value, desc
-		 * select is a callback that takes a filtered result as arg, and can be run for side effects such as setting a marker on a map
-		 * renderItem is a callback for rendering the menu items, it takes as arguments the menu element and item and should return a rendered list item.
-		*  Items are rendered by default with the label on a first line, and a smaller font description on the second.
-		*/
-		addTo: function (map, inputElement, options) {
-			
-			// Global the map object
-			_map = map;
-			
-			// Default options
-		    if (typeof(options) == "undefined") {
-				options = {};
+// Public methods
+
+	addTo: function (inputElement, options) {
+
+	    var element = $(inputElement);
+
+	    // Default options
+	    if (options === undefined) {options = {};}
+
+	    // Default options to the source url
+	    if (typeof options === "string") {options = {sourceUrl: options};}
+
+	    // Default to geocoder function
+	    if (options.source === undefined) {
+		options.source = function (request, response) {autocomplete.geocoderAjax (element, options.sourceUrl, request, response);};
+	    }
+
+	    // If there is a map on the page then default to centering on the selection
+	    if (options.select === undefined) {
+
+		// Select callback - centres map on selection
+		options.select = autocomplete.centreMap;
+	    }
+
+	    // Default function for rendering the menu
+	    if (options.renderItem === undefined) {
+
+		// Default render over two lines, second line smaller font size
+		options.renderItem = function( ul, item ) {
+		    return $( "<li>" )
+			.append( "<a>" + item.label + "<br><span style=\"font-size:smaller\">" + item.desc + "</span></a>" )
+			.appendTo( ul );
+		};
+	    }
+
+	    // Control caching of results
+	    if (options.cacheResults !== undefined) {
+
+		// Create the cache or turn off caching
+		element.data('autocompleteCache', options.cacheResults ? {} : false);
+	    }
+
+	    // Run on document ready
+	    $(function () {
+
+		// Add the autocomplete to the element
+		$(inputElement).autocomplete({
+		    appendTo: '#cyclestreets-content',	// Ensures this is within the CSS scopes defined by the application, rather than being attached to the surrounding GUI's body which may have different CSS
+		    source: options.source,
+		    minLength: 3,
+		    focus: function (event, ui) {
+
+			// This is called when the focussed menu item changes, show the label (rather than the value) in the input element
+			$(inputElement).val(ui.item.label);
+
+ 			// Prevent the widget from inserting the value.
+			return false;
+		    },
+		    select: function (event, ui) {
+
+			// Apply any select callback
+			if (options.select !== undefined) {return options.select (event, ui);}
+
+			// Set the value to the label
+			$(inputElement).val(ui.item.label);
+
+ 			// Prevent the widget from inserting the value.
+			return false;
 		    }
-		
-		    // Default options to the source url
-		    if (typeof(options) == "string") {
-				options = {sourceUrl: options};
+		}).data("ui-autocomplete")._renderItem = options.renderItem;
+	    });
+	},
+
+
+	// Centres map on lon lat in the autocomplete result
+	centreMap: function (event, ui) {
+
+	    // Declarations
+	    var result = ui.item;
+
+	    // Abandon if no map
+	    if (cyclestreetsNS === undefined || cyclestreetsNS.map === undefined) {return;}
+
+	    // Zoom to at least 15
+	    var zoomTo = cyclestreetsNS.map.getZoom() <= 15 ? 15 : 16;
+
+	    // Set the centre
+	    cyclestreetsNS.map.setView ([result.lat, result.lon], zoomTo);
+	},
+
+
+// Private methods
+
+	// Function used to retrieve results from a Nominatim server
+	geocoderAjax: function (element, url, request, response) {
+
+	    // The url should already include the api key, this object collates additional query string arguments for the CycleStreets geocoder api call
+	    // http://www.cyclestreets.net/api/v2/geocoder/
+	    var urlParams = {
+		q: request.term, // Ie the search string
+		limit: 12	// Ideally this and perhaps other parameters that are sent to the geocoder could be settings
+	    },
+
+	    // Useful var to help determine any bounding box for the geocoding search
+	    bounds,
+
+	    // Bind the term for use in caching
+	    term = request.term,
+
+	    // Cache is stored with the element
+	    cache = element.data('autocompleteCache'),
+
+	    // Flag to detect if the term has been found in the cache
+            foundInCache = false;
+
+	    // When caching is enabled for this element
+	    if (cache) {
+
+		// Scan the cache for data matching the term
+		$.each(cache, function (key, data) {
+
+		    // Skip if no match
+		    if (term !== key) {return true;}
+
+		    // Apply the response callback
+		    response(data);
+
+		    // Flag found
+		    foundInCache = true;
+
+		    // End the search
+		    return false;
+		});
+	    }
+
+	    // End if the result has been found in the cache
+	    if (foundInCache) return;
+
+	    // Get any preferred bounds - they are packed as N,E,S,W
+	    if (window.cyclestreetsNS !== undefined && cyclestreetsNS.getPreferedNameSearchBoundingBox()) {
+
+		// Explode
+		bounds = cyclestreetsNS.getPreferedNameSearchBoundingBox().split(',');
+
+		// Set as viewbox WNES
+		urlParams.viewbox = bounds[3] + "," + bounds[0] + "," + bounds[1] + "," + bounds[2];
+	    }
+
+	    // If there is a map on the page then assume it will provide bounds
+	    else if ($("#map")) {
+
+		// Callback that returns a csv: <left>,<top>,<right>,<bottom>
+		urlParams.viewbox = autocomplete.mapBoundsCallBack();
+	    }
+
+	    // Country codes
+	    if (window.cyclestreetsNS !== undefined && cyclestreetsNS.getGeocodingCountryCodes()) {urlParams.countrycodes = cyclestreetsNS.getGeocodingCountryCodes();}
+
+	    $.ajax({
+		url: url,
+
+		// The next two options configure jQuery to parse the jsonp returned by call
+		dataType: (window.cyclestreetsNS !== undefined && cyclestreetsNS.getUseJsonpTransport() ? 'jsonp' : 'json'),
+		// Nominatim supports the value of this parameter which wraps json output in a callback function.
+		// The callback function name is generated by jQuery, and parses the json.
+		jsonp: (window.cyclestreetsNS !== undefined && cyclestreetsNS.getUseJsonpTransport() ? 'json_callback' :  null),
+
+		data: urlParams,
+
+		// On success run returned data through a filter
+		success: function (data, textStatus, jqXHR) {
+
+		    // Declarations
+		    var results = [];
+
+		    // No data
+		    if (!data) {
+
+			// No results
+			results = [];
+
+		    } else if (data.error) {
+
+			// By using these values the user can see that an error has occurred
+			results = [{
+			    value: false,
+			    label: 'A geocoding error occurred',
+			    desc: data.error}];
+
+		    } else if (!data.features) {
+
+			// No results
+			results = [];
+
+		    } else {
+
+			// Render each feature
+			results = $.map(data.features, autocomplete.renderGeocoderResult);
 		    }
-		
-		    // Default to geocoder function
-		    if (typeof(options.source) == "undefined") {
-				options.source = function (request, response) {autocompleteNS.geocoderAjax (options.sourceUrl, request, response);}
-			}
-		
-			// If there is a map on the page then default to centering on the selection
-		    if (typeof(options.select) == "undefined") {
-		
-				// Select callback - centres map on selection
-				options.select = this.centreMap;
-			}
-		
-		    // Default function for rendering the menu
-		    if (typeof(options.renderItem) == "undefined") {
-		
-				// Default render over two lines, second line smaller font size
-				options.renderItem = function( ul, item ) {
-					    return $( "<li>" )
-							.append( "<a>" + item.label + "<br><span style=\"font-size:smaller\">" + item.desc + "</span></a>" )
-							.appendTo( ul );
-					}
+
+		    // Cache the results in the element
+		    if (cache) {
+			cache[term] = results;
+			element.data('autocompleteCache', cache);
 		    }
-			
-			// Disable return key from submitting the whole form
-			$( inputElement ).keypress(function(e) {
-				var code = (e.keyCode ? e.keyCode : e.which);
-				if(code == 13) { //Enter keycode
-					return false;
-				}
-			});
-		
-			// Run on document ready
-		    $(function() {
-		
-				// Add the autocomplete to the element
-				$( inputElement )
-		
-					.autocomplete({
-						source: options.source,
-						minLength: 3,
-						focus: function( event, ui ) {
-							// This is called when the selected menu item changes.
-							// Reflect the value of the time in the input box.
-							$( inputElement ).val( ui.item.label );
-		
-							// Stop propagation
-							// Canceling this event prevents the value from being updated, but does not prevent the menu item from being focused.
-							return false;
-						},
-		
-					select: function( event, ui ) {
-		
-								// Apply any select callback
-								if(typeof(options.select) != "undefined") {
-									return options.select (ui.item);
-								}
-		
-								// Set the value
-							    $( inputElement ).val( ui.item.label );
-		
-							    // Stop propagation - which would set the value of the inputElement to the ui.item.value
-				    			return false;
-							}
-			    	})
-					.data( "ui-autocomplete" )._renderItem = options.renderItem;
-		    })
+
+		    // Apply the response callback
+		    response (results);
 		},
-		
-		
-		// Centres map on lon lat in the autocomplete result.
-		// Equipped to handle CycleStreets standard uses of both OpenLayers and Leaflet
-		centreMap: function (result) {
-		
-			// OpenLayers map
-			if (typeof(CS) != "undefined" && typeof(CS.map) != "undefined") {
-		
-				// Set the centre
-				CS.focusLonLat(result.lon, result.lat);
-		
-				// Exit
-				return;
-			}
-		
-			// Leaflet
-			if (typeof(map) != "undefined") {
-		
-				// Zoom to at least 16
-				var zoomTo = _map.getZoom() < 16 ? 16 : _map.getZoom();
-		
-				// Set the centre
-				_map.setView([result.lat, result.lon], zoomTo);
-			}
+
+		// Autocomplete needs to call response() even when an error occurs to avoid falling into an invalid state.
+		error: function (jqXHR, textStatus, errorThrown) {
+
+		    // By using these values the user can see that an error has occurred
+		    response ([{
+			value: errorThrown,
+			label: "An error occurred: " + textStatus,
+			desc: "Error type: " + errorThrown}]);
 		},
-		
-		
-		// Function used to retrieve results from a Nominatim server
-		geocoderAjax: function (url, request, response) {
-		
-		    // Query string arguments for the Nominatim call
-		    var urlParams = {
-				format: "json",
-				// addressdetails: 1,
-				polygon_geojson: 1,
-				q: request.term
-		    };
-		
-			// If there is a map on the page then assume it will provide bounds
-			if ($("#map")) {
-		
-				// Bounded search
-				urlParams.bounded = 1;
-		
-				// Callback that returns a csv: <left>,<top>,<right>,<bottom>
-				urlParams.viewbox = autocompleteNS.mapBoundsCallBack();
-		    };
-		
-		    $.ajax({
-				url: url,
-		
-				// The next two options configure jQuery to parse the jsonp returned by call
-				dataType: "jsonp",
-				// Nominatim supports the value of this parameter which wraps json output in a callback function.
-				// The callback function name is generated by jQuery, and parses the json.
-				jsonp: "json_callback",
-		
-				data: urlParams,
-				
-				// On success run returned data through a filter
-				success: function ( data, textStatus, jqXHR ) {
-			    	response ( $.map( data, autocompleteNS.filterNominatimResult));
-				},
-		
-				// Autocomplete needs to call response() even when an error occurs to avoid falling into an invalid state.
-				error: function ( jqXHR, textStatus, errorThrown ) {
-		
-			    	// By using these values the user can see an error has occured
-				    response ([{
-					value: errorThrown,
-					label: "An error occured: " + textStatus,
-					desc: "Error type: " + errorThrown}]);
-				},
-		
-				// Handle some http error codes
-				statusCode: {
-			    	404: function() {
-						alert( "The name lookup service cannot be found" );
-				    }
-				}
-		    });
-		},
-		
-		
-		// Bounds callback - retrieves current viewport of map.
-		// Equipped to handle CycleStreets standard uses of both OpenLayers and Leaflet
-		mapBoundsCallBack: function () {
-		
-			// OpenLayers map
-		    if (typeof(CS) !== "undefined" && typeof(CS.map) !== "undefined") {
-		
-				// Convert bounds to lon/lat
-				var bounds = CS.map.getExtent().transform(CS.map.getProjectionObject(), CS.map.displayProjection);
-				return bounds.left + "," + bounds.top + "," + bounds.right + "," + bounds.bottom;
-			}
-		
-			// Leaflet
-		    if (typeof(_map) !== "undefined") {
-				var bounds = _map.getBounds();
-		
-				// Unfortunately cannot use toBBoxString() because that returns WSEN
-				return bounds.getSouthWest().lng + "," + bounds.getNorthEast().lat + "," + bounds.getNorthEast().lng + "," + bounds.getSouthWest().lat;
-			}
-		},
-		
-		
-		// Used to process each result from the nominatim
-		filterNominatimResult: function (item) {
-		
-		    // Extract the street and neighbourhood
-		    var sn = autocompleteNS.streetNeighbourhood (item.display_name);
-		
-			//
-			var result = {
-				// The display_name is used as the full value for the widget because feeding it back into the query seems to be the best way of getting a repeatable result.
-				value: item.display_name,
-				label: sn.street,
-				desc: sn.neighbourhood,
-				lat: item.lat,
-				lon: item.lon
+
+		// Handle some http error codes
+		statusCode: {
+		    404: function () {
+			alert( "The name lookup service cannot be found" );
 		    }
-		
-			// Optional geojson
-		    if (typeof(item.geojson) != "undefined") {result.geojson = item.geojson;}
-		
-		    // Result
-		    return result;
-		},
-		
-				
-		// The display_name contains a comma separated address, usually very comprehensive.
-		// The user only needs to know the right level of detail in the given context.
-		// If addressdetails are requested the result contains those details - but not in a consistent pattern and so cannot be easily selected.
-		streetNeighbourhood: function (display_name) {
-		
-			// Set defaults
-			var street = "Unknown street";
-			var neighbourhood = "Unknown neighbourhood";
-		
-			// Use display_name which is usually a full address
-			if (typeof display_name != "undefined") {
-		
-				// Disassemble display name
-				var nameComponents = display_name.split(", ");
-		
-				// When there are plenty of components
-				if (nameComponents.length >= 4) {
-		
-					// Use the first couple of bits for the street
-					street = nameComponents[0] + ", " + nameComponents[1];
-		
-					// Use the next couple of bits for the neighbourhood
-					neighbourhood = nameComponents[2] + ", " + nameComponents[3];
-		
-				} else if (nameComponents.length >= 2) {
-		
-					// Use the first bit for the street
-					street = nameComponents.shift();
-		
-					// Use the rest for the neighbourhood
-					neighbourhood = nameComponents.join(", ");
-		
-				} else {
-		
-					// Use all of it for the street
-					street = display_name;
-				}
-			}
-		
-			// Result
-			return {"street": street, "neighbourhood": neighbourhood}
 		}
+	    });
+	},
 
+
+	// Bounds callback - retrieves current viewport of map
+	mapBoundsCallBack: function () {
+
+	    // Declarations
+	    var bounds, r4;
+
+	    // Abandon if no map
+	    if (window.cyclestreetsNS === undefined || cyclestreetsNS.map === undefined) {return;}
+
+	    // Visible bounds of the map
+	    bounds = cyclestreetsNS.map.getBounds();
+
+	    // Expand the bounds to be as least as big as a city
+	    bounds = this.atLeastAsBigAsACity (bounds);
+
+	    // Rounds to four places of decimals - ie about 100 metres
+	    r4 = function (x) {return Math.round(10000 * x) / 10000;};
+
+	    // Cannot use toBBoxString() because that returns WSEN, whereas WNES is needed
+	    return Math.max (-180, r4 (bounds.getSouthWest().lng)) + "," + Math.min (90, r4 (bounds.getNorthEast().lat)) + "," +
+		Math.min (180, r4 (bounds.getNorthEast().lng)) + "," + Math.max (-90, r4 (bounds.getSouthWest().lat));
+	},
+
+	// Expand the bounds to be as least as big as a city
+	atLeastAsBigAsACity: function (bounds)
+	{
+	    // Declarations
+	    var centre = bounds.getCenter(),
+
+	    // City size in degrees NS, 1 degree = 100km, so 0.1 degree = 10km.
+	    sizeNSdegrees = 0.25,
+
+	    // Accommodate the forshortening of longitude
+	    sizeEWdegrees = sizeNSdegrees / Math.cos(centre.lat * Math.PI / 180);
+
+	    // Extend the bounds to the NW
+	    bounds = bounds.extend (L.latLng(centre.lat + sizeNSdegrees, centre.lng - sizeEWdegrees));
+
+	    // Extend the bounds to the SE
+	    bounds = bounds.extend (L.latLng(centre.lat - sizeNSdegrees, centre.lng + sizeEWdegrees));
+
+	    // Result
+	    return bounds;
+	},
+
+	// Used to process each result from the geocoder
+	renderGeocoderResult: function (item) {
+
+	    // Extract the street and neighbourhood
+	    var sn = autocomplete.streetNeighbourhood (item.properties.display_name),
+
+	    // Form result object
+	    result = {
+		// The display_name is used as the full value for the widget because feeding it back into the query seems to be the best way of getting a repeatable result.
+		value: item.properties.display_name,
+		label: sn.street,
+		desc: sn.neighbourhood,
+		lat: item.geometry.coordinates[1],
+		lon: item.geometry.coordinates[0],
+		feature: item
+	    };
+
+	    // Result
+	    return result;
+	},
+
+
+	// The display_name contains a comma separated address, usually very comprehensive.
+	// The user needs to know the right level of detail in the given context.
+	// If addressdetails are requested the result contains those details - but not in a consistent pattern and so cannot be easily selected.
+	streetNeighbourhood: function (display_name) {
+
+	    // Set defaults
+	    var street = "Unknown street", neighbourhood = "Unknown neighbourhood";
+
+	    // Use display_name which is usually a full address
+	    if (display_name !== undefined) {
+
+		// Disassemble display name
+		var nameComponents = display_name.split(", ");
+
+		// When there are plenty of components
+		if (nameComponents.length >= 4) {
+
+		    // Use the first couple of bits for the street
+		    street = nameComponents[0] + ", " + nameComponents[1];
+
+		    // Use the next couple of bits for the neighbourhood
+		    neighbourhood = nameComponents[2] + ", " + nameComponents[3];
+
+		} else if (nameComponents.length >= 2) {
+
+		    // Use the first bit for the street
+		    street = nameComponents.shift();
+
+		    // Use the rest for the neighbourhood
+		    neighbourhood = nameComponents.join(", ");
+
+		} else {
+
+		    // Use all of it for the street
+		    street = display_name;
+		}
+	    }
+
+	    // Result
+	    return {"street": street, "neighbourhood": neighbourhood};
+	}
     };
-
-}) (jQuery);
+}(jQuery));

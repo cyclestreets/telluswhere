@@ -969,6 +969,32 @@ class telluswhere
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">
+		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
+		function useJsonpTransport () {
+			
+			// Determine details of the current browser
+			var Browser = {
+				IsIe: function () {
+					return navigator.appVersion.indexOf('MSIE') != -1;
+				},
+				Navigator: navigator.appVersion,
+					Version: function() {
+					var version = 999; // we assume a sane browser
+					if (navigator.appVersion.indexOf('MSIE') != -1)
+					// bah, IE again, lets downgrade version number
+					version = parseFloat(navigator.appVersion.split('MSIE')[1]);
+					return version;
+				}
+			};
+			
+			// Test browser version
+			var useJsonpTransport = (Browser.IsIe && Browser.Version() <= 9);
+			
+			// Return the result
+			return useJsonpTransport;
+		}
+		</script>";
+		$html .= "\n" . "<script type=\"text/javascript\">
 			autocomplete.addTo (\"input[name='location']\", {
 				sourceUrl: '{$geocoderApiUrl}&bounded=1&viewbox=-6.6577,57.6924,1.7797,49.9370',
 				select: function (event, ui) {

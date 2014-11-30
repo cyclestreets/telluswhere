@@ -1449,7 +1449,7 @@ class telluswhere
 			'category'		=> 'cycleparking',
 			'metacategory'	=> $this->actions[$dataset]['metacategory'],
 			'bbox'			=> $this->settings['bbox'],
-			'earliestTime'	=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
+			'since'		=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',

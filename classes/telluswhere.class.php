@@ -35,14 +35,14 @@ class telluswhere
 			'suggest' => array (
 				'description' => 'Suggested cycle parking location',
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype,capacity',
 			),
 			'current' => array (
 				'description' => 'Current cycle parking location',
 				'url' => '/current/',
-				'apiUrl' => '/v2/photos?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
@@ -1457,7 +1457,7 @@ class telluswhere
 		);
 		
 		# Assemble the API call URL
-		$apiUrl = $this->settings['apiBase'] . '/v2/photos' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.locations' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
 		
 		# Obtain the data
 		$csv = file_get_contents ($apiUrl);

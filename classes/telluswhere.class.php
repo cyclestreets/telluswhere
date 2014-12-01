@@ -1454,6 +1454,7 @@ class telluswhere
 			'limit'			=> '0',
 			'format'		=> 'csv',
 			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,shortlink,license",
+			'datetime'		=> 'sqldatetime',
 		);
 		
 		# Assemble the API call URL

@@ -665,7 +665,7 @@ class telluswhere
 		}
 		
 		# Show the thumbnail if present (workaround until this and the metadata can be shown in the bubble)
-		if ($data['hasPhoto'] == 'yes') {
+		if ($data['hasPhoto']) {
 			$thumbnailUrl = str_replace ('-size200', '-size400', $data['thumbnailUrl']);
 			$metadataHtml .= "<p><img src=\"{$thumbnailUrl}\" alt=\"\" border=\"0\"></p>";
 		}
@@ -955,7 +955,7 @@ class telluswhere
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?6\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?7\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2});
 		</script>
@@ -1034,7 +1034,7 @@ class telluswhere
 		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, $data);
 		
 		# Determine whether an existing photo already exists
-		$existingPhoto = ($existingData && $existingData['hasPhoto'] == 'yes' ? $existingData['thumbnailUrl'] : false);
+		$existingPhoto = ($existingData && $existingData['hasPhoto'] ? $existingData['thumbnailUrl'] : false);
 		if ($existingPhoto) {
 			#!# Slightly hacky - ultimateForm::upload needs support for uneditable existing photos by supplying a URL to show the image instead of the form widget
 			$displayTemplate = str_replace ('{file}', "<img src=\"{$existingPhoto}\" alt=\"Existing image\" />", $displayTemplate);

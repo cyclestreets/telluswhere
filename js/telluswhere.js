@@ -335,7 +335,7 @@ var telluswhere = (function ($) {
 			+ '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br(telluswhere.truncateString(properties.caption, 200),true)) + '</p>'
 			
 			// Image
-			+ (properties.hasPhoto == 'yes' ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')
+			+ (properties.hasPhoto ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')
 			
 			// #!# Currently hardcoded field lists and labels:
 			

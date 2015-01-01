@@ -584,7 +584,7 @@ class telluswhere
 		# Get the data for this location
 		$id = $_GET['id'];
 		#!# /v2/photomap.location metacategoryId,categoryId are inconsistent with metacategory,category in photomap.add/photomap.update
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryId,categoryId,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl' . '&thumbnailsize=200';
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryId,categoryId,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl' . '&thumbnailsize=400';
 		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
@@ -618,7 +618,7 @@ class telluswhere
 			return false;
 		}
 		
-		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current'
+		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current')
 		$action = $supportedMetacategories[$data['metacategoryId']];
 		
 		# Start an editing rights session and determine if the user has edit rights
@@ -666,8 +666,7 @@ class telluswhere
 		
 		# Show the thumbnail if present (workaround until this and the metadata can be shown in the bubble)
 		if ($data['hasPhoto']) {
-			$thumbnailUrl = str_replace ('-size200', '-size400', $data['thumbnailUrl']);
-			$metadataHtml .= "<p><img src=\"{$thumbnailUrl}\" alt=\"\" border=\"0\"></p>";
+			$metadataHtml .= "\n<p><img src=\"{$data['thumbnailUrl']}\" alt=\"\" border=\"0\"></p>";
 		}
 		
 		# Show additional metadata table

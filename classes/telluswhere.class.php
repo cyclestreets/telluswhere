@@ -1553,7 +1553,7 @@ class telluswhere
 	{
 		# Assemble the data to post
 		$postData = array (
-			'username'		=> $email,
+			'identifier'	=> $email,
 			'password'	=> $password,
 		);
 		

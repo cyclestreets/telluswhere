@@ -17,6 +17,7 @@ class telluswhere
 			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
 			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
+			'trackingCode'			=> false,
 		);
 		
 		# Return the defaults
@@ -287,7 +288,7 @@ class telluswhere
 			$databaseSettings = array ('administrators' => false, 'downloaders' => false);	// $databaseSettings = false would crash array_merge below
 		}
 		
-		# Add in the database settings
+		# Add in the database settings, with the database settings taking priority
 		$settings = array_merge ($settings, $databaseSettings);
 		
 		# Return the settings

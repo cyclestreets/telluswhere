@@ -1569,6 +1569,12 @@ class telluswhere
 		# Unpack the response
 		$result = json_decode ($resultJson, true);
 		
+		# Detect unparsable JSON (e.g. the API is not properly installed)
+		if ($result === NULL && json_last_error () !== JSON_ERROR_NONE) {
+			$error = 'Sorry, a technical error occured trying to validate the details you gave. Please try again later.';
+			return false;
+		}
+		
 		# If there is an error, pass on the text and return false
 		if (isSet ($result['error'])) {
 			$error = $result['error'];

@@ -248,7 +248,7 @@ class telluswhere
 		$this->{$this->action} ();
 		
 		# Render the page
-		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template);
+		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
 		
 		# Add stats tracking code if required
 		$html = $this->analyticsTrackingCode ($html);

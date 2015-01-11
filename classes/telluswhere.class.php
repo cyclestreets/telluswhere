@@ -10,11 +10,11 @@ class telluswhere
 		$defaults = array (
 			'style'					=> 'default',
 			'apiBase'				=> 'https://api.cyclestreets.net',
+			'apiKey'				=> false,
+			'username'				=> false,
+			'password'				=> false,
 			'cssFileLocation'		=> NULL,
-			'apiKey'				=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
-			'username'				=> NULL,
-			'password'				=> NULL,
 			'flashMessageName'		=> 'confirmation',
 			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
 			'trackingCode'			=> false,
@@ -306,6 +306,9 @@ class telluswhere
 			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
 			  `applicationName` VARCHAR(255) NOT NULL,		-- Site name
 			  `style` VARCHAR(255) NOT NULL,				-- Style
+			  `apiKey` VARCHAR(255) NOT NULL,				-- API key
+			  `username` VARCHAR(255) NOT NULL,				-- Username for submissions
+			  `password` VARCHAR(255) NOT NULL,				-- Password for submissions
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
@@ -1397,6 +1400,7 @@ class telluswhere
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
 				'bbox'				=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
 				'trackingCode'		=> array ('heading' => array (3 => 'Analytics'), 'rows' => 11, ),
+				'password'			=> array ('type' => 'input', 'confirmation' => false, 'editable' => true, ),	// Override intelligence=true for field named 'password'
 			),
 		));
 		if (!$result = $form->process ($html)) {

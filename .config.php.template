@@ -2,11 +2,7 @@
 
 # Define the configuration for this installation; items marked NULL are mandatory
 $config = array (
-	'applicationName'	=> 'Tell us where',
 	'cssFileLocation'	=> '/css/style.css',
-	'apiKey'			=> NULL,
-	'username'			=> NULL,
-	'password'			=> NULL,
 );
 
 ?>

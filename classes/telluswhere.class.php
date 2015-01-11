@@ -445,7 +445,7 @@ class telluswhere
 		if (!$this->settings['trackingCode']) {return $html;}
 		
 		# Inject the tracking code
-		$html = preg_replace ('/(<body([^>]*)>)/', "\1\n<!-- Analytics tracking code -->\n" . $this->settings['trackingCode'] . "\n", $html);
+		$html = preg_replace ('/(<body([^>]*)>)/', "\\1\n<!-- Analytics tracking code -->\n" . $this->settings['trackingCode'] . "\n", $html);
 		
 		# Return the HTML
 		return $html;

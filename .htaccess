@@ -32,6 +32,7 @@ RewriteCond %{REQUEST_FILENAME} !/robots\.txt$
 RewriteCond %{REQUEST_FILENAME} !/css/generic\.css$
 RewriteCond %{REQUEST_FILENAME} !/images/ui-anim_basic_16x16\.gif$
 RewriteCond %{REQUEST_FILENAME} !/images/pencil\.png$
+RewriteCond %{REQUEST_FILENAME} !/images/categories
 RewriteCond %{REQUEST_FILENAME} !/js/ckeditor
 RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$
 RewriteCond %{REQUEST_FILENAME} !/js/autocomplete.\js$

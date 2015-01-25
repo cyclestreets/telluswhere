@@ -14,6 +14,7 @@ var telluswhere = (function ($) {
 	var _currentDataLayer2;
 	var _geolocationData;
 	var _maxZoom;
+	var _viewOnlyMode;
 	
 	// baseUrl of application
 	var _baseUrl;
@@ -43,7 +44,7 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2) {
+		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2, viewOnlyMode) {
 			
 			// Set class properties
 			_baseUrl = baseUrl;
@@ -55,6 +56,7 @@ var telluswhere = (function ($) {
 			_useIcon = useIcon;
 			_setMarkerInitially = setMarkerInitially;
 			_selectedId = selectedId;	// ID of selected item
+			_viewOnlyMode = viewOnlyMode;
 			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
@@ -67,6 +69,9 @@ var telluswhere = (function ($) {
 				attribution: tileAttribution,
 				maxZoom: _maxZoom
 			}).addTo(map);
+			
+			// Transmit current location
+			telluswhere.transmitCurrentLocation();
 			
 			// Define the icon set; see: http://leafletjs.com/examples/custom-icons.html
 			_icons = telluswhere.getIcons();
@@ -228,6 +233,9 @@ var telluswhere = (function ($) {
 		// Function to set the marker
 		setMarker: function(latlng, useIcon, markerIsDraggable) {
 			
+			// In view-only mode, disable marker setting functionality
+			if (_viewOnlyMode) {return;}
+			
 			// Clear any previously-set marker
 			if(_marker){
 				map.removeLayer(_marker);
@@ -253,7 +261,7 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to transmit the values to the form
+		// Function to transmit the location values to the form
 		setFormValues: function(lat, lng, zoom) {
 			if ($('#form_latitude').length > 0) {
 				$('#form_latitude').val(lat);
@@ -261,6 +269,27 @@ var telluswhere = (function ($) {
 				$('#form_zoom').val(zoom);
 			}
 		},
+		
+		
+		// Function to transmit the current location to IDs for external use
+		transmitCurrentLocation: function() {
+			if ($('#currentMapLocationUrl').length > 0) {
+				
+				// Determine the map location parameters
+				var center = map.getCenter();
+				var mapLocationParams = 'latitude=' + center.lat.toFixed(6) + '&longitude=' + center.lng.toFixed(6) + '&zoom=' + map.getZoom();
+				
+				// Replace the query string entirely
+				// #!# Rather crude way of updating the query string; currently assumes no fragment for instance
+				var hrefComponents = $('#currentMapLocationUrl').text().split('?', 2);
+				var path = hrefComponents[0];	// Part before ?
+				var newHref = path + '?' + mapLocationParams;
+				
+				// Set the new location
+				$('#currentMapLocationUrl').text(newHref);
+			}
+		},
+		
 		
 		
 		/* EXIF image marker setting functions */
@@ -361,8 +390,10 @@ var telluswhere = (function ($) {
 			+ '</div>';
 			
 			// If on the current page, provide a link to report problems
-			if(_useIcon == 'current') {
-				html += '<p class="problem"><a href="#" data-id="' + (properties.nodeId ? properties.nodeId : properties.id) + '">Updates or repairs required?</a></p>';
+			if (!_viewOnlyMode) {
+				if(_useIcon == 'current') {
+					html += '<p class="problem"><a href="#" data-id="' + (properties.nodeId ? properties.nodeId : properties.id) + '">Updates or repairs required?</a></p>';
+				}
 			}
 			
 			// Return HTML
@@ -479,6 +510,11 @@ var telluswhere = (function ($) {
 		
 		// Define mapmove action
 		whenMapMoves: function(e) {
+			
+			// Transmit current location
+			telluswhere.transmitCurrentLocation();
+			
+			// Get data
 			telluswhere.getData();
 		},
 		

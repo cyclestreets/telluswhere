@@ -48,6 +48,10 @@ class telluswhere
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
 			),
+			'embed' => array (
+				'description' => false,
+				'url' => '/embed/',	// E.g. /current/embed/
+			),
 			'location' => array (
 				'description' => false,
 				'url' => '/location/',	// Will be /location/<id>/
@@ -572,6 +576,99 @@ class telluswhere
 	}
 	
 	
+	# Embeddable map iframe pages
+	private function embed ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Define the embeddable map types
+		$types = array (
+			'suggest' => 'Suggested cycle parking',
+			'current' => 'Current cycle parking',
+		);
+		
+		# Determine the type selected, if any, throwing a 404 if invalid
+		$type = false;
+		if (isSet ($_GET['type'])) {
+			$type = $_GET['type'];
+			if (!isSet ($types[$type])) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+		}
+		
+		# Show listing if no type selected
+		if (!$type) {
+			$list = array ();
+			foreach ($types as $type => $label) {
+				$list[] = "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a>";
+			}
+			$this->template['links'] = "\n<p>" . implode ('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', $list) . '</p>';
+			return true;
+		}
+		
+		# Set to show the customisation page if location parameters not present
+		$parameters = array ('latitude', 'longitude', 'zoom');
+		$showCustomisationPage = false;
+		foreach ($parameters as $parameter) {
+			if (!isSet ($_GET[$parameter]) || !strlen ($_GET[$parameter])) {
+				$showCustomisationPage = true;
+				break;
+			}
+		}
+		
+		# Define the map HTML
+		$mapHtml = $this->locationsMap ($type, false, false, $viewOnlyMode = true);
+		
+		# Show the customisation page if required
+		if ($showCustomisationPage) {
+			
+			# Construct the introduction HTML
+			$html .= "\n<p>Here, you can create a map widget to embed on your own website.</p>";
+			$html .= "\n<p>The map widget will show <strong>" . lcfirst ($types[$type]) . "</strong> [<a href=\"{$this->baseUrl}/embed/\">change?</a>].</p>";
+			$html .= "\n<p>To add it to your website:</p>";
+			$html .= "\n<style type=\"text/css\">
+				div.code {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: auto;}
+				div.code pre {font-size: 0.83em;}
+				ol.instructions {margin-bottom: 2em;}
+				ol.instructions li {margin-top: 5px;}
+				ol {margin-left: 10px; padding-left: 10px; list-style: decimal;}	/* #!# Undo override in style.css */
+			</style>";
+			$html .= "\n<ol class=\"instructions\">
+				<li>Firstly, position the map below to your desired location and zoom</li>
+				<li>Copy this iframe HTML code:
+					<div class=\"code\">
+					<pre>". htmlspecialchars ('<iframe src="') . "<span id=\"currentMapLocationUrl\">//{$_SERVER['SERVER_NAME']}{$this->baseUrl}/{$type}/embed/</span>" . htmlspecialchars ('" width="100%" height="500" frameborder="0"></iframe>') . "</pre>
+					</div>
+				</li>
+				<li>Paste the HTML into your own webpage.</li>
+			</ol>";
+			
+			# Overwrite the default template by creating a virtual action and using its template
+			$action = 'embed_instructions';
+			$this->actions[$action]['url'] = '/embed/instructions.html';
+			$this->templateHtml = $this->getTemplateHtml ($action);
+			
+			# Write into the template
+			$this->template['instructions'] = $html;
+			$this->template['map'] = $mapHtml;
+			return true;
+		}
+		
+		# Overwrite the default template by creating a virtual action and using its template
+		$action = 'embed_iframe';
+		$this->actions[$action]['url'] = '/embed/iframe.html';
+		$this->templateHtml = $this->getTemplateHtml ($action);
+		
+		# Write into the template
+		$this->template['title'] = "{$this->settings['applicationName']} - embedded map of " . lcfirst ($types[$type]) . ' locations';
+		$this->template['map'] = $mapHtml;
+		$this->template['about'] = "Powered by <a href=\"http://{$_SERVER['SERVER_NAME']}/{$type}/\" target=\"_top\">{$this->settings['applicationName']}</a> - contribute your knowledge";
+	}
+	
+	
 	# Page showing an existing location
 	private function location ()
 	{
@@ -868,7 +965,7 @@ class telluswhere
 	
 	
 	# Map of current locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false)
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -903,6 +1000,20 @@ class telluswhere
 					'zoom'		=> $_POST['form']['zoom'],
 				);
 				$setMarkerInitially = true;
+			}
+		}
+		
+		# In view-only mode, look for optional setting of location in $_GET
+		if ($viewOnlyMode) {
+			$parameters = array ('latitude', 'longitude', 'zoom');
+			$requestedLocation = array ();
+			foreach ($parameters as $parameter) {
+				if (isSet ($_GET[$parameter]) && strlen ($_GET[$parameter])) {
+					$requestedLocation[$parameter] = $_GET[$parameter];
+				}
+			}
+			if (count ($requestedLocation) == count ($parameters)) {		// Ensure complete collection
+				$mapLocation = $requestedLocation;
 			}
 		}
 		
@@ -946,8 +1057,10 @@ class telluswhere
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
 		';
-		if (!$selectedIdData) {
-			$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
+		if (!$viewOnlyMode) {
+			if (!$selectedIdData) {
+				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
+			}
 		}
 		$html .= "\n" . '<div id="map"></div>';
 		
@@ -958,9 +1071,10 @@ class telluswhere
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?7\"></script>";
+		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?8\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2});
+			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs});
 		</script>
 		";
 		
@@ -1614,7 +1728,7 @@ class telluswhere
 		$this->userIsDownloader = (in_array ($user['email'], $downloadersList) || $this->userIsAdministrator);
 		
 		# Write the login status in the top-right
-		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
+		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a> | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
 		
 		# Return the user details
 		return $user;

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<head>
+	
+	<meta charset="utf-8">
+	<title>{$title}</title>
+
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+	<style type="text/css">
+		html, body {width: 100%; height: 100%; padding: 0; margin: 0;}
+		#map {width: 100%; height: 100%; height: calc(100% - 2em);}
+		body #search-location-map {position: absolute; top: 12px; left: 60px !important; z-index: 50;}		/* #!# Use of !important in the main stylesheet needs to be removed */
+		#about {height: 1.5em; float: right; padding: 0; margin: 0; margin-right: 5px;}
+	</style>
+	
+</head>
+<body>
+			
+			
+<div id="search-location-map">
+	<input type="text" name="location" placeholder="Search locations" />
+</div>
+
+
+
+<!-- {$map} -->
+<div id="map">
+<iframe height="100%" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://www.openstreetmap.org/export/embed.html?bbox=-0.0932765007019043%2C51.49897879637835%2C-0.05744218826293945%2C51.51233485317819&amp;layer=cyclemap&amp;marker=51.50565731413629%2C-0.07535934448242188" style="border: 1px solid '#ccc"></iframe>
+</div>
+<!-- /{$map} -->
+
+
+<p id="about">{$about}</p>
+
+
+
+</body>
+</html>

@@ -17,13 +17,15 @@ php_flag output_buffering Off
 # Run application pages
 RewriteEngine On
 RewriteRule ^$ index.html?action=home [L,QSA]
-RewriteRule ^(suggest|current|about|terms|contacts|data|admin|login|logout)/$ index.html?action=$1 [L,QSA]
-RewriteRule ^(suggest|current|about|terms|contacts|data|admin|login|logout)$ /$1/ [L,R=301]
+RewriteRule ^(suggest|current|embed|about|terms|contacts|data|admin|login|logout)/$ index.html?action=$1 [L,QSA]
+RewriteRule ^(suggest|current|embed|about|terms|contacts|data|admin|login|logout)$ /$1/ [L,R=301]
 RewriteRule ^(location)/([1-9][0-9]*)/$ index.html?action=$1&id=$2 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)$ /$1/$2/ [L,R=301]
 RewriteRule ^(location)/([1-9][0-9]*)/(edit)/$ index.html?action=$1&id=$2&mode=$3 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)/(edit)$ /$1/$2/$3/ [L,R=301]
 RewriteRule ^(location)/([1-9][0-9]*)/problem/$ index.html?action=problem&id=$2 [L,QSA]
+RewriteRule ^(suggest|current)/embed/$ index.html?action=embed&type=$1 [L,QSA]
+RewriteRule ^(suggest|current)/embed$ /$1/embed/ [L,R=301]
 RewriteRule ^data/(suggest|current).csv$ index.html?action=download&dataset=$1 [L,QSA]
 
 # If no match above, serve files from the style folder directly, via the web application, for the configured style, other than specified static files

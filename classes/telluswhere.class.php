@@ -35,6 +35,7 @@ class telluswhere
 			),
 			'suggest' => array (
 				'description' => 'Suggested cycle parking location',
+				'descriptionMultiple' => 'Suggested cycle parking locations',
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
 				'metacategory' => 'bad',
@@ -42,6 +43,7 @@ class telluswhere
 			),
 			'current' => array (
 				'description' => 'Current cycle parking location',
+				'descriptionMultiple' => 'Current cycle parking locations',
 				'url' => '/current/',
 				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40&fields=id,latitude,longitude,name,nodeId,osmTags',
@@ -1542,15 +1544,294 @@ class telluswhere
 		# Return the HTML
 		return $html;
 	}
-    
-    
-    /**
-     * Batch import page
-     *
-     */
-    private function batch ()
+	
+	
+	/**
+	 * Batch import page
+	 *
+	 */
+	public function batch ()
 	{
-		$this->template['contents'] = 'batch';
+		# Get initial data or end
+		if (!$data = $this->batchInitialDataForm ()) {return;}
+		
+		# Confirm data
+		if (!$data = $this->batchConfirmDataForm ($data)) {return;}
+		
+		application::dumpData ($data);
+	}
+	
+	
+	# Batch form stage 1
+	private function batchInitialDataForm ()
+	{
+		# Retrieve and return session data, if it exists
+		$sessionName = 'batch';
+		if ($data = $this->sessionGet ($sessionName)) {
+			return $data;
+		}
+		
+		# Start the HTML
+		$html = '';
+		
+		# Define the required fields
+		$permittedFields = array (
+			'longitude'		=> true,
+			'latitude'		=> true,
+			'caption'		=> false,
+			'filename'		=> false,
+		);
+		
+		# Determine the required and optional fields
+		$requiredFields = array ();
+		$optionalFields = array ();
+		foreach ($permittedFields as $field => $required) {
+			if ($required) {
+				$requiredFields[] = $field;
+			} else {
+				$optionalFields[] = $field;
+			}
+		}
+		
+		# Define the metacategories
+		$metacategories = array (
+			'current' => $this->actions['current']['descriptionMultiple'],
+			'suggest' => $this->actions['suggest']['descriptionMultiple'],
+		);
+		
+		# Instruction text
+		$instructionBoxHtml  = "\n<div class=\"graybox\">";
+		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations in a spreadsheet.</p>";
+		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row.</p>";
+		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: " . implode (', ', $requiredFields) . "<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
+		$instructionBoxHtml .= "\n\t<p>If you have <strong>images</strong> of the locations, you will need to create a zip file of all the files. If these have been taken on a phone which captures the location automatically, that will be used in preference to the given latitutde/longitudes.</p>";
+		$instructionBoxHtml .= "\n</div>";
+		
+		# Create the upload form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'name' => 'stage1',
+			'div' => 'lines',
+			'display' => 'paragraphs',
+			'submitButtonText' => 'Upload',
+			'displayRestrictions' => false,
+			'requiredFieldIndicator' => false,
+			'formCompleteText' => false,
+		));
+		$form->heading ('', $instructionBoxHtml);
+		$form->select (array (
+			'name'			=> 'metacategory',
+			'title'			=> 'Type',
+			'required'		=> true,
+			'values'		=> $metacategories,
+		));
+		$form->textarea (array (
+			'name' => 'metadata',
+			'title' => 'Paste in the box copied from your spreadsheet - see notes above',
+			'required' => true,
+			'rows' => 12,
+			'cols' => 60,
+		));
+		$form->upload (array (
+			'name' => 'images',
+			'title' => '(Optional) Images - zipped as single file (maximum size: ' . ini_get ('upload_max_filesize') . ')',
+			'directory' => $this->tmpDirectory . 'photos/',
+			'required' => false,
+			'allowedExtensions' => array ('zip'),
+			'forcedFileName' => 'images',
+			'enableVersionControl' => false,
+			'flatten' => true,
+			'unzip' => true,
+		));
+		
+		# Validate and assemble the TSV data
+		$data = array ();
+		if ($unfinalisedData = $form->getUnfinalisedData ()) {
+			if ($unfinalisedData['metacategory'] && $unfinalisedData['metadata']) {
+				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $permittedFields, $requiredFields, $errorMessage)) {
+					$form->registerProblem ('tsvinvalid', $errorMessage);
+				}
+			}
+		}
+		
+		# Process the form
+		if (!$result = $form->process ($html)) {
+			$this->template['contents'] = $html;
+			return false;
+		}
+		
+		# Add in a caption where not present
+		$metacategory = $result['metacategory'];
+		$defaultCaption = $this->actions[$metacategory]['description'];
+		foreach ($data as $index => $location) {
+			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
+			$data[$index]['metacategory'] = $metacategory;
+		}
+		
+		# Register the HTML
+		$this->template['contents'] = $html;
+		
+		# Create the session entry
+		$this->sessionWrite ($sessionName, $data);
+		
+		# Return the data
+		return $data;
+	}
+	
+	
+	# Batch form stage 2
+	private function batchConfirmDataForm ($stage1Data)
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Define standard map JS
+		$html .= "
+			<link rel=\"stylesheet\" href=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css\" />
+			<script src=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js\"></script>
+			<script type=\"text/javascript\">
+				var osmLayer = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+				var osmAttribution = '&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors'
+			</script>
+		";
+		
+		# Add CSS
+		$html .= '
+			<style type="text/css">
+				/* \'Lines\' table style */
+				table.lines {border-collapse: collapse; /* width: 95%; */}
+				.lines td, .lines th {border-bottom: 1px solid #e9e9e9; padding: 6px 8px 2px 1px; vertical-align: top; text-align: left;}
+				.lines tr:first-child {border-top: 1px solid #e9e9e9;}
+				table.lines td.value p:first-child {margin-top: 0;}
+				table.lines td.value p:last-child {margin-bottom: 0;}
+				table.lines td:last-child ul:first-child {margin-top: 0;}
+				table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
+			</style>
+		';
+		
+		# Define default zoom
+		$defaultZoom = 15;
+		
+		# Define the form name
+		$formName = 'stage2';
+		
+		# Create the template
+		$table = array ();
+		foreach ($stage1Data as $index => $location) {
+			
+			# Define the map JS
+			$mapJsHtml = "
+				<div id=\"map{$index}\" class=\"confirmationmap\" style=\"width: 250px; height: 120px; border: 1px solid gray;\"></div>
+				<script type=\"text/javascript\">
+					var map{$index} = L.map('map{$index}', {
+						center: [{$location['latitude']}, {$location['longitude']}],
+						zoom: {$defaultZoom},
+						layers: [ L.tileLayer(osmLayer, {attribution: osmAttribution}) ],
+					});
+					var marker{$index} = L.marker([{$location['latitude']}, {$location['longitude']}], {draggable: true});
+					marker{$index}.on('dragend', function (e) {
+						var newPosition = e.target.getLatLng();
+						document.getElementById('{$formName}_location_{$index}_latitude').value = newPosition.lat;
+						document.getElementById('{$formName}_location_{$index}_longitude').value = newPosition.lng;
+					});
+					map{$index}.addLayer(marker{$index});
+					map{$index}.on('zoomend', function (e) {
+						document.getElementById('{$formName}_location_{$index}_zoom').value = map{$index}.getZoom();
+					});
+				</script>
+			";
+			
+			# Add the table entries; hidden fields will be added to the end of the form HTML automatically
+			$table[$index] = array (
+				'No.'			=> ($index + 1),
+				'caption'	=> "{caption_{$index}}",
+				'map'		=> $mapJsHtml,
+			);
+		}
+		$template = application::htmlTable ($table, $tableHeadingSubstitutions = array (), 'lines', $keyAsFirstColumn = false, $uppercaseHeadings = true, $allowHtml = true);
+		
+		# Start a confirmation form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'name' => $formName,
+			'div' => 'lines',
+			'display' => 'template',
+			'displayTemplate' => '{[[PROBLEMS]]}' . $template . '{[[SUBMIT]]}',
+			'submitButtonText' => 'Confirm',
+		));
+		foreach ($stage1Data as $index => $location) {
+			$form->hidden (array (
+				'name'		=> "location_{$index}",
+				'values'	=> array (
+					'latitude'	=> $location['latitude'],
+					'longitude'	=> $location['longitude'],
+					'zoom'		=> $defaultZoom,
+				),
+				'security'	=> false,	// Allow hidden data to be modified - here by moving the map location
+			));
+			$form->textarea (array (
+				'name'			=> "caption_{$index}",
+				'title'			=> 'Caption',
+				'required'		=> true,
+				'rows'			=> 2,
+				'cols'			=> 40,
+				'default'		=> $location['caption'],
+			));
+		}
+		if (!$result = $form->process ($html)) {
+			$this->template['contents'] = $html;
+			return false;
+		}
+		
+		# Assemble the posted second-stage data
+		$totalLocations = count ($stage1Data);
+		$data = array ();
+		for ($i = 0; $i < $totalLocations; $i++) {
+			$data[$i] = array (
+				'caption'		=> $result["caption_{$i}"],
+				'latitude'		=> $result["location_{$i}"]['latitude'],
+				'longitude'		=> $result["location_{$i}"]['longitude'],
+				'zoom'			=> $result["location_{$i}"]['zoom'],
+				'metacategory'	=> $stage1Data[$i]['metacategory'],
+			);
+		}
+		
+		# Register the HTML
+		$this->template['contents'] = $html;
+		
+		# Destroy the session data from the first stage
+		$this->sessionDestroy ('batch');
+		
+		# Return the finalised data
+		return $data;
+	}
+	
+	
+	# Function to process submitted TSV batch string and assemble the data from it
+	private function getBatchData ($tsv, $permittedFields, $requiredFields, &$errorMessage = '')
+	{
+		# Parse the TSV string
+		require_once ('csv.php');
+		$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true);
+		
+		# Ensure headers are valid and that required headers are present
+		foreach ($data as $filename => $metadata) {
+			$invalidFields = array_diff (array_keys ($metadata), array_keys ($permittedFields));
+			$missingRequiredFields = array_diff ($requiredFields, array_keys ($metadata));
+			break;	// Only check the first row
+		}
+		if ($invalidFields || $missingRequiredFields) {
+			$errorMessage = "The fields in the CSV file do not match the specification noted above. Please correct the CSV file and try again.";
+			return false;
+		}
+		
+		# Unset the filename
+		foreach ($data as $filename => $metadata) {
+			unset ($data[$filename]['filename']);
+		}
+		
+		# Return the data
+		return $data;
 	}
 	
 	

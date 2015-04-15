@@ -1836,14 +1836,21 @@ class telluswhere
 	# Function to destroy a session
 	private function sessionDestroy ($field)
 	{
-		# Regenerate the session ID
-		session_regenerate_id ($deleteOldSession = true);
-		
-		session_unset ();
-		session_destroy ();
+		# Remove the field
 		unset ($_SESSION[$field]);
-		$params = session_get_cookie_params ();
-		setcookie (session_name (), '', time () - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+		
+		# If the session is now empty, destroy it entirely
+		if (!$_SESSION) {
+			
+			# Regenerate the session ID
+			session_regenerate_id ($deleteOldSession = true);
+			
+			# Destroy the session cookie
+			session_unset ();
+			session_destroy ();
+			$params = session_get_cookie_params ();
+			setcookie (session_name (), '', time () - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+		}
 	}
 }
 

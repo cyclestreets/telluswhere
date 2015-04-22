@@ -1661,6 +1661,16 @@ class telluswhere
 			'flatten' => true,
 			'unzip' => true,
 		));
+		$form->input (array (
+			'name'			=> 'name',
+			'title'			=> 'Name of data owner',
+			'required'		=> true,
+		));
+		$form->email (array (
+			'name'			=> 'email',
+			'title'			=> 'E-mail of data owner',
+			'required'		=> true,
+		));
 		
 		# Validate and assemble the TSV data
 		$data = array ();

@@ -639,7 +639,7 @@ class telluswhere
 		}
 		
 		# Define the map HTML
-		$mapHtml = $this->locationsMap ($type, false, false, $viewOnlyMode = true);
+		$mapHtml = $this->locationsMap ($type, false, false, $viewOnlyMode = true, $_GET);
 		
 		# Show the customisation page if required
 		if ($showCustomisationPage) {
@@ -971,8 +971,8 @@ class telluswhere
 	}
 	
 	
-	# Map of current locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false)
+	# Map of locations
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array ())
 	{
 		# Start the HTML
 		$html = '';
@@ -1010,13 +1010,13 @@ class telluswhere
 			}
 		}
 		
-		# In view-only mode, look for optional setting of location in $_GET
+		# In view-only mode, look for optional setting of location
 		if ($viewOnlyMode) {
 			$parameters = array ('latitude', 'longitude', 'zoom');
 			$requestedLocation = array ();
 			foreach ($parameters as $parameter) {
-				if (isSet ($_GET[$parameter]) && strlen ($_GET[$parameter])) {
-					$requestedLocation[$parameter] = $_GET[$parameter];
+				if (isSet ($initialLocation[$parameter]) && strlen ($initialLocation[$parameter])) {
+					$requestedLocation[$parameter] = $initialLocation[$parameter];
 				}
 			}
 			if (count ($requestedLocation) == count ($parameters)) {		// Ensure complete collection

@@ -255,7 +255,7 @@ class telluswhere
 		# Load the template
 		$this->templateHtml = $this->getTemplateHtml ($this->action);
 		
-		# Determine the supported metacategories
+		# Determine the supported metacategories and the action they are mapped to
 		$this->metacategories = array ();
 		foreach ($this->actions as $action => $attributes) {
 			if (isSet ($attributes['metacategory'])) {
@@ -1563,7 +1563,8 @@ class telluswhere
 		
 		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
-			if (!$result = $this->postSubmission ($location, $location['metacategory'], false, $errorText)) {
+			$action = $this->metacategories[$location['metacategory']];
+			if (!$result = $this->postSubmission ($location, $action, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}
@@ -1608,11 +1609,11 @@ class telluswhere
 			}
 		}
 		
-		# Define the metacategories
-		$metacategories = array (
-			'current' => $this->actions['current']['descriptionMultiple'],
-			'suggest' => $this->actions['suggest']['descriptionMultiple'],
-		);
+		# Define the metacategory labels
+		$metacategories = array ();
+		foreach ($this->metacategories as $metacategory => $action) {
+			$metacategories[$metacategory] = $this->actions[$action]['descriptionMultiple'];
+		}
 		
 		#!# Fix styles in london
 		$html .= "\n<style type=\"text/css\">
@@ -1706,7 +1707,8 @@ class telluswhere
 		
 		# Add in a caption where not present
 		$metacategory = $result['metacategory'];
-		$defaultCaption = $this->actions[$metacategory]['description'];
+		$action = $this->metacategories[$metacategory];
+		$defaultCaption = $this->actions[$action]['description'];
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
 			$data[$index]['metacategory'] = $metacategory;

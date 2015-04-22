@@ -1600,7 +1600,12 @@ class telluswhere
 		);
 		
 		# Instruction text
-		$instructionBoxHtml  = "\n<div class=\"graybox\">";
+		$instructionBoxHtml  = "\n<style type=\"text/css\">
+			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
+			div.graybox p {text-align: left; margin-top: 10px;}
+		</style>";
+		$instructionBoxHtml .= "\n<div class=\"graybox\">";
 		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations in a spreadsheet.</p>";
 		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row.</p>";
 		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: " . implode (', ', $requiredFields) . "<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);

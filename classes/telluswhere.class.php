@@ -1572,9 +1572,39 @@ class telluswhere
 		# Confirm success
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
 		$html .= "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
+		$html .= "\n<p>You can view these on the <a href=\"{$this->baseUrl}/{$action}/\">" . lcfirst ($this->actions[$action]['descriptionMultiple']) . "</a> page.</p>";
+		
+		# Find the bounding box containing all the points
+		$locationsCentrepoint = $this->locationsCentrepoint ($data);
+		
+		# Create the map HTML
+		$html .= $this->locationsMap ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
 		
 		# Register the HTML
 		$this->template['contents'] = $html;
+	}
+	
+	
+	# Function to compute the centrepoint of a set of locations
+	private function locationsCentrepoint ($data)
+	{
+		# Create a list of the latitudes and longitudes
+		$latitudes = array ();
+		$longitudes = array ();
+		foreach ($data as $location) {
+			$latitudes[] = $location['latitude'];
+			$longitudes[] = $location['longitude'];
+		}
+		
+		# Determine the centrepoint
+		$centrepoint = array (
+			'latitude'	=> ((min ($latitudes) + max ($latitudes)) / 2),
+			'longitude'	=> ((min ($longitudes) + max ($longitudes)) / 2),
+			'zoom'		=> 13,		// Sensible value, not particularly scientific
+		);
+		
+		# Return the centre point
+		return $centrepoint;
 	}
 	
 	

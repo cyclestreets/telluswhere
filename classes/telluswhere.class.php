@@ -1175,7 +1175,7 @@ class telluswhere
 			'submitButtonText'			=> 'Submit',
 			'submitButtonAccesskey'		=> false,
 			'nullText'					=> false,
-			'errorsCssClass'			=> 'notification error'
+			'errorsCssClass'			=> 'notification error',
 		));
 		
 		# Widgets

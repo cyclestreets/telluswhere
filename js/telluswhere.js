@@ -44,7 +44,7 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2, viewOnlyMode) {
+		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2, viewOnlyMode, disableGeolocation) {
 			
 			// Set class properties
 			_baseUrl = baseUrl;
@@ -78,7 +78,9 @@ var telluswhere = (function ($) {
 			
 			// Geolocate the user on first run
 			if(!_setMarkerInitially){
-				telluswhere.geolocateUser();
+				if (!disableGeolocation) {
+					telluswhere.geolocateUser();
+				}
 			}
 			
 			// Determine whether to set the marker initially

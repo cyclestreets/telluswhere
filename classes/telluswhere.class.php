@@ -972,7 +972,7 @@ class telluswhere
 	
 	
 	# Map of locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array ())
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $disableGeolocation = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -1079,9 +1079,10 @@ class telluswhere
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?8\"></script>";
+		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?9\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs});
+			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
 		</script>
 		";
 		
@@ -1578,7 +1579,7 @@ class telluswhere
 		$locationsCentrepoint = $this->locationsCentrepoint ($data);
 		
 		# Create the map HTML
-		$html .= $this->locationsMap ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
+		$html .= $this->locationsMap ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint, $disableGeolocation = true);
 		
 		# Register the HTML
 		$this->template['contents'] = $html;

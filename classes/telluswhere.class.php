@@ -1599,6 +1599,12 @@ class telluswhere
 			'suggest' => $this->actions['suggest']['descriptionMultiple'],
 		);
 		
+		#!# Fix styles in london
+		$html .= "\n<style type=\"text/css\">
+			input[type=checkbox] {width: auto; margin-right: 10px;}
+			label {display: inline;}
+		</style>";
+		
 		# Instruction text
 		$instructionBoxHtml  = "\n<style type=\"text/css\">
 			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
@@ -1622,8 +1628,15 @@ class telluswhere
 			'displayRestrictions' => false,
 			'requiredFieldIndicator' => false,
 			'formCompleteText' => false,
+			'errorsCssClass'			=> 'notification error',
 		));
 		$form->heading ('', $instructionBoxHtml);
+		$form->checkboxes (array (
+			'name'				=> 'confirmation',
+			'title'				=> 'Data entered must be public domain',
+			'values'			=> array ("Yes, I confirm the data is licensed as public domain"),
+			'required'			=> true,	// Ensures that a submission must be ticked for the form to be processed
+		));
 		$form->select (array (
 			'name'			=> 'metacategory',
 			'title'			=> 'Type',

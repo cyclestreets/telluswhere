@@ -1694,6 +1694,8 @@ class telluswhere
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
 			$data[$index]['metacategory'] = $metacategory;
+			$data[$index]['name'] = $result['name'];
+			$data[$index]['email'] = $result['email'];
 		}
 		
 		# Register the HTML
@@ -1832,6 +1834,8 @@ class telluswhere
 				'longitude'		=> $result["location_{$i}"]['longitude'],
 				'zoom'			=> $result["location_{$i}"]['zoom'],
 				'metacategory'	=> $stage1Data[$i]['metacategory'],
+				'name'			=> $stage1Data[$i]['name'],
+				'email'			=> $stage1Data[$i]['email'],
 			);
 		}
 		

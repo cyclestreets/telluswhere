@@ -1558,7 +1558,18 @@ class telluswhere
 		# Confirm data
 		if (!$data = $this->batchConfirmDataForm ($data)) {return;}
 		
-		application::dumpData ($data);
+		# Add each entry via the API
+		foreach ($data as $location) {
+			if (!$result = $this->postSubmission ($location, $location['metacategory'], false, $error)) {
+				$html = $error;
+				return $html;
+			}
+		}
+		
+		# Confirm success
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$html = "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
+		$this->template['contents'] = $html;
 	}
 	
 	

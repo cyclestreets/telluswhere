@@ -1837,7 +1837,7 @@ class telluswhere
 		}
 		if (!$result = $form->process ($html)) {
 			$this->template['contents'] = $html;
-			return false;
+			return false;	// End, but retain the session data
 		}
 		
 		# Assemble the posted second-stage data

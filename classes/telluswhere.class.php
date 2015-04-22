@@ -846,8 +846,8 @@ class telluswhere
 		}
 		
 		# Send the data (including any image) to the API
-		if (!$result = $this->postSubmission ($data, $action, $existingData, $error)) {
-			$html = $error;
+		if (!$result = $this->postSubmission ($data, $action, $existingData, $errorText)) {
+			$html = "\n<p class=\"warning\">" . htmlspecialchars ($errorText) . '</p>';
 			return $html;
 		}
 		
@@ -898,7 +898,7 @@ class telluswhere
 	
 	
 	# Function to post submissions to the API
-	private function postSubmission ($rawdata, $action, $existingData, &$error = '')
+	private function postSubmission ($rawdata, $action, $existingData, &$errorText = '')
 	{
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
@@ -962,7 +962,7 @@ class telluswhere
 		# Report any transport error
 		if ($transportError) {
 			// echo $transportError;	// Debugging
-			$error = 'Sorry, a technical error occured - please try again later.';
+			$errorText = 'Sorry, a technical error occured - please try again later.';
 			return false;
 		}
 		
@@ -1558,17 +1558,21 @@ class telluswhere
 		# Confirm data
 		if (!$data = $this->batchConfirmDataForm ($data)) {return;}
 		
-		# Add each entry via the API
+		# Start the HTML
+		$html = '';
+		
+		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
-			if (!$result = $this->postSubmission ($location, $location['metacategory'], false, $error)) {
-				$html = $error;
-				return $html;
+			if (!$result = $this->postSubmission ($location, $location['metacategory'], false, $errorText)) {
+				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}
 		
 		# Confirm success
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
-		$html = "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
+		$html .= "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
+		
+		# Register the HTML
 		$this->template['contents'] = $html;
 	}
 	

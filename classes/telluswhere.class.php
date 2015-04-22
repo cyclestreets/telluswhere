@@ -255,6 +255,18 @@ class telluswhere
 		# Load the template
 		$this->templateHtml = $this->getTemplateHtml ($this->action);
 		
+		# Determine the supported metacategories
+		$this->metacategories = array ();
+		foreach ($this->actions as $action => $attributes) {
+			if (isSet ($attributes['metacategory'])) {
+				$this->metacategories[$attributes['metacategory']] = $action;
+			}
+		}
+		
+		# Determine the supported categories
+		#!# Generalise to setting
+		$this->categories = array ('cycleparking');
+		
 		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
 		
@@ -707,27 +719,15 @@ class telluswhere
 			return false;
 		}
 		
-		# Determine the supported metacategories, and the marker layer for each
-		$supportedMetacategories = array ();
-		foreach ($this->actions as $action => $attributes) {
-			if (isSet ($attributes['metacategory'])) {
-				$supportedMetacategories[$attributes['metacategory']] = $action;
-			}
-		}
-		
-		# Determine the supported categories
-		#!# Generalise to setting
-		$supportedCategories = array ('cycleparking');
-		
 		# End if not a supported metacategory or category
-		if (!array_key_exists ($data['metacategoryId'], $supportedMetacategories) || !in_array ($data['categoryId'], $supportedCategories)) {
+		if (!array_key_exists ($data['metacategoryId'], $this->metacategories) || !in_array ($data['categoryId'], $this->categories)) {
 			$html = $this->page404 ();
 			echo $html;
 			return false;
 		}
 		
 		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current')
-		$action = $supportedMetacategories[$data['metacategoryId']];
+		$action = $this->metacategories[$data['metacategoryId']];
 		
 		# Start an editing rights session and determine if the user has edit rights
 		$userCanEdit = NULL;

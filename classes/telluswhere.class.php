@@ -1778,13 +1778,24 @@ class telluswhere
 		}
 		$template = application::htmlTable ($table, $tableHeadingSubstitutions = array (), 'lines', $keyAsFirstColumn = false, $uppercaseHeadings = true, $allowHtml = true);
 		
+		# Define instruction text
+		$instructionBoxHtml  = "\n<style type=\"text/css\">
+			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
+			div.graybox p {text-align: left; margin-top: 10px;}
+		</style>";
+		$instructionBoxHtml .= "\n<div class=\"graybox\">";
+		$instructionBoxHtml .= "\n<p>Please now <strong>check the locations</strong>, adjusting them on the map if necessary.</p>";
+		$instructionBoxHtml .= "\n<p><strong>Then press the submit button</strong> at the end.</p>";
+		$instructionBoxHtml .= "\n</div>";
+		
 		# Start a confirmation form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'name' => $formName,
 			'div' => 'lines',
 			'display' => 'template',
-			'displayTemplate' => '{[[PROBLEMS]]}' . $template . '{[[SUBMIT]]}',
+			'displayTemplate' => $instructionBoxHtml . '{[[PROBLEMS]]}' . $template . '{[[SUBMIT]]}',
 			'submitButtonText' => 'Confirm',
 		));
 		foreach ($stage1Data as $index => $location) {

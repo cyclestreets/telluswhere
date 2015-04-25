@@ -934,9 +934,9 @@ class telluswhere
 		
 		# Add the mediaupload field if a file has been submitted
 		$filePath = false;
-		if (isSet ($rawdata['file'])) {		// If there is an existing photo, this field will not be present
-			if ($rawdata['file']) {
-				$filePath = $this->tmpDirectory . $rawdata['file'];
+		if (isSet ($rawdata['filename'])) {		// If there is an existing photo, this field will not be present
+			if ($rawdata['filename']) {
+				$filePath = $this->tmpDirectory . $rawdata['filename'];
 				if (function_exists ('curl_file_create')) {
 					$mediaupload = curl_file_create ($filePath);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
 				} else {
@@ -1183,7 +1183,7 @@ class telluswhere
 		if (!$existingPhoto) {
 			$allowedExtensions = array ('jpg');
 			$form->upload (array (
-				'name'				=> 'file',
+				'name'				=> 'filename',
 				'title'				=> 'Select an image from your device/computer',
 				'description'		=> '<span class="small comment">(' . strtoupper (implode ('/', $allowedExtensions)) . ' only, maximum size: ' . ini_get ('upload_max_filesize') . ')</span>',
 				'required'			=> false,

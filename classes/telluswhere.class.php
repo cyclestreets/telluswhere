@@ -846,7 +846,7 @@ class telluswhere
 		}
 		
 		# Send the data (including any image) to the API
-		if (!$result = $this->postSubmission ($data, $action, $existingData, $errorText)) {
+		if (!$result = $this->postSubmission ($data, $action, $this->tmpDirectory, $existingData, $errorText)) {
 			$html = "\n<p class=\"warning\">" . htmlspecialchars ($errorText) . '</p>';
 			return $html;
 		}
@@ -898,7 +898,7 @@ class telluswhere
 	
 	
 	# Function to post submissions to the API
-	private function postSubmission ($rawdata, $action, $existingData, &$errorText = '')
+	private function postSubmission ($rawdata, $action, $filePath, $existingData, &$errorText = '')
 	{
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
@@ -933,14 +933,14 @@ class telluswhere
 		#!# Currently no support for deleting an existing image when doing an update
 		
 		# Add the mediaupload field if a file has been submitted
-		$filePath = false;
+		$file = false;
 		if (isSet ($rawdata['filename'])) {		// If there is an existing photo, this field will not be present
 			if ($rawdata['filename']) {
-				$filePath = $this->tmpDirectory . $rawdata['filename'];
+				$file = $filePath . $rawdata['filename'];
 				if (function_exists ('curl_file_create')) {
-					$mediaupload = curl_file_create ($filePath);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
+					$mediaupload = curl_file_create ($file);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
 				} else {
-					$mediaupload = '@' . $filePath;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
+					$mediaupload = '@' . $file;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
 				}
 				$data['mediaupload'] = $mediaupload;
 			}
@@ -955,8 +955,8 @@ class telluswhere
 		$result = application::file_post_contents ($apiUrl, $data, true, $transportError);
 		
 		# Delete the temporary file if a file was uploaded
-		if ($filePath) {
-			unlink ($filePath);
+		if ($file) {
+			unlink ($file);
 		}
 		
 		# Report any transport error
@@ -1565,7 +1565,7 @@ class telluswhere
 		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
 			$action = $this->metacategories[$location['metacategory']];
-			if (!$result = $this->postSubmission ($location, $action, false, $errorText)) {
+			if (!$result = $this->postSubmission ($location, $action, $this->imagesDirectory, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}

@@ -115,7 +115,7 @@ class telluswhere
 	private $forcedAction = false;
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
-	private $tmpDirectory = '/tmp/';
+	private $tmpFolder = '/tmp/';
 	private $userIsAdministrator = false;
 	private $userIsDownloader = false;
 	
@@ -176,7 +176,7 @@ class telluswhere
 		}
 		
 		# Determine the tmp directory in use for file uploads and ensure it is writeable
-		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpDirectory)) {
+		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpFolder)) {
 			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
 			echo $html;
 			return false;

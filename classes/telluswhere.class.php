@@ -1553,6 +1553,11 @@ class telluswhere
 	 */
 	public function batch ()
 	{
+		# Define the images directory and the forced filename for this user
+		$folder = 'batch-' . md5 ($this->user['email']) . '/';
+		$this->imagesDirectory = $this->tmpDirectory . $folder;
+		$this->imagesLocation = $this->tmpFolder . $folder;
+		
 		# Get initial data or end
 		if (!$data = $this->batchInitialDataForm ()) {return;}
 		
@@ -1570,6 +1575,9 @@ class telluswhere
 			}
 		}
 		
+		# Remove any existing images directory if present
+		$this->rrmdir ($this->imagesDirectory);
+		
 		# Confirm success
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
 		$html .= "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
@@ -1583,6 +1591,26 @@ class telluswhere
 		
 		# Register the HTML
 		$this->template['contents'] = $html;
+	}
+	
+	
+	# Helper function to delete a directory and its contents
+	private function rrmdir ($directory)
+	{
+		# Ensure a directory is specified
+		if (!strlen ($directory)) {return false;}
+		if (!is_dir ($directory)) {return false;}
+		
+		# Delete all files in the directory
+		foreach (new RecursiveIteratorIterator (
+			new RecursiveDirectoryIterator ($directory, FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS),
+			RecursiveIteratorIterator::CHILD_FIRST
+			) as $value) {
+				$value->isFile () ? unlink ($value) : rmdir ($value);
+		}
+		
+		# Remove the directory itself
+		rmdir ($directory);
 	}
 	
 	
@@ -1617,6 +1645,9 @@ class telluswhere
 		if ($data = $this->sessionGet ($sessionName)) {
 			return $data;
 		}
+		
+		# Remove any existing images directory if present
+		$this->rrmdir ($this->imagesDirectory);
 		
 		# Start the HTML
 		$html = '';
@@ -1701,10 +1732,9 @@ class telluswhere
 		$form->upload (array (
 			'name' => 'images',
 			'title' => '(Optional) Images - zipped as single file (maximum size: ' . ini_get ('upload_max_filesize') . ')',
-			'directory' => $this->tmpDirectory . 'photos/',
+			'directory' => $this->imagesDirectory,
 			'required' => false,
 			'allowedExtensions' => array ('zip'),
-			'forcedFileName' => 'images',
 			'enableVersionControl' => false,
 			'flatten' => true,
 			'unzip' => true,
@@ -1732,6 +1762,22 @@ class telluswhere
 		
 		# Process the form
 		if (!$result = $form->process ($html)) {
+			$this->template['contents'] = $html;
+			return false;
+		}
+		
+		# Ensure any images specified are present
+		$missingImages = array ();
+		foreach ($data as $index => $location) {
+			if ($location['filename']) {
+				if (!is_file ($this->imagesDirectory . $location['filename'])) {
+					$missingImages[] = $location['filename'];
+				}
+			}
+		}
+		if ($missingImages) {
+			$html  = "\n<p>Not all images were present: <em>" . htmlspecialchars (implode (', ', $missingImages)) . '.</em></p>';
+			$html .= "\n<p>Please check the zip file, then <a href=\"javascript: history.go(-1);\">go back</a> and try again.</p>";
 			$this->template['contents'] = $html;
 			return false;
 		}
@@ -1794,6 +1840,15 @@ class telluswhere
 		# Define the form name
 		$formName = 'stage2';
 		
+		# Determine if the submission has images
+		$hasImages = false;
+		foreach ($stage1Data as $index => $location) {
+			if ($location['filename']) {
+				$hasImages = true;
+				break;	// No point checking for more
+			}
+		}
+		
 		# Create the template
 		$table = array ();
 		foreach ($stage1Data as $index => $location) {
@@ -1826,6 +1881,13 @@ class telluswhere
 				'caption'	=> "{caption_{$index}}",
 				'map'		=> $mapJsHtml,
 			);
+			
+			# Show image(s) if present
+			#!# Replace with thumbnails, and add cross-user security
+			if ($hasImages) {
+				$location = $this->imagesLocation . htmlspecialchars (str_replace (' ', '%20', $location['filename']));
+				$table[$index]['photo'] = "<img src=\"{$location}\" width=\"200\" />";
+			}
 		}
 		$template = application::htmlTable ($table, $tableHeadingSubstitutions = array (), 'lines', $keyAsFirstColumn = false, $uppercaseHeadings = true, $allowHtml = true);
 		
@@ -1882,6 +1944,7 @@ class telluswhere
 				'latitude'		=> $result["location_{$i}"]['latitude'],
 				'longitude'		=> $result["location_{$i}"]['longitude'],
 				'zoom'			=> $result["location_{$i}"]['zoom'],
+				'filename'		=> $stage1Data[$i]['filename'],
 				'metacategory'	=> $stage1Data[$i]['metacategory'],
 				'name'			=> $stage1Data[$i]['name'],
 				'email'			=> $stage1Data[$i]['email'],
@@ -1915,11 +1978,6 @@ class telluswhere
 		if ($invalidFields || $missingRequiredFields) {
 			$errorMessage = "The fields in the pasted data do not match the specification noted above. Please correct the spreadsheet and try again.";
 			return false;
-		}
-		
-		# Unset the filename
-		foreach ($data as $filename => $metadata) {
-			unset ($data[$filename]['filename']);
 		}
 		
 		# Return the data

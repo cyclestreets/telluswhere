@@ -62,6 +62,10 @@ class telluswhere
 				'description' => false,
 				'url' => false,	// No template; Will be /location/<id>/problem/
 			),
+			'news' => array (
+				'description' => false,
+				'url' => '/news/',
+			),
 			'about' => array (
 				'description' => false,
 				'url' => '/about/',
@@ -1347,6 +1351,12 @@ class telluswhere
 		
 		# Return success
 		echo json_encode (array ('response' => 'Many thanks - your comment has been received.'));
+	}
+	
+	
+	# News page
+	private function news ()
+	{
 	}
 	
 	

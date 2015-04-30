@@ -136,20 +136,19 @@ class news
 	# News article addition/editing
 	private function articleManipulate ($html, $article, $area)
 	{
+		# Determine the action
+		$action = ($article ? 'edit' : 'add');
+		
+		# Do not run unless triggered
+		if (!isSet ($_GET['mode'])) {return;}
+		if ($_GET['mode'] != $action) {return;}
+		
 		# Take no action if the user is not an administrator
 		if (!$this->userIsAdministrator) {
 			$html = $this->telluswhere->page404 ();
 			echo $html;
 			return false;
 		}
-		
-		# Determine the action
-		$action = ($article ? 'edit' : 'add');
-		$actionDone = ($article ? 'updated' : 'created');
-		
-		# Do not run unless triggered
-		if (!isSet ($_GET['mode'])) {return;}
-		if ($_GET['mode'] != $action) {return;}
 		
 		# Start the HTML
 		$html .= "\n<h2>" . ucfirst ($action) . " article</h2>";
@@ -158,6 +157,7 @@ class news
 		# Show the form
 		$do = ($article ? 'update' : 'insert');
 		$constraint = ($article ? array ('id' => $article['id']) : false);
+		$actionDone = ($article ? 'updated' : 'created');
 		if ($article = $this->form ($html, $article, $area)) {
 			
 			# Update the article

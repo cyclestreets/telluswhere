@@ -347,7 +347,8 @@ class telluswhere
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
 			  `earliestDate` DATE,							-- Earliest date to appear in export
 			  `bbox` VARCHAR(225) NOT NULL,					-- Bounding box for export
-			  `trackingCode` TEXT NULL						-- Analytics tracking code
+			  `trackingCode` TEXT NULL,						-- Analytics tracking code
+			  `areas` TEXT									-- Area names
 			);
 		";
 		
@@ -1357,6 +1358,26 @@ class telluswhere
 	# News page
 	private function news ()
 	{
+		# Get the areas
+		$areas = $this->getAreas ();
+	}
+	
+	
+	# Function to return list of areas
+	private function getAreas ()
+	{
+		# Convert the areas to a list
+		$string = explode ("\n", str_replace ("\r\n", "\n", trim ($this->settings['areas'])));
+		
+		# Convert to moniker => name format
+		$areas = array ();
+		foreach ($string as $area) {
+			$moniker = application::createUrlSlug ($area);
+			$areas[$moniker] = $area;
+		}
+		
+		# Return the list
+		return $areas;
 	}
 	
 	
@@ -1533,6 +1554,7 @@ class telluswhere
 				'bbox'				=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
 				'trackingCode'		=> array ('heading' => array (3 => 'Analytics'), 'rows' => 11, ),
 				'password'			=> array ('type' => 'input', 'confirmation' => false, 'editable' => true, ),	// Override intelligence=true for field named 'password'
+				'areas'				=> array ('heading' => array (3 => 'Areas'), 'rows' => 12, ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

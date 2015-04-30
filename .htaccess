@@ -27,6 +27,13 @@ RewriteRule ^(location)/([1-9][0-9]*)/problem/$ index.html?action=problem&id=$2 
 RewriteRule ^(suggest|current)/embed/$ index.html?action=embed&type=$1 [L,QSA]
 RewriteRule ^(suggest|current)/embed$ /$1/embed/ [L,R=301]
 RewriteRule ^data/(suggest|current).csv$ index.html?action=download&dataset=$1 [L,QSA]
+RewriteRule ^(news)/(add).html$ index.html?action=$1&mode=$2 [L,QSA]
+RewriteRule ^(news)/([^/]+)/(add).html$ index.html?action=$1&mode=$3&area=$2 [L,QSA]
+RewriteRule ^(news)/([^/]+)/$ index.html?action=$1&area=$2 [L,QSA]
+RewriteRule ^(news)/([^/]+)$ /$1/$2/ [L,R=301]
+RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)/(edit|delete).html$ index.html?action=$1&mode=$6&date=$2-$3-$4&urlMoniker=$5 [L,QSA]
+RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)/$ index.html?action=$1&date=$2-$3-$4&urlMoniker=$5 [L,QSA]
+RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)$ /$1/$2/$3/$4/$5/ [L,R=301]
 
 # If no match above, serve files from the style folder directly, via the web application, for the configured style, other than specified static files
 RewriteCond %{REQUEST_FILENAME} !/index\.html$
@@ -36,6 +43,7 @@ RewriteCond %{REQUEST_FILENAME} !/images/multipleupload\.png$
 RewriteCond %{REQUEST_FILENAME} !/images/pencil\.png$
 RewriteCond %{REQUEST_FILENAME} !/images/ui-anim_basic_16x16\.gif$
 RewriteCond %{REQUEST_FILENAME} !/images/categories
+RewriteCond %{REQUEST_FILENAME} !/images/news
 RewriteCond %{REQUEST_FILENAME} !/js/ckeditor
 RewriteCond %{REQUEST_FILENAME} !/js/ckfinder
 RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$

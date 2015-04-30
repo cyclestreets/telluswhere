@@ -114,13 +114,16 @@ class telluswhere
 	}
 	
 	# Class properties
+	public $baseUrl;
+	public $databaseConnection = NULL;
+	public $settings;
+	public $user;
+	public $userIsAdministrator = false;
 	private $html = '';
-	private $databaseConnection = NULL;
 	private $forcedAction = false;
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	private $tmpFolder = '/tmp/';
-	private $userIsAdministrator = false;
 	private $userIsDownloader = false;
 	
 	# Labels for metadata fields
@@ -323,10 +326,10 @@ class telluswhere
 	}
 	
 	
-	# Function to bootstrap the database structure
+	# Function to bootstrap the database structure; note the SQLite format comments: http://stackoverflow.com/questions/7426205/
 	private function createDatabaseStructure ($databaseFile)
 	{
-		# Define the table structure; note the SQLite format comments: http://stackoverflow.com/questions/7426205/
+		# Settings table
 		$query = "
 			CREATE TABLE IF NOT EXISTS main.settings (
 			  `id` INTEGER PRIMARY KEY,						-- Site number
@@ -351,8 +354,20 @@ class telluswhere
 			  `areas` TEXT									-- Area names
 			);
 		";
+		$this->databaseConnection->query ($query);
 		
-		# Create the table structure
+		# News table
+		$query = "
+			CREATE TABLE IF NOT EXISTS main.news (
+			  `id` INTEGER PRIMARY KEY,						-- Article number
+			  `area` VARCHAR(255),							-- Area
+			  `title` VARCHAR(255) NOT NULL,				-- Title
+			  `urlMoniker` VARCHAR(255) NOT NULL,			-- Web address
+			  `articleRichtext` TEXT NOT NULL,				-- Text of article
+			  `name` VARCHAR(255) NOT NULL,					-- Your name
+			  `date` DATE									-- Date
+			);
+		";
 		$this->databaseConnection->query ($query);
 	}
 	
@@ -399,7 +414,7 @@ class telluswhere
 	
 	
 	# 404 page
-	private function page404 ()
+	public function page404 ()
 	{
 		# Send the header
 		application::sendHeader (404);
@@ -1360,6 +1375,15 @@ class telluswhere
 	{
 		# Get the areas
 		$areas = $this->getAreas ();
+		
+		# Load the news module
+		require_once ('classes/news.class.php');
+		$news = new news ($this, $areas);
+		$news->main ();
+		$html = $news->getHtml ();
+		
+		# Register the HTML
+		$this->template['contents'] = $html;
 	}
 	
 	

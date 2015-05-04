@@ -1,0 +1,36 @@
+<VirtualHost *:80>
+	
+	# Available URL(s)
+	ServerName www.telluswhere.example.com
+	
+	# Redirect example.com/foo to www.example.com/foo
+	RewriteEngine On
+	RewriteCond %{HTTP_HOST} !^www\. [NC]
+	RewriteCond %{HTTP_HOST} !^$
+	RewriteRule ^/?(.*) http://www.%{HTTP_HOST}/$1 [L,R,NE]
+	
+	# Where the files are
+	DocumentRoot /path/to/files/
+	
+	# Logging
+	CustomLog /path/to/logs/telluswhere-access.log combined
+	ErrorLog /path/to/logs/telluswhere-error.log
+	
+	# Encoding
+	AddDefaultCharset utf-8
+	
+	# Allow .htaccess
+	<Directory /path/to/files/>
+		AllowOverride All
+	</Directory>
+	
+	# PHP directives
+	php_value date.timezone Europe/London
+
+	# Permit file uploads
+	php_admin_flag file_uploads On
+        php_value upload_max_filesize 15M
+        php_value post_max_size 15M
+	
+</VirtualHost>
+

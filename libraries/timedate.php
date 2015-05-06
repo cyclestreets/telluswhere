@@ -2,7 +2,7 @@
 
 # Class containing a variety of date/time processing functions
 # http://download.geog.cam.ac.uk/projects/timedate/
-# Version: 1.2.5
+# Version: 1.2.6
 
 class timedate
 {
@@ -425,30 +425,34 @@ class timedate
 	
 	
 	# Function to get months, indexed by year
-	public static function getMonthsByYear ($startDate = '1970-01-01', $reverseOrdering = false, $twoFigureMonth = true)
+	public static function getMonthsByYear ($startDate = '1970-01-01', $endDate = false /* false indicates today */, $reverseOrdering = false, $twoFigureMonth = true)
 	{
-		# End if invalid string
+		# If no end date, use today
+		if (!$endDate) {
+			$endDate = date ('Y-m-d');
+		}
+		
+		# End if invalid start date
 		if (!preg_match ('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $startDate, $matches)) {return array ();}
 		list ($startYear, $startMonth, $startDay) = array ($matches[1], $matches[2], $matches[3]);
-		
-		# End if invalid date
 		if (!checkdate ($startMonth, $startDay, $startYear)) {return array ();}
 		
-		# Determine the current year and current month, which will be matched against a range-generated value
-		$currentYear = date ('Y');	// 4-digit year
-		$currentMonth = date ('n');	// 1-digit month
+		# End if invalid end date
+		if (!preg_match ('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $endDate, $matches)) {return array ();}
+		list ($endYear, $endMonth, $endDay) = array ($matches[1], $matches[2], $matches[3]);
+		if (!checkdate ($endMonth, $endDay, $endYear)) {return array ();}
 		
 		# End if the supplied year or year-month is in the future
-		if ($startYear > $currentYear) {return array ();}
-		if ($startYear == $currentYear) {
-			if ($startMonth > $currentMonth) {return array ();}
+		if ($startYear > $endYear) {return array ();}
+		if ($startYear == $endYear) {
+			if ($startMonth > $endMonth) {return array ();}
 		}
 		
 		# Start a list of months
 		$monthsByYear = array ();
 		
 		# Loop through each year until the current
-		$yearsRange = range ($startYear, $currentYear);
+		$yearsRange = range ($startYear, $endYear);
 		if ($reverseOrdering) {
 			$yearsRange = array_reverse ($yearsRange);
 		}
@@ -456,7 +460,7 @@ class timedate
 			
 			# Fill the array with a list of months, normally 1-12, except for the start and finish year
 			$monthRangeStart = ($year == $startYear ? $startMonth : 1);
-			$monthRangeFinish = ($year == $currentYear ? $currentMonth : 12);
+			$monthRangeFinish = ($year == $endYear ? $endMonth : 12);
 			$monthsRange = range ($monthRangeStart, $monthRangeFinish);
 			if ($reverseOrdering) {
 				$monthsRange = array_reverse ($monthsRange);

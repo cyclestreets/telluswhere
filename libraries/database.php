@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
- * Version 2.4.12
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
+ * Version 2.4.19
  * Uses prepared statements (see http://stackoverflow.com/questions/60174/best-way-to-stop-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -341,7 +341,7 @@ class database
 	
 	
 	# Function to export data served as a CSV, optimised to use low memory; this is a combination of database::getData() and csv::serve
-	public function serveCsv ($query, $preparedStatementValues = array (), $filenameBase = 'data', $timestamp = true, $headerLabels = array (), $zipped = false)
+	public function serveCsv ($query, $preparedStatementValues = array (), $filenameBase = 'data', $timestamp = true, $headerLabels = array (), $zipped = false /* false, or true (zip), or 'zip'/'gz') */, $saveToDirectory = false /* or full directory path, slash-terminated */)
 	{
 		# Global the query and any values
 		$this->query = $query;
@@ -353,12 +353,25 @@ class database
 			return false;
 		}
 		
-		# Start a CSV string
+		# Add a timestamp to the filename if required
+		if ($timestamp) {
+			$filenameBase .= '_savedAt' . date ('Ymd-His');
+		}
+		
+		# Determine filename; the routine always writes to a file, even if this is subsequently removed, to avoid over-length strings (internal string size is max 2GB)
+		$filename = $filenameBase . '.csv';
+		$file = $saveToDirectory . $filename;
+		
+		# Delete any existing file, e.g. from an improperly-terminated run
+		if (is_file ($file)) {
+			unlink ($file);
+		}
+		
+		# Add CSV processing support
 		require_once ('csv.php');
-		$csv = '';
 		
 		# Define the number of records per chunk of CSV string to append, to keep memory usage down
-		$chunksOf = 100;
+		$chunksOf = 500;
 		
 		# Set chunking state
 		$data = array ();
@@ -373,7 +386,8 @@ class database
 			
 			# Add data periodically by processing the chunk when limit required
 			if ($i == $chunksOf) {
-				$csv .= csv::dataToCsv ($data, '', ',', $headerLabels, $includeHeaderRow);
+				$csvChunk = csv::dataToCsv ($data, '', ',', $headerLabels, $includeHeaderRow);
+				file_put_contents ($file, $csvChunk, FILE_APPEND);
 				
 				# Reset chunking state
 				$data = array ();
@@ -384,49 +398,61 @@ class database
 		
 		# Add residual data to the CSV if any left over (which will usually happen, unless the amount of data is exactly divisible by $chunksOf
 		if ($data) {
-			$csv .= csv::dataToCsv ($data, '', ',', $headerLabels, $includeHeaderRow);
-		}
-		
-		# Add a timestamp if required
-		if ($timestamp) {
-			$filenameBase .= '_savedAt' . date ('Ymd-His');
+			$csvChunk = csv::dataToCsv ($data, '', ',', $headerLabels, $includeHeaderRow);
+			file_put_contents ($file, $csvChunk, FILE_APPEND);
 		}
 		
 		# If zipped, emit the data in a zip enclosure
+		#!# Note that this leaves the original CSV file present, which may or may not be desirable
 		if ($zipped) {
+			$supportedFormats = array ('zip', 'gz');
+			$format = (is_string ($zipped) && in_array ($zipped, $supportedFormats) ? $zipped : $supportedFormats[0]);	// Default to first, zip
 			require_once ('application.php');
-			application::zipFromString ($csv, $filenameBase . '.csv');
+			application::createZip ($file, $filename, $saveToDirectory, $format);
 			return;
+		}
+		
+		# If required to save the file, leave the generated file in place, return at this point
+		if ($saveToDirectory) {
+			return $file;
 		}
 		
 		# Publish, by sending a header and then echoing the data
 		header ('Content-type: application/octet-stream');
-		header ('Content-Disposition: attachment; filename="' . $filenameBase . '.csv"');
+		header ('Content-Disposition: attachment; filename="' . $filename . '"');
 		echo $csv;
+		
+		# Delete the file
+		unlink ($file);
 	}
 	
 	
 	# Function to do getData via pagination
-	public function getDataViaPagination ($query, $associative = false /* or string as "{$database}.{$table}" */, $keyed = true, $preparedStatementValues = array (), $onlyFields = array (), $paginationRecordsPerPage, $page = 1, $searchResultsMaximumLimit = false)
+	public function getDataViaPagination ($query, $associative = false /* or string as "{$database}.{$table}" */, $keyed = true, $preparedStatementValues = array (), $onlyFields = array (), $paginationRecordsPerPage, $page = 1, $searchResultsMaximumLimit = false, $knownTotalAvailable = false)
 	{
-		# Prepare the counting query; use a negative lookahead to match the section between SELECT ... FROM - see http://stackoverflow.com/questions/406230
-		$placeholders = array (
-			'/^\s*SELECT\s+(?!\s+FROM\s).+\s+FROM/misU' => 'SELECT COUNT(*) AS total FROM',
-			# This works but isn't in use anywhere, so enable if/when needed with more testing '/^SELECT\s+DISTINCT\(([^)]+)\)\s+(?!\s+FROM ).+\s+FROM/' => 'SELECT COUNT(DISTINCT(\1)) AS total FROM',
-		);
-		$countingQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), trim ($query));
-		
-		# If any named placeholders are not now in the counting query, remove them from the list
-		$countingPreparedStatementValues = $preparedStatementValues;
-		foreach ($countingPreparedStatementValues as $key => $value) {
-			if (substr_count ($query, ':' . $key) && !substr_count ($countingQuery, ':' . $key)) {
-				unset ($countingPreparedStatementValues[$key]);
+		# If the total is already known, use that
+		if ($knownTotalAvailable) {
+			$totalAvailable = $knownTotalAvailable;
+		} else {
+			
+			# Prepare the counting query; use a negative lookahead to match the section between SELECT ... FROM - see http://stackoverflow.com/questions/406230
+			$placeholders = array (
+				'/^\s*SELECT\s+(?!\s+FROM\s).+\s+FROM/misU' => 'SELECT COUNT(*) AS total FROM',
+				# This works but isn't in use anywhere, so enable if/when needed with more testing '/^SELECT\s+DISTINCT\(([^)]+)\)\s+(?!\s+FROM ).+\s+FROM/' => 'SELECT COUNT(DISTINCT(\1)) AS total FROM',
+			);
+			$countingQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), trim ($query));
+			
+			# If any named placeholders are not now in the counting query, remove them from the list
+			$countingPreparedStatementValues = $preparedStatementValues;
+			foreach ($countingPreparedStatementValues as $key => $value) {
+				if (substr_count ($query, ':' . $key) && !substr_count ($countingQuery, ':' . $key)) {
+					unset ($countingPreparedStatementValues[$key]);
+				}
 			}
+			
+			# Perform a count first
+			$totalAvailable = $this->getOneField ($countingQuery, 'total', $countingPreparedStatementValues);
 		}
-		
-		# Perform a count first
-		$dataCount = $this->getOne ($countingQuery, false, true, $countingPreparedStatementValues);
-		$totalAvailable = $dataCount['total'];
 		
 		# Enforce a maximum limit if required, by overwriting the total available, which the pagination mechanism will automatically adjust to
 		$actualMatchesReachedMaximum = false;
@@ -551,15 +577,19 @@ class database
 	# Function to emulate an SQLite table structure in MySQL format
 	private function sqliteTableStructureEmulation ($data, $table)
 	{
-		# Obtain the comments by obtaining the original CREATE TABLE SQL
+		# Obtain the comments and whether the field is unique by obtaining the original CREATE TABLE SQL
 		$ddlQuery = "SELECT name, sql FROM sqlite_master WHERE type='table' AND name='{$table}' ORDER BY name;";
 		$originalCreateTableQuery = $this->getOneField ($ddlQuery, 'sql');
 		$lines = explode ("\n", trim ($originalCreateTableQuery));
 		$comments = array ();
+		$unique = array ();
 		foreach ($lines as $id => $line) {
 			$line = str_replace ('`', '', trim ($line));
 			if (preg_match ('/^([^\s]+)\s.+--\s(.+)$/', $line, $matches)) {
 				$comments[$matches[1]] = $matches[2];
+			}
+			if (substr_count ($line, 'UNIQUE')) {
+				$unique[$matches[1]] = true;
 			}
 		}
 		
@@ -570,7 +600,7 @@ class database
 				'Type'			=> $field['type'],
 				'Collation'		=> NULL,		// No support for this in SQLite
 				'Null'			=> !$field['notnull'],
-				'Key'			=> ($field['pk'] == '1' ? 'PRI' : false),
+				'Key'			=> ($field['pk'] == '1' ? 'PRI' : (isSet ($unique[$field['name']]) ? 'UNI' : false)),
 				'Default'		=> $field['dflt_value'],
 				'Extra'			=> ($field['type'] == 'INTEGER' && $field['pk'] == '1' ? 'auto_increment' : NULL),
 				'Privileges'	=> NULL,		// No support for this in SQLite
@@ -592,7 +622,7 @@ class database
 		
 		# Detect keywords
 		if ($string == 'NOW()') {return true;}
-		if (preg_match ('/^POINTFROMTEXT\(/', $string)) {return true;}
+		if (preg_match ('/^(GEOMCOLL|GEOMETRYCOLLECTION|GEOM|GEOMETRY|LINE|LINESTRING|MLINE|MULTILINESTRING|MPOINT|MULTIPOINT|MPOLY|MULTIPOLYGON|POINT|POLY|POLYGON)FROMTEXT\(/', $string)) {return true;}
 		// Add more here
 		
 		# Treat as standard string if not detected
@@ -702,8 +732,8 @@ class database
 	
 	
 	# Function to obtain a list of tables in a database
-	#!# A regexp filtering option would useful and could replace some client code
-	public function getTables ($database)
+	# $matchingRegexp enables filtering, e.g. '/tablename([0-9]+)/' ; if there is a capture (...) within this, then that will be used for the keys
+	public function getTables ($database, $matchingRegexp = false)
 	{
 		# Get the data
 		$query = "SHOW TABLES FROM `{$database}`;";
@@ -713,6 +743,22 @@ class database
 		$tables = array ();
 		foreach ($data as $index => $attributes) {
 			$tables[] = $attributes["Tables_in_{$database}"];
+		}
+		
+		# If a regexp is supplied, filter
+		if ($matchingRegexp) {
+			$tablesRaw = $tables;
+			$tables = array ();
+			foreach ($tablesRaw as $index => $table) {
+				if (preg_match ($matchingRegexp, $table, $matches)) {
+					if (isSet ($matches[1])) {	// If a capture is defined, use that as the key
+						$key = $matches[1];
+						$tables[$key] = $table;
+					} else {
+						$tables[] = $table;		// Auto-key
+					}
+				}
+			}
 		}
 		
 		# Return the data
@@ -901,7 +947,7 @@ class database
 	
 	
 	# Function to construct and execute an INSERT statement
-	public function insert ($database, $table, $data, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, /* Private: */ $private_ReplaceStatement = false)
+	public function insert ($database, $table, $data, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, $statement = 'INSERT')
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($data) || !$data) {return false;}
@@ -925,14 +971,8 @@ class database
 		# Handle ON DUPLICATE KEY UPDATE support
 		$onDuplicateKeyUpdate = $this->onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $data);
 		
-		# Define the statement to use
-		$statement = 'INSERT INTO';
-		if ($private_ReplaceStatement) {
-			$statement = $private_ReplaceStatement;
-		}
-		
 		# Assemble the query
-		$query = "{$statement} `{$database}`.`{$table}` ({$fields}) VALUES ({$preparedValuePlaceholders}){$onDuplicateKeyUpdate};\n";
+		$query = "{$statement} INTO `{$database}`.`{$table}` ({$fields}) VALUES ({$preparedValuePlaceholders}){$onDuplicateKeyUpdate};\n";
 		
 		# In safe mode, only show the query
 		if ($safe) {
@@ -960,10 +1000,10 @@ class database
 		# Limit to specific vendors
 		switch ($this->vendor) {
 			case 'mysql':
-				$replaceStatement = 'REPLACE INTO';
+				$replaceStatement = 'REPLACE';
 				break;
 			case 'sqlite':
-				$replaceStatement = 'REPLACE INTO';	// 'INSERT OR REPLACE INTO' is the SQLite standard, but 'REPLACE INTO' also works; see: http://stackoverflow.com/a/690679/180733
+				$replaceStatement = 'REPLACE';	// 'INSERT OR REPLACE' is the SQLite standard, but 'REPLACE' also works; see: http://stackoverflow.com/a/690679/180733
 				break;
 			default:
 				// Return false, as will never succeed
@@ -998,7 +1038,7 @@ class database
 	
 	
 	# Function to construct and execute an INSERT statement containing many items
-	public function insertMany ($database, $table, $dataSet, $chunking = false, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, /* Private: */ $private_ReplaceStatement = false)
+	public function insertMany ($database, $table, $dataSet, $chunking = false, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, $statement = 'INSERT')
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($dataSet) || !$dataSet) {return false;}
@@ -1009,12 +1049,6 @@ class database
 		
 		# Assemble the field names
 		$fields = '`' . implode ('`,`', $fields) . '`';
-		
-		# Define the statement to use
-		$statement = 'INSERT INTO';
-		if ($private_ReplaceStatement) {
-			$statement = $private_ReplaceStatement;
-		}
 		
 		# Chunk the records if required; if not, the entire set will be put into a single container
 		$dataSetChunked = array_chunk ($dataSet, ($chunking ? $chunking : count ($dataSet)), true);
@@ -1052,7 +1086,7 @@ class database
 			$onDuplicateKeyUpdateThisChunk = $this->onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $firstData);
 			
 			# Assemble the query
-			$query = "{$statement} `{$database}`.`{$table}` ({$fields}) VALUES (" . implode ('),(', $valuesPreparedSet) . "){$onDuplicateKeyUpdateThisChunk};\n";
+			$query = "{$statement} INTO `{$database}`.`{$table}` ({$fields}) VALUES (" . implode ('),(', $valuesPreparedSet) . "){$onDuplicateKeyUpdateThisChunk};\n";
 			
 			# Prevent submission of over-long queries
 			if ($maxLength = $this->getVariable ('max_allowed_packet')) {
@@ -1088,10 +1122,10 @@ class database
 		# Limit to specific vendors
 		switch ($this->vendor) {
 			case 'mysql':
-				$replaceStatement = 'REPLACE INTO';
+				$replaceStatement = 'REPLACE';
 				break;
 			case 'sqlite':
-				$replaceStatement = 'REPLACE INTO';	// 'INSERT OR REPLACE INTO' is the SQLite standard, but 'REPLACE INTO' also works; see: http://stackoverflow.com/a/690679/180733
+				$replaceStatement = 'REPLACE';	// 'INSERT OR REPLACE' is the SQLite standard, but 'REPLACE' also works; see: http://stackoverflow.com/a/690679/180733
 				break;
 			default:
 				// Return false, as will never succeed
@@ -1607,6 +1641,9 @@ class database
 				switch (true) {
 					case ($matches[1] == 'parent'):	// Special-case: if field is 'parentId' then treat as self-join to current table
 						$table = $currentTable;
+						break;
+					case (in_array (preg_replace ('/ss$/', 'sses', $matches[1]), $tables)):	// Pluraliser for ~ss => ~sses, e.g. addressId => addresses
+						$table =    preg_replace ('/ss$/', 'sses', $matches[1]);
 						break;
 					case (in_array ($matches[1] . 's', $tables)):	// Simple pluraliser, e.g. for a field 'caseId' look for a table 'cases'; if not present, it will assume 'case'
 						$table = $matches[1] . 's';

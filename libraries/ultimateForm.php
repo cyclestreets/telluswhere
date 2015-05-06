@@ -56,8 +56,8 @@
  * @package ultimateForm
  * @license	http://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-14, Martin Lucas-Smith, University of Cambridge
- * @version 1.21.3
+ * @copyright Copyright  2003-15, Martin Lucas-Smith, University of Cambridge
+ * @version See $version below
  */
 class form
 {
@@ -90,6 +90,7 @@ class form
 	var $headingTextCounter = 1;				// Counter to enable uniquely-named fields for non-form elements (i.e. headings), starting at 1 #!# Get rid of this somehow
 	var $uploadProperties;						// Data store to cache upload properties if the form contains upload fields
 	var $hiddenElementPresent = false;			// Flag for whether the form includes one or more hidden elements
+	var $antispamWait = 0;						// Time to wait in the event of spam attempt detection, in seconds
 	var $dataBinding = false;					// Whether dataBinding is in use; if so, this will become an array containing connection variables
 	var $jQueryLibraries = array ();			// Array of jQuery client library loading HTML tags, if any, which are treated as plain HTML
 	var $jQueryCode = array ();					// Array of jQuery client code, if any, which will get wrapped in a script tag
@@ -113,6 +114,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
+	var $version = '1.22.1';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -202,6 +204,9 @@ class form
 		'passwordGeneratedLength'			=> 6,								# Length of a generated password
 		'antispam'							=> false,							# Global setting for anti-spam checking
 		'antispamRegexp'					=> '~(a href=|<a |<script|<url|\[link|\[url|Content-Type:)~DsiU',	# Regexp for antispam, in preg_match format
+		'antispamUrlsThreshold'				=> 5,								# Number of URLs in a textarea which will trigger an antispam check failure
+		'akismetApiKey'						=> false,							# Akismet developer API key, available from https://akismet.com/development/api/
+		'applicationName'					=> false,							# Application name
 		'picker'							=> false,							# Whether to use the date picker by default when creating date widgets
 		'directoryPermissions'				=> 0775,							# Permission setting used for creating new directories
 		'prefixedGroupsFilterEmpty'			=> false,							# Whether to filter out empty groups when using group prefixing in dataBinding; currently limited to detecting scalar types only
@@ -284,6 +289,7 @@ class form
 			'prepend'				=> '',		# HTML prepended to the widget
 			'output'				=> array (),# Presentation format
 			'required'				=> false,	# Whether required or not
+			'expandable'			=> false,	# Whether the widget can be expanded into subwidgets (whose value is imploded in the result), whose number can be incremented by pressing a + button; either false / true (separator=\n) / separator string
 			'enforceNumeric'		=> false,	# Whether to enforce numeric input or not (optional; defaults to false) [ignored for e-mail type]
 			'size'					=> $this->settings['size'],		# Visible size (optional; defaults to 30)
 			'minlength'				=> '',		# Minimum length (optional; defaults to no limit)
@@ -309,10 +315,12 @@ class form
 			'tags'					=> false,	# Tags mode
 			'entities'				=> true,	# Convert HTML in value (useful only for editable=false)
 			'displayedValue'		=> false,	# When using editable=false, optional text that should be displayed instead of the value; can be made into HTML using entities=false
+			'antispamWait'			=> false,	# Antispam wait in the event of any failure
 			'_visible--DONOTUSETHISFLAGEXTERNALLY'		=> true,	# DO NOT USE - this is present for internal use only and exists prior to refactoring
 		);
 		
 		# Add in password-specific defaults
+		#!# These blocks ought to be specifiable in the native password()/email()/etc. functions
 		if ($functionName == 'password') {
 			$argumentDefaults['generate'] = false;		# Whether to generate a password if no value supplied as default
 			$argumentDefaults['confirmation'] = false;	# Whether to generate a second confirmation password field
@@ -336,6 +344,13 @@ class form
 			$argumentDefaults['min'] = false;
 			$argumentDefaults['max'] = false;
 			$argumentDefaults['step'] = false;
+		}
+		
+		# If an element is expandable, if it is boolean true, convert to default string
+		if (isSet ($suppliedArguments['expandable'])) {
+			if ($suppliedArguments['expandable'] === true) {
+				$suppliedArguments['expandable'] = "\n";
+			}
 		}
 		
 		# Add a regexp check if using URL handling (retrieval or URL HEAD check)
@@ -383,8 +398,34 @@ class form
 			}
 		}
 		
-		# Obtain the value of the form submission (which may be empty)
-		$widget->setValue (isSet ($this->form[$arguments['name']]) ? $this->form[$arguments['name']] : '');
+		# Determine the number of subwidgets needed, based on the default supplied value
+		$subwidgets = 1;
+		if ($arguments['expandable']) {
+			$expandableSeparator = $suppliedArguments['expandable'];	// Copy to clearly-named variable
+			$subwidgetElementValues = explode ($expandableSeparator, trim ($arguments['default']));
+			$subwidgetsDefault = count ($subwidgetElementValues);
+			$subwidgets = $this->subwidgetExpandabilityCount ($subwidgetsDefault, $arguments['name'], $arguments['required'], $arguments['autofocus'] /* passed (and altered) by reference */);
+		}
+		
+		# For an expandable element, create the value by imploding the values in the subwidgets
+		if ($arguments['expandable']) {
+			if ($this->formPosted) {
+				$subwidgetElementValues = array ();
+				for ($subwidget = 0; $subwidget < $subwidgets; $subwidget++) {
+					$subwidgetName = $arguments['name'] . "_{$subwidget}";
+					$subwidgetElementValues[] = (isSet ($this->form[$subwidgetName]) ? $this->form[$subwidgetName] : '');
+				}
+				#!# In the final submission, this ought to remove missing elements in the middle of a set of subwidgets, but currently no way to determine what is the final submission
+				$value = implode ($expandableSeparator, $subwidgetElementValues);
+			} else {
+				$value = '';
+			}
+		} else {
+			$value = (isSet ($this->form[$arguments['name']]) ? $this->form[$arguments['name']] : '');
+		}
+		
+		# Set the value
+		$widget->setValue ($value);
 		
 		# Handle whitespace issues
 		$widget->handleWhiteSpace ();
@@ -461,7 +502,32 @@ class form
 		
 		# Define the widget's core HTML
 		if ($arguments['editable']) {
-			$widgetHtml = '<input' . $this->nameIdHtml ($arguments['name']) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? " step=\"{$arguments['step']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($this->form[$arguments['name']]) . '"' . $widget->tabindexHtml () . ' />';
+			if ($arguments['expandable']) {
+				
+				# Generate the subwidgets HTML
+				$values = explode ($expandableSeparator, $this->form[$arguments['name']]);
+				$subwidgetsHtml = array ();
+				for ($subwidget = 0; $subwidget < $subwidgets; $subwidget++) {
+					$subwidgetName = $arguments['name'] . "_{$subwidget}";
+					$subwidgetElementValue = (isSet ($values[$subwidget]) ? $values[$subwidget] : '');
+					$hasAutofocus = ($arguments['autofocus'] === false ? false : (($subwidget + 1) == $arguments['autofocus']));	// $arguments['autofocus'] will be either false or numeric 1...$subwidgets
+					$subwidgetsHtml[$subwidget] = '<input' . $this->nameIdHtml ($subwidgetName) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? " step=\"{$arguments['step']}\"" : '') . ($hasAutofocus ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($subwidgetElementValue) . '"' . $widget->tabindexHtml () . ' />';
+					if ($hasAutofocus) {
+						$arguments['autofocus'] = false;	// Ensure only one subwidget has autofocus
+						$this->clearAnyOtherAutofocus ();
+					}
+				}
+				$widgetHtml = "\n\t\t\t" . implode ("<br />\n\t\t\t", $subwidgetsHtml) . "\n\t\t";
+				
+				# Add add/subtract button(s)
+				if ($arguments['expandable']) {
+					$refreshButtonHtml = $this->subwidgetExpandabilityButtons ($subwidgets, $arguments['name'], $arguments['required']);
+					$arguments['append'] = $refreshButtonHtml . $arguments['append'];
+				}
+				
+			} else {
+				$widgetHtml = '<input' . $this->nameIdHtml ($arguments['name']) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? " step=\"{$arguments['step']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($this->form[$arguments['name']]) . '"' . $widget->tabindexHtml () . ' />';
+			}
 		} else {
 			$displayedValue = ($arguments['displayedValue'] ? $arguments['displayedValue'] : $this->form[$arguments['name']]);
 			$widgetHtml  = ($functionName == 'password' ? str_repeat ('*', strlen ($arguments['default'])) : ($arguments['entities'] ? htmlspecialchars ($displayedValue) : $displayedValue));
@@ -512,6 +578,16 @@ class form
 			}
 		}
 		
+		# Check for element problems
+		$problems = $widget->getElementProblems (isSet ($elementProblems) ? $elementProblems : false);
+		
+		# Add antispam wait if any failured occured
+		if ($arguments['antispamWait']) {
+			if ($problems) {
+				$this->antispamWait += $arguments['antispamWait'];
+			}
+		}
+		
 		# Add the widget to the master array for eventual processing
 		$this->elements[$arguments['name']] = array (
 			'type' => $functionName,
@@ -519,7 +595,7 @@ class form
 			'title' => $arguments['title'],
 			'description' => $arguments['description'],
 			'restriction' => (isSet ($restriction) && $arguments['editable'] ? $restriction : false),
-			'problems' => $widget->getElementProblems (isSet ($elementProblems) ? $elementProblems : false),
+			'problems' => $problems,
 			'required' => $arguments['required'],
 			'requiredButEmpty' => $widget->requiredButEmpty (),
 			'suitableAsEmailTarget' => ($functionName == 'email'),
@@ -535,6 +611,17 @@ class form
 		#!# Temporary hacking to add hidden widgets when using the _hidden type in dataBinding
 		if (!$arguments['_visible--DONOTUSETHISFLAGEXTERNALLY']) {
 			$this->elements[$arguments['name']]['_visible--DONOTUSETHISFLAGEXTERNALLY'] = $hiddenInput;
+		}
+	}
+	
+	
+	# Function to clear any existing autofocus
+	#!# This is extremely hacky and not ideal; it relies on ' autofocus="autofocus" not being naturally present; in practice this is a safe assumption
+	private function clearAnyOtherAutofocus ()
+	{
+		# Retrospectively re-write any already-generated element having autofocus
+		foreach ($this->elements as $name => $attributes) {
+			$this->elements[$name]['html'] = str_replace (' autofocus="autofocus"', '', $this->elements[$name]['html']);
 		}
 	}
 	
@@ -1026,9 +1113,8 @@ class form
 							['Image'],
 							'/',
 							['Format'],
-							['Bold','Italic','Strike'],
-							['Styles'],
-							['RemoveFormat']
+							['Bold','Italic','Strike','RemoveFormat'],
+							['Styles']
 						]
 					",
 					
@@ -1605,24 +1691,7 @@ class form
 			if ($arguments['required']) {
 				$subwidgets = $arguments['required'];
 			}
-			$checkForSubwidgetsWidgetName = '__subwidgets_' . $this->cleanId ($arguments['name']);
-			if (isSet ($this->collection[$checkForSubwidgetsWidgetName])) {
-				if (ctype_digit ($this->collection[$checkForSubwidgetsWidgetName])) {
-					$subwidgets = $this->collection[$checkForSubwidgetsWidgetName];
-					$checkForRefreshAddWidgetName = '__refresh_add_' . $this->cleanId ($arguments['name']);
-					if (isSet ($this->collection[$checkForRefreshAddWidgetName])) {
-						$subwidgets++;
-						$arguments['autofocus'] = $subwidgets;
-					}
-					$checkForRefreshSubtractWidgetName = '__refresh_subtract_' . $this->cleanId ($arguments['name']);
-					if (isSet ($this->collection[$checkForRefreshSubtractWidgetName])) {
-						if (($subwidgets > $arguments['required']) && ($subwidgets > 1)) {
-							$subwidgets--;
-							$arguments['autofocus'] = $subwidgets;
-						}
-					}
-				}
-			}
+			$subwidgets = $this->subwidgetExpandabilityCount ($subwidgets, $arguments['name'], $arguments['required'], $arguments['autofocus'] /* passed (and altered) by reference */);
 			$totalAvailableOptions = count ($arguments['values']);
 			if (($subwidgets > $totalAvailableOptions) && ($subwidgets != 0)) {	// Ensure there are never any more than the available options
 				$subwidgets = $totalAvailableOptions;
@@ -1777,15 +1846,18 @@ class form
 				}
 				
 				# In autocomplete mode, create a standard input widget, but with an array submission type as the name
+				$hasAutofocus = ($arguments['autofocus'] === true || (is_numeric ($arguments['autofocus']) && ($subwidget + 1) == $arguments['autofocus']));	// True or the subwidget number matches
+				if ($hasAutofocus) {
+					$this->clearAnyOtherAutofocus ();
+				}
 				if ($arguments['autocomplete']) {
-					$hasAutofocus = ($arguments['autofocus'] === true || (is_numeric ($arguments['autofocus']) && ($subwidget + 1) == $arguments['autofocus']));	// True or the subwidget number matches
 					$subwidgetHtml[$subwidget] = "\n\t\t\t<input type=\"text\"" . (isSet ($elementValue[$subwidget]) ? ' value="' . htmlspecialchars ($elementValue[$subwidget]) . '"' : '') . $this->nameIdHtml ($subwidgetName, true) . ($hasAutofocus ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml () . '>';
 					if ($hasAutofocus) {$arguments['autofocus'] = false;}	// Ensure only one has autofocus
 				} else {
 					
 					# Create the widget; this has to differentiate between a non- and a multi-dimensional array because converting all to the latter makes it indistinguishable from a single optgroup array
 					$useArrayFormat = ($arguments['multiple']);	// i.e. form[widgetname][] rather than form[widgetname]
-					$subwidgetHtml[$subwidget] = "\n\t\t\t<select" . $this->nameIdHtml ($subwidgetName, $useArrayFormat) . ($subwidgetsAreMultiple ? " multiple=\"multiple\" size=\"{$arguments['size']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['onchangeSubmit'] ? ' onchange="this.form.submit();"' : '') . $widget->tabindexHtml () . '>';
+					$subwidgetHtml[$subwidget] = "\n\t\t\t<select" . $this->nameIdHtml ($subwidgetName, $useArrayFormat) . ($subwidgetsAreMultiple ? " multiple=\"multiple\" size=\"{$arguments['size']}\"" : '') . ($hasAutofocus ? ' autofocus="autofocus"' : '') . ($arguments['onchangeSubmit'] ? ' onchange="this.form.submit();"' : '') . $widget->tabindexHtml () . '>';
 					if (!isSet ($arguments['_valuesMultidimensional'])) {
 						if ($arguments['required'] && $arguments['default'] && !$arguments['nullRequiredDefault']) {
 							$arguments['valuesWithNull'] = $arguments['values'];	// Do not add a null entry when a required field also has a default
@@ -1819,16 +1891,8 @@ class form
 			
 			# Add an expansion button at the end
 			if ($arguments['expandable']) {
-				#!# Need to deny __refresh_add_<cleaned-id>, __refresh_subtract_<cleaned-id>, and __subwidgets_<cleaned-id> as reserved form names
-				$refreshButton  = '<input type="hidden" value="' . $subwidgets . '" name="__subwidgets_' . $this->cleanId ($arguments['name']) . '" />';
-				if (($subwidgets > $arguments['required']) && ($subwidgets > 1)) {
-					$refreshButton .= '<input type="submit" value="&#10006;" title="Subtract the last item" name="__refresh_subtract_' . $this->cleanId ($arguments['name']) . '" class="refresh" />';
-				}
-				if ($subwidgets < $totalAvailableOptions) {
-					$refreshButton .= '<input type="submit" value="&#10010;" title="Add another item" name="__refresh_add_' . $this->cleanId ($arguments['name']) . '" class="refresh" />';
-				}
-				$this->multipleSubmitReturnHandlerJQuery ();
-				$arguments['append'] = $refreshButton . $arguments['append'];
+				$refreshButtonHtml = $this->subwidgetExpandabilityButtons ($subwidgets, $arguments['name'], $arguments['required'], $totalAvailableOptions);
+				$arguments['append'] = $refreshButtonHtml . $arguments['append'];
 			}
 			
 			# Compile the subwidgets into a single widget HTML block
@@ -1933,6 +1997,71 @@ class form
 			'groupValidation' => 'compiled',
 			'after' => $arguments['after'],
 		);
+	}
+	
+	
+	# Helper function for generating subwidget add/subtract buttons
+	private function subwidgetExpandabilityButtons ($subwidgetsCount, $name, $required, $totalAvailableOptions = false /* false represents no limit */)
+	{
+		# Add a counter as a hidden field
+		$html  = '<input type="hidden" name="' . $this->subwidgetsCounterWidgetName ($name) . '" value="' . $subwidgetsCount . '" />';
+		
+		# Button for subtracting a widget, if this is possible
+		if (($subwidgetsCount > $required) && ($subwidgetsCount > 1)) {
+			$html .= '<input type="submit" value="&#10006;" title="Subtract the last item" name="__refresh_subtract_' . $this->cleanId ($name) . '" class="refresh" />';
+		}
+		
+		# Button for addition, if this is possible; if there is no limit, then always allow this
+		if (!$totalAvailableOptions || ($subwidgetsCount < $totalAvailableOptions)) {
+			$html .= '<input type="submit" value="&#10010;" title="Add another item" name="__refresh_add_' . $this->cleanId ($name) . '" class="refresh" />';
+		}
+		
+		# Register the multiple submit handler
+		$this->multipleSubmitReturnHandlerJQuery ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to generate the subwidgets counter widget name
+	private function subwidgetsCounterWidgetName ($name)
+	{
+		#!# NB Need to deny __refresh_add_<cleaned-id>, __refresh_subtract_<cleaned-id>, and __subwidgets_<cleaned-id> as reserved form names
+		return '__subwidgets_counter_' . $this->cleanId ($name);
+	}
+	
+	
+	# Helper function for determining the count of subwidgets based on manual expansion by the user pressing add/subtract buttons
+	private function subwidgetExpandabilityCount ($subwidgetsCount, $name, $required, &$autofocus)
+	{
+		# Determine if the subwidgets counter field has been submitted, that it is numeric, and if not, return the supplied total unmodified
+		$subwidgetsCounterWidgetName = $this->subwidgetsCounterWidgetName ($name);
+		if (!isSet ($this->collection[$subwidgetsCounterWidgetName]) || !ctype_digit ($this->collection[$subwidgetsCounterWidgetName])) {
+			return $subwidgetsCount;
+		}
+		
+		# Override the supplied default number of subwidgets with the posted numeric value
+		$subwidgetsCount = $this->collection[$subwidgetsCounterWidgetName];
+		
+		# If the 'add' refresh button has been submitted, increment the total by one, and set the autofocus to the new index value
+		$checkForRefreshAddWidgetName = '__refresh_add_' . $this->cleanId ($name);
+		if (isSet ($this->collection[$checkForRefreshAddWidgetName])) {
+			$subwidgetsCount++;
+			$autofocus = $subwidgetsCount;	// Autofocus is 1-indexed, i.e. 1,2,3,4 if there are 4 widgets, not 0,1,2,3
+		}
+		
+		# If the 'substract' refresh button has been submitted, decrement the total by one (as long as it is at least the number of required fields), and set the autofocus to the new index value
+		$checkForRefreshSubtractWidgetName = '__refresh_subtract_' . $this->cleanId ($name);
+		if (isSet ($this->collection[$checkForRefreshSubtractWidgetName])) {
+			if (($subwidgetsCount > $required) && ($subwidgetsCount > 1)) {		// Check there are enough initial number of subwidgets to subtract from
+				$subwidgetsCount--;
+				$autofocus = $subwidgetsCount;	// Autofocus is 1-indexed, i.e. 1,2,3,4 if there are 4 widgets, not 0,1,2,3
+			}
+		}
+		
+		# Return the number of subwidgets
+		return $subwidgetsCount;
 	}
 	
 	
@@ -4178,6 +4307,147 @@ class form
 	}
 	
 	
+	# Add in hidden anti-spam field if required; see: http://stackoverflow.com/questions/2387496/how-to-prevent-robots-from-automatically-filling-up-a-form
+	private function addAntiSpamHoneyPot ()
+	{
+		# End if not required
+		if (!$this->settings['antispam']) {return;}
+		
+		# Add the honeypot field; this is hidden with CSS but marked (for screen-readers) as not for changing; if a value is added, then it can be inferred that it is a non-human submission
+		$this->input (array (
+			'name'			=> '__token',
+			'title'			=> 'Our ref',
+			'editable'		=> true,	// Must be editable
+			'regexp'		=> '^$',	// Require empty
+			'discard'		=> true,	// Throw away in result
+			'append'		=> ' Please leave blank - anti-spam measure',
+			'antispamWait'	=> 5,
+		));
+		
+		# Add timestamp checking
+		$fieldname = '__timestamp';
+		$now = time ();
+		$this->hidden (array (
+			'name'			=> $fieldname,
+			'values'		=> array ('time' => $now),
+			'discard'		=> true,
+			'security'		=> false,
+		));
+		$secondsMinimum = 4;
+		if ($unfinalisedData = $this->getUnfinalisedData ()) {
+			if (isSet ($unfinalisedData[$fieldname]['time'])) {
+				$timestamp = $unfinalisedData[$fieldname]['time'];
+				$regexp = '^([0-9]{' . strlen ($now) . '})$';
+				if (preg_match ('/' . $regexp . '/', $timestamp, $matches)) {
+					$turnAroundTime = $now - $timestamp;
+					if ($turnAroundTime <= $secondsMinimum) {
+						$this->registerProblem ('tooquick', 'Please repost again in a few seconds.');
+						$this->antispamWait += 3;
+					}
+				}
+			}
+		}
+		
+		# Register CSS to hide the HTML
+		$this->html .= "\n" . '<style type="text/css">form tr.__token {display: none;}</style>';
+	}
+	
+	
+	# Function to perform Akismet anti-spam checking
+	private function akismetChecking ()
+	{
+		# End if not required
+		if (!$this->settings['antispam']) {return NULL;}
+		
+		# End if no API key specified
+		if (!$this->settings['akismetApiKey']) {return NULL;}
+		
+		# Set the user agent, as requested at https://akismet.com/development/api/#detailed-docs
+		$userAgent = ($this->settings['applicationName'] ? $this->settings['applicationName'] . ' ' : '') . 'ultimateForm/' . $this->version;
+		
+		# Validate API key
+		$siteUrl = $_SERVER['_SITE_URL'] . '/';
+		$postData = array (
+			'key'	=> $this->settings['akismetApiKey'],
+			'blog'	=> $siteUrl,
+		);
+		$output = application::file_post_contents ('https://rest.akismet.com/1.1/verify-key', $postData, false, $error, $userAgent);
+		if ($output != 'valid') {
+			$this->formSetupErrors['akismetKeyInvalid'] = 'The antispam checking API key is not valid.';
+			return NULL;
+		}
+		
+		# End if form not posted
+		if (!$this->formPosted) {return NULL;}
+		
+		# Assemble submission for testing; see: https://akismet.com/development/api/#comment-check
+		$postData = array (
+			'blog'					=> $siteUrl,
+			'user_ip'				=> $_SERVER['REMOTE_ADDR'],
+			'user_agent'			=> $_SERVER['HTTP_USER_AGENT'],
+			'referrer'				=> $_SERVER['HTTP_REFERER'],
+			'permalink'				=> $_SERVER['_PAGE_URL'],
+			'comment_type'			=> 'contact-form',		// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
+			'blog_lang'				=> 'en',
+			'blog_charset'			=> 'UTF-8',
+		);
+		
+		
+		# Determine comment content value, by concatenating all textarea values, ending if none
+		$postData['comment_content'] = '';
+		foreach ($this->elements as $field => $elementAttributes) {
+			if ($elementAttributes['type'] == 'textarea') {
+				$postData['comment_content'] .= $elementAttributes['data']['presented'];
+			}
+		}
+		if (!strlen ($postData['comment_content'])) {return NULL;}
+		
+		# Determine author e-mail value, by looking for a first e-mail field
+		foreach ($this->elements as $field => $elementAttributes) {
+			if ($elementAttributes['type'] == 'email') {
+				if (strlen ($elementAttributes['data']['presented'])) {
+					$postData['comment_author_email'] = $elementAttributes['data']['presented'];
+					break;
+				}
+			}
+		}
+		
+		# Determine author name value, by looking for a field called name
+		#!# Fieldname should be configurable
+		foreach ($this->elements as $field => $elementAttributes) {
+			if ($field == 'name') {
+				if (strlen ($elementAttributes['data']['presented'])) {
+					$postData['comment_author'] = $elementAttributes['data']['presented'];		// Send official value 'viagra-test-123' to force true result
+					break;
+				}
+			}
+		}
+		
+		# Determine URL value, by looking for a first URL field
+		foreach ($this->elements as $field => $elementAttributes) {
+			if ($elementAttributes['type'] == 'url') {
+				if (strlen ($elementAttributes['data']['presented'])) {
+					$postData['comment_author_url'] = $elementAttributes['data']['presented'];
+					break;
+				}
+			}
+		}
+		
+		# Submit for testing
+		$output = application::file_post_contents ("https://{$this->settings['akismetApiKey']}.rest.akismet.com/1.1/comment-check", $postData, false, $error, $userAgent);
+		$isSpam = ($output == 'true');
+		
+		# If spam, register problem
+		if ($isSpam) {
+			$this->registerProblem ('apparentlyspam', 'Your message was detected as possible spam. If this is not the case, please accept our apologies and contact us directly.');
+			$this->antispamWait += 3;
+		}
+		
+		# Return whether it is spam
+		return $isSpam;
+	}
+	
+	
 	# Function to validate built-in hidden security fields
 	function hiddenSecurityFieldSubmissionInvalid ()
 	{
@@ -4566,6 +4836,17 @@ class form
 	{
 		# Rearrange the element order if required
 		$this->rearrangeElementOrder ();
+		
+		# Add in hidden anti-spam field at the end, if required
+		$this->addAntiSpamHoneyPot ();
+		
+		# Do Askismet checking if required
+		$this->akismetChecking ();
+		
+		# Perform wait if required
+		if ($this->antispamWait) {
+			sleep ($this->antispamWait);
+		}
 		
 		# Determine whether the HTML is shown directly
 		$showHtmlDirectly = ($html === NULL);
@@ -6867,7 +7148,7 @@ class form
 			'int1ToCheckbox' => false,	// Whether an INT/TINYINT/etc(1) field will be converted to a checkbox
 			'textAsVarchar' => false,	// Force a TEXT type to be a VARCHAR(255) instead
 			'lookupFunction' => false,
-			'simpleJoin' => false,	// Overrides lookupFunction, uses targetId as a join to <database>.target
+			'simpleJoin' => false,	// Overrides lookupFunction, uses targetId as a join to <database>.target; lookupFunctionParameters can still be used
 			'lookupFunctionParameters' => array (),
 			'lookupFunctionAppendTemplate' => false,
 			'truncate' => 40,
@@ -7365,6 +7646,8 @@ class form
 			}
 		}
 	}
+	
+	
 	# Function to return a list of countries
 	public static function getCountries ($additionalStart = array ())
 	{
@@ -7679,6 +7962,7 @@ class formWidget
 	
 	
 	# Function to add autofocus to the first widget if required
+	#!# If a subsequent widget ends up manually adding autofocus, e.g. due to expandability, that gets ignored because this overrides it; currently clearAnyOtherAutofocus() is a hack to deal with this
 	function addAutofocusToFirstWidget ()
 	{
 		# End if not requiring autofocus functionality
@@ -7913,12 +8197,23 @@ class formWidget
 	}
 	
 	
-	# Function to prevent multiline submissions in elements (e.g. input) which shouldn't allow line-breaks
+	# Function to prevent multiline submissions in input elements which shouldn't allow line-breaks
 	function preventMultilineSubmissions ()
 	{
+		# Determine the value(s) to be checked; this takes account of expandable widgets
+		#!# This ought to be done on a per-subwidget basis, as currently a subwidget in 'expandable="\n"' mode currently would have a newline allowed through
+		$values = array ($this->value);
+		if ($this->arguments['expandable']) {
+			$expandableSeparator = $this->arguments['expandable'];
+			$values = explode ($expandableSeparator, $this->value);
+		}
+		
 		# Throw an error if an \n or \r line break is found
-		if (preg_match ("/([\n\r]+)/", $this->value)) {
-			$this->elementProblems['multilineSubmission'] = 'Line breaks are not allowed in field types that do not support these.';
+		foreach ($values as $value) {
+			if (preg_match ("/([\n\r]+)/", $value)) {
+				$this->elementProblems['multilineSubmission'] = 'Line breaks are not allowed in field types that do not support these.';
+				return;		// No point checking any more
+			}
 		}
 	}
 	
@@ -8091,10 +8386,21 @@ class formWidget
 	function antispamCheck ()
 	{
 		# Antispam checks
-		if ($this->arguments['antispam']) {
-			if (preg_match ($this->settings['antispamRegexp'], $this->value)) {
-				$this->elementProblems['failsAntispam'] = "The submitted information matched disallowed text for this section.";
-			}
+		if (!$this->arguments['antispam']) {return;}
+		
+		# Check for presence
+		if (preg_match ($this->settings['antispamRegexp'], $this->value)) {
+			$this->elementProblems['failsAntispamTextMatch'] = "The submitted information matched disallowed text for this section.";
+			$this->form->antispamWait += 3;
+			return;
+		}
+		
+		# Check for excessive numbers of links
+		$total = preg_match_all ('~(https?://)~', $this->value);
+		if ($total >= $this->settings['antispamUrlsThreshold']) {
+			$this->elementProblems['failsAntispamLinkCount'] = "The submitted information exceeded the number of links permitted for this section.";
+			$this->form->antispamWait += 3;
+			return;
 		}
 	}
 	

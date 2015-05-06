@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-14
- * Version 1.5.14
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
+ * Version 1.5.19
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -1340,7 +1340,7 @@ class application
 	
 	
 	# Function to dump data from an associative array to a table
-	public static function htmlTable ($array, $tableHeadingSubstitutions = array (), $class = 'lines', $keyAsFirstColumn = true, $uppercaseHeadings = false, $allowHtml = false, $showColons = false, $addCellClasses = false, $addRowKeyClasses = false, $onlyFields = array (), $compress = false, $showHeadings = true, $encodeEmailAddress = true)
+	public static function htmlTable ($array, $tableHeadingSubstitutions = array (), $class = 'lines', $keyAsFirstColumn = true, $uppercaseHeadings = false, $allowHtml = false /* true/false/array(field1,field2,..) */, $showColons = false, $addCellClasses = false, $addRowKeyClasses = false, $onlyFields = array (), $compress = false, $showHeadings = true, $encodeEmailAddress = true)
 	{
 		# Check that the data is an array
 		if (!is_array ($array)) {return $html = "\n" . '<p class="warning">Error: the supplied data was not an array.</p>';}
@@ -1364,7 +1364,8 @@ class application
 				$i++;
 				$data = $array[$key][$valueKey];
 				$thisCellClass = ($addCellClasses ? htmlspecialchars ($valueKey) . ((is_array ($addCellClasses) && isSet ($addCellClasses[$valueKey])) ? ' ' . $addCellClasses[$valueKey] : '') : '') . ((($i == 1) && !$keyAsFirstColumn) ? ($addCellClasses ? ' ' : '') . 'key' : '');
-				$cellContents = (!$allowHtml ? htmlspecialchars ($data) : $data);
+				$htmlAllowed = (is_array ($allowHtml) ? (in_array ($valueKey, $allowHtml)) : $allowHtml);	// Either true/false or an array of permitted fields where HTML is allowed
+				$cellContents = ($htmlAllowed ? $data : htmlspecialchars ($data));
 				$dataHtml .= ($compress ? '' : "\n\t\t") . (strlen ($thisCellClass) ? "<td class=\"{$thisCellClass}\">" : '<td>') . ($encodeEmailAddress ? self::encodeEmailAddress ($cellContents) : $cellContents) . (($showColons && ($i == 1) && $data) ? ':' : '') . '</td>';
 			}
 			$dataHtml .= ($compress ? '' : "\n\t") . '</tr>';
@@ -1557,11 +1558,12 @@ class application
 	
 	
 	# Function to create a case-insensitive version of in_array
-	public static function iin_array ($needle, $haystack)
+	public static function iin_array ($needle, $haystack, $unsupportedArgument = NULL /* ignored for future implementation as $strict */, &$matchedValue = NULL)
 	{
 		# Return true if the needle is in the haystack
 		foreach ($haystack as $item) {
 			if (strtolower ($item) == strtolower ($needle)) {
+				$matchedValue = $item;
 				return true;
 			}
 		}
@@ -2760,26 +2762,59 @@ class application
 	}
 	
 	
-	# Function create a zip file on-the-file; see: http://stackoverflow.com/questions/1061710/
-	public static function zipFromString ($string, $asFilename)
+	# Function create a zip/gzip file on-the-fly; see: http://stackoverflow.com/questions/1061710/
+	public static function createZip ($inputFile, $asFilename, $saveToDirectory = false /* or full directory path, slash-terminated */, $format = 'zip' /* or gz */)
 	{
 		# Prepare file, using a tempfile
-		$file = tempnam (sys_get_temp_dir(), 'temp' . self::generatePassword ($length = 6, true));
-		$zip = new ZipArchive ();
-		$zip->open ($file, ZipArchive::OVERWRITE);
+		$tmpFile = tempnam (sys_get_temp_dir(), 'temp' . self::generatePassword ($length = 6, true));
 		
-		# Add string content as a contained file and close file
-		$zip->addFromString ($asFilename, $string);
-		$zip->close ();
+		# Create depending on format
+		switch ($format) {
+			
+			# Gzip; on Linux shell out as this is more memory efficient
+			case 'gz':
+				if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+					#!# Needs to be replaced with chunk-based implementation for memory efficiency; see: http://stackoverflow.com/questions/6073397/how-do-you-create-a-gz-file-using-php
+					$gzip = gzopen ($tmpFile, 'w9');	// w9 is highest compression
+					gzwrite ($gzip, file_get_contents ($inputFile));	// #!# Will fail if input file is >2GB as that is max byte size of a PHP string
+					gzclose ($gzip);
+				} else {
+					copy ($inputFile, $tmpFile);	// Clone file to temp area as gzipping will otherwise remove the original file
+					$command = "gzip {$tmpFile}";
+					exec ($command);
+					rename ($tmpFile . '.gz', $tmpFile);	// Rename back, as gzip will have added .gz, so that the tempfile is at a predictable location
+				}
+				$mimeType = 'application/gzip';
+				break;
+				
+			# Zip
+			case 'zip':
+				$zip = new ZipArchive ();
+				$zip->open ($tmpFile, ZipArchive::OVERWRITE);
+				$zip->addFile ($inputFile, $asFilename);
+				$zip->close ();
+				$mimeType = 'application/zip';
+				break;
+		}
+		
+		# If a directory path for save is specified, write the file to its final location, give it group writability and return its path, leaving it in place
+		if ($saveToDirectory) {
+			$filename = $saveToDirectory . $asFilename . '.' . $format;
+			rename ($tmpFile, $filename);
+			$originalUmask = umask (0000);
+			chmod ($filename, 0664);
+			umask ($originalUmask);
+			return $filename;
+		}
 		
 		# Serve the file
-		header ('Content-Type: application/zip');
-		header ('Content-Length: ' . filesize ($file));
-		header ("Content-Disposition: attachment; filename=\"{$asFilename}.zip\"");		// e.g. filename.ext.zip
-		readfile ($file);
+		header ('Content-Type: ' . $mimeType);
+		header ('Content-Length: ' . filesize ($tmpFile));
+		header ("Content-Disposition: attachment; filename=\"{$asFilename}.{$format}\"");		// e.g. filename.ext.zip
+		readfile ($tmpFile);
 		
 		# Remove the tempfile
-		unlink ($file);
+		unlink ($tmpFile);
 	}
 	
 	
@@ -2924,14 +2959,14 @@ class application
 	
 	
 	# Equivalent of file_get_contents but for POST rather than GET
-	public static function file_post_contents ($url, $postData, $multipart = false, &$error = '')
+	public static function file_post_contents ($url, $postData, $multipart = false, &$error = '', $userAgent = 'Proxy for: %HTTP_USER_AGENT')
 	{
 		# Create a CURL instance
 		$handle = curl_init ();
 		curl_setopt ($handle, CURLOPT_URL, $url);
 		
 		# Set the user agent
-		$userAgent = 'Proxy for: ' . $_SERVER['HTTP_USER_AGENT'];
+		$userAgent = str_replace ('%HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT'], $userAgent);
 		curl_setopt ($handle, CURLOPT_USERAGENT, $userAgent);
 		
 		# When not multipart (i.e. when a file is not included), build the data into a string: see http://stackoverflow.com/a/5224895/180733 "If value is an array, the Content-Type header will be set to multipart/form-data"
@@ -3008,6 +3043,38 @@ class application
 		
 		# Return success
 		return true;
+	}
+	
+	
+	# Function to handle running a python process securely without writing out any files
+	public static function createProcess ($command, $string)
+	{
+		# Set the descriptors
+		$descriptorspec = array (
+			0 => array ('pipe', 'r'),  // stdin is a pipe that the child will read from
+			1 => array ('pipe', 'w'),  // stdout is a pipe that the child will write to
+			// 2 => array ('file', '/tmp/error-output.txt', 'a') // stderr is a file to write to
+		);
+		
+		# Assume failure unless the command works
+		$returnStatus = 1;
+		
+		# Create the process
+		$command = str_replace ("\r\n", "\n", $command);	// Standardise to Unix newlines
+		$process = proc_open ($command, $descriptorspec, $pipes);
+		if (is_resource ($process)) {
+			fwrite ($pipes[0], $string);
+			fclose ($pipes[0]);
+			$output = stream_get_contents ($pipes[1]);
+			fclose ($pipes[1]);
+			$returnStatus = proc_close ($process);
+		}
+		
+		# Return false as the output if the return status is a failure
+		if ($returnStatus) {return false;}	// Unix return status >0 is failure
+		
+		# Return the output
+		return $output;
 	}
 	
 	

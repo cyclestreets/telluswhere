@@ -309,6 +309,9 @@ class telluswhere
 			$this->createDatabaseStructure ($databaseFile);
 		}
 		
+		# Ensure the database file itself is writable
+		if (!is_writable ($databaseFile)) {return false;}
+		
 		# Set a flag to indicate first-run mode
 		$this->isFirstRun = false;
 		

@@ -365,7 +365,7 @@ class telluswhere
 			  `id` INTEGER PRIMARY KEY,						-- Article number
 			  `area` VARCHAR(255),							-- Area
 			  `title` VARCHAR(255) NOT NULL,				-- Title
-			  `urlMoniker` VARCHAR(255) NOT NULL,			-- Web address
+			  `urlMoniker` VARCHAR(255) NOT NULL UNIQUE,			-- Web address
 			  `articleRichtext` TEXT NOT NULL,				-- Text of article
 			  `name` VARCHAR(255) NOT NULL,					-- Your name
 			  `date` DATE									-- Date

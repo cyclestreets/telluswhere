@@ -61,6 +61,7 @@ class news
 			table.lines td.value p:last-child {margin-bottom: 0;}
 			table.lines td:last-child ul:first-child {margin-top: 0;}
 			table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
+			span.warning {color: red;}
 		</style>";
 		
 		# If an area is selected, validate and confirm it

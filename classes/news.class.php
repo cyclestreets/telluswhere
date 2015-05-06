@@ -161,7 +161,11 @@ class news
 		if ($article = $this->form ($html, $article, $area)) {
 			
 			# Update the article
-			$this->databaseConnection->{$do} ('main', 'news', $article, $constraint);
+			if (!$this->databaseConnection->{$do} ('main', 'news', $article, $constraint)) {
+				$html = "\n<p>The database operation failed.</p>";
+				$this->html = $html;
+				return true;
+			}
 			$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
 			
 			# Reset the HTML

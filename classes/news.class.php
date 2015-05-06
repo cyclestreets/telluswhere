@@ -126,6 +126,9 @@ class news
 		# Edit article if required
 		if ($this->articleManipulate ($html, $data[0], $area)) {return;}
 		
+		# Delete article if required
+		if ($this->articleDelete ($html, $data[0])) {return;}
+		
 		# Show each article
 		$html .= $this->createList ($data, $area, $isSingle);
 		
@@ -180,6 +183,82 @@ class news
 		
 		# Signal editing has been occuring
 		return true;
+	}
+	
+	
+	# News article deletion
+	private function articleDelete ($html, $article)
+	{
+		# Do not run unless triggered
+		if (!isSet ($_GET['mode'])) {return;}
+		if ($_GET['mode'] != 'delete') {return;}
+		
+		# Take no action if the user is not an administrator
+		if (!$this->userIsAdministrator) {
+			$html = $this->telluswhere->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Start the HTML
+		$html .= "\n<h2>Delete article</h2>";
+		$html .= $this->createButton ('/news/' . ($area ? "{$area}/" : ''), 'Cancel');
+		
+		# Ensure the user is sure
+		$message = 'Do you really want to delete this article?';
+		$confirmation = 'Yes, delete this article';
+		$isSure = $this->areYouSure ($message, $confirmation, $html);
+		$html .= $this->showArticle ($article);
+		if (!$isSure) {
+			$this->html = $html;
+			return true;
+		}
+		
+		# Do deletion
+		if (!$this->databaseConnection->delete ('main', 'news', array ('id' => $article['id']))) {
+			$html = "\n<p class=\"warning\">There was a problem deleting the article.</p>";
+			$this->html = $html;
+			return true;
+		}
+
+		$html  = "\n<h2>Delete article</h2>";
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$html .= "\n<p>{$unicodeTick} The article has been deleted.</p>";
+		$html .= "\n<p><a href=\"{$this->baseUrl}/news/\">Return to main news page.</a></p>";
+		
+		# Register the HTML
+		$this->html = $html;
+		
+		# Signal editing has been occuring
+		return true;
+	}
+	
+	
+	# Function to add an 'Are you sure?' form
+	public function areYouSure ($message, $confirmation, &$html)
+	{
+		# Create the form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'formCompleteText' => false,
+			'nullText' => false,
+			'div' => 'graybox',
+			'displayRestrictions' => false,
+			'requiredFieldIndicator' => false,
+		));
+		$form->heading ('p', $message);
+		$form->checkboxes (array (
+			'name'				=> 'confirmation',
+			'title'				=> 'Confirm',
+			'values'			=> array ($confirmation),
+			'required'			=> true,	// Ensures that a submission must be ticked for the form to be successful
+		));
+		
+		# Process the form
+		$result = $form->process ($html);
+		
+		# Return status
+		return $result;
 	}
 	
 	
@@ -251,7 +330,7 @@ class news
 		# Link to edit
 		if ($showButtons) {
 			$html .= $this->createButton ($article['permalink'] . 'edit.html', 'Edit article');
-			$html .= $this->createButton ($article['permalink'] . 'delete.html', 'Delete article');
+			$html .= $this->createButton ($article['permalink'] . 'delete.html', 'Delete article &hellip;');
 		}
 		
 		# Surround with a div

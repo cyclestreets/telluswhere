@@ -1,4 +1,9 @@
 <?php
+
+ini_set ('session.name', 'session');
+if (!session_id ()) {session_start ();}
+
+
 /*
  * ### CKFinder : Configuration File - Basic Instructions
  *
@@ -30,8 +35,9 @@ function CheckAuthentication()
 	// user logs in your system. To be able to use session variables don't
 	// forget to add session_start() at the top of this file.
 
-	# Container authentication is used for pureContentEditor, so returning the presence of REMOTE_USER is enough
-	return ($_SERVER['REMOTE_USER']);
+//	# Container authentication is used for pureContentEditor, so returning the presence of REMOTE_USER is enough
+//	return ($_SERVER['REMOTE_USER']);
+	return (isset ($_SESSION['IsAuthorized']) && $_SESSION['IsAuthorized']);
 }
 
 // LicenseKey : Paste your license key here. If left blank, CKFinder will be

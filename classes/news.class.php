@@ -246,6 +246,37 @@ class news
 	# News article form
 	private function form (&$html = '', $data = array (), $area = false)
 	{
+		# Implement CKFinder auth control
+		$_SESSION['IsAuthorized'] = true;
+		$editorFileBrowserACL = array (
+			'/' => array (
+				'role' => '*',
+				'resourceType' => '*',
+				'folder' => '/',
+				'folderView' => true,	// This is necessary as otherwise it is not possible to traverse into lower folders
+				'folderCreate' => false,
+				'folderRename' => false,
+				'folderDelete' => false,
+				'fileView' => false,
+				'fileUpload' => false,
+				'fileRename' => false,
+				'fileDelete' => false,
+			),
+			'/images/news/' => array (
+				'role' => '*',
+				'resourceType' => '*',
+				'folder' => '/images/news/',
+				'folderView' => true,
+				'folderCreate' => false,
+				'folderRename' => false,
+				'folderDelete' => false,
+				'fileView' => true,
+				'fileUpload' => true,
+				'fileRename' => true,
+				'fileDelete' => true,
+			),
+		);
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -276,6 +307,7 @@ class news
 					'width'				=> 800,
 					'height'			=> 300,
 					'editorFileBrowser'	=> $this->baseUrl . '/js/ckfinder/',
+					'editorFileBrowserACL'	=> $editorFileBrowserACL,
 					'editorFileBrowserStartupPath'		=> '/images/news/',
 				),
 				'date'				=> array ('default' => 'timestamp', ),

@@ -232,16 +232,30 @@ class news
 		
 		# Show each article
 		foreach ($articles as $article) {
-			$html .= "\n<div class=\"graybox article\">";
-			$html .= "\n<h3>" . htmlspecialchars ($article['title']) . '</h3>';
-			$html .= "\n<p><em><a href=\"{$article['permalink']}\">#</a> Posted by " . htmlspecialchars ($article['name']) . ' on ' . date ('jS F, Y', strtotime ($article['date'] . ' 12:00:00')) . ($area ? '' : " in <a href=\"{$this->baseUrl}/news/{$article['area']}/\">" . htmlspecialchars ($this->areas[$article['area']]) . '</a>') . '.</em></p>';
-			$html .= $article['articleRichtext'];
-			
-			# Link to add news
-			$html .= $this->createButton ($article['permalink'] . 'edit.html', 'Edit article');
-			
-			$html .= "\n</div>";
+			$html .= $this->showArticle ($article, true);
 		}
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to render an article
+	private function showArticle ($article, $showButtons = false)
+	{
+		# Create the HTML
+		$html  = "\n<h3>" . htmlspecialchars ($article['title']) . '</h3>';
+		$html .= "\n<p><em><a href=\"{$article['permalink']}\">#</a> Posted by " . htmlspecialchars ($article['name']) . ' on ' . date ('jS F, Y', strtotime ($article['date'] . ' 12:00:00')) . ($area ? '' : " in <a href=\"{$this->baseUrl}/news/{$article['area']}/\">" . htmlspecialchars ($this->areas[$article['area']]) . '</a>') . '.</em></p>';
+		$html .= $article['articleRichtext'];
+		
+		# Link to edit
+		if ($showButtons) {
+			$html .= $this->createButton ($article['permalink'] . 'edit.html', 'Edit article');
+			$html .= $this->createButton ($article['permalink'] . 'delete.html', 'Delete article');
+		}
+		
+		# Surround with a div
+		$html = "\n<div class=\"graybox article\">" . $html . "\n</div>";
 		
 		# Return the HTML
 		return $html;

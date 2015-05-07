@@ -2224,19 +2224,27 @@ class telluswhere
 		$user = $this->sessionGet ('user');
 		if (!$user) {return false;}
 		
-		# Determine if the user is an administrator
-		$administratorsList = ($this->settings['administrators'] ? preg_split ("/\s+/", trim ($this->settings['administrators'])) : array ());
-		$this->userIsAdministrator = (in_array ($user['email'], $administratorsList));
-		
-		# Determine if the user is a downloader
-		$downloadersList = ($this->settings['downloaders'] ? preg_split ("/\s+/", trim ($this->settings['downloaders'])) : array ());
-		$this->userIsDownloader = (in_array ($user['email'], $downloadersList) || $this->userIsAdministrator);
+		# Determine privileges
+		$this->userIsAdministrator = $this->userIs ('administrators', $user['email']);
+		$this->userIsDownloader = $this->userIs ('downloaders', $user['email'], $this->userIsAdministrator);
 		
 		# Write the login status in the top-right
 		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a> | <a href=\"{$this->baseUrl}/batch/\">Batch</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a> | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
 		
 		# Return the user details
 		return $user;
+	}
+	
+	
+	# Function to parse a list of e-mails to check for privilege
+	private function userIs ($field, $email, $userIsAdministrator)
+	{
+		# If the user is an administrator, grant right
+		if ($userIsAdministrator) {return true;}
+		
+		# Determine if the user is an administrator
+		$emails = ($this->settings[$field] ? preg_split ("/\s+/", trim ($this->settings[$field])) : array ());
+		return (in_array ($email, $emails));
 	}
 	
 	

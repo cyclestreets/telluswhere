@@ -81,12 +81,12 @@ class telluswhere
 			'data' => array (
 				'description' => false,
 				'url' => '/data/',
-				'downloader' => true,
+				'rightRequired' => 'downloader',
 			),
 			'download' => array (
 				'description' => false,
 				'url' => false,
-				'downloader' => true,
+				'rightRequired' => 'downloader',
 			),
 			'admin' => array (
 				'description' => false,
@@ -235,7 +235,7 @@ class telluswhere
 		}
 		
 		# Require authentication if specified
-		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator']) || isSet ($this->actions[$this->action]['downloader'])) {
+		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator']) || isSet ($this->actions[$this->action]['rightRequired'])) {
 			if (!$this->user) {
 				$this->action = 'login';
 			}
@@ -251,8 +251,9 @@ class telluswhere
 		}
 		
 		# Require downloader privileges if specified
-		if (isSet ($this->actions[$this->action]['downloader'])) {
-			if (!$this->userIsDownloader) {
+		if (isSet ($this->actions[$this->action]['rightRequired'])) {
+			$property = 'userIs' . ucfirst ($this->actions[$this->action]['rightRequired']);
+			if (!$this->{$property}) {
 				$html = $this->page404 ();
 				echo $html;
 				return false;

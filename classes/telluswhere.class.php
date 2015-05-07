@@ -65,6 +65,7 @@ class telluswhere
 			'news' => array (
 				'description' => false,
 				'url' => '/news/',
+				'rightRequired' => 'newsEditor',
 			),
 			'about' => array (
 				'description' => false,
@@ -97,6 +98,7 @@ class telluswhere
 				'description' => false,
 				'url' => '/batch/',
 				'administrator' => true,
+				'rightRequired' => 'batchUploader',
 			),
 			'login' => array (
 				'description' => false,
@@ -125,6 +127,8 @@ class telluswhere
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	private $tmpFolder = '/tmp/';
 	private $userIsDownloader = false;
+	private $userIsBatchUploader = false;
+	private $userIsNewsEditor = false;
 	
 	# Labels for metadata fields
 	private $metadataFieldLabels = array (
@@ -349,6 +353,8 @@ class telluswhere
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
 			  `administrators` TEXT NOT NULL,				-- E-mail logins of administrators
 			  `downloaders` TEXT NOT NULL,					-- E-mail logins for access to downloads
+			  `batchUploaders` TEXT NULL,					-- E-mail logins for access to batch upload section
+			  `newsEditors` TEXT NULL,					-- E-mail logins for access to news editors
 			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
 			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
@@ -1576,6 +1582,7 @@ class telluswhere
 				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
 				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
 				'downloaders'		=> array ('description' => 'One e-mail address per line', ),
+				'batchUploaders'		=> array ('type' => 'textarea', ),
 				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: http://stackoverflow.com/questions/15303940/
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
@@ -2228,6 +2235,8 @@ class telluswhere
 		# Determine privileges
 		$this->userIsAdministrator = $this->userIs ('administrators', $user['email']);
 		$this->userIsDownloader = $this->userIs ('downloaders', $user['email'], $this->userIsAdministrator);
+		$this->userIsBatchUploader = $this->userIs ('batchUploaders', $user['email'], $this->userIsAdministrator);
+		$this->userIsNewsEditor = $this->userIs ('newsEditors', $user['email'], $this->userIsAdministrator);
 		
 		# Write the login status in the top-right
 		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a> | <a href=\"{$this->baseUrl}/batch/\">Batch</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a> | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";

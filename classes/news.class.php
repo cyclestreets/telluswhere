@@ -15,7 +15,7 @@ class news
 		$this->databaseConnection = $telluswhere->databaseConnection;
 		$this->settings = $telluswhere->settings;
 		$this->user = $telluswhere->user;
-		$this->userIsAdministrator = $telluswhere->userIsAdministrator;
+		$this->userIsNewsEditor = $telluswhere->userIsNewsEditor;
 		
 		# Get the areas
 		$this->areas = $areas;
@@ -147,8 +147,8 @@ class news
 		if (!isSet ($_GET['mode'])) {return;}
 		if ($_GET['mode'] != $action) {return;}
 		
-		# Take no action if the user is not an administrator
-		if (!$this->userIsAdministrator) {
+		# Take no action if the user is not a news editor
+		if (!$this->userIsNewsEditor) {
 			$html = $this->telluswhere->page404 ();
 			echo $html;
 			return false;
@@ -193,8 +193,8 @@ class news
 		if (!isSet ($_GET['mode'])) {return;}
 		if ($_GET['mode'] != 'delete') {return;}
 		
-		# Take no action if the user is not an administrator
-		if (!$this->userIsAdministrator) {
+		# Take no action if the user is not a news editor
+		if (!$this->userIsNewsEditor) {
 			$html = $this->telluswhere->page404 ();
 			echo $html;
 			return false;
@@ -286,8 +286,8 @@ class news
 	# Function to create a button
 	private function createButton ($url, $text)
 	{
-		# Take no action if the user is not an administrator
-		if (!$this->userIsAdministrator) {return false;}
+		# Take no action if the user is not a news editor
+		if (!$this->userIsNewsEditor) {return false;}
 		
 		# Compile the HTML
 		$html = "\n<p class=\"actionbutton\"><a href=\"{$this->baseUrl}{$url}\">{$text}</a></p>";

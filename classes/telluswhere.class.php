@@ -65,7 +65,6 @@ class telluswhere
 			'news' => array (
 				'description' => false,
 				'url' => '/news/',
-				'rightRequired' => 'newsEditor',
 			),
 			'about' => array (
 				'description' => false,
@@ -128,7 +127,7 @@ class telluswhere
 	private $tmpFolder = '/tmp/';
 	private $userIsDownloader = false;
 	private $userIsBatchUploader = false;
-	private $userIsNewsEditor = false;
+	public $userIsNewsEditor = false;
 	
 	# Labels for metadata fields
 	private $metadataFieldLabels = array (

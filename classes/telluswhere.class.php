@@ -2238,7 +2238,17 @@ class telluswhere
 		$this->userIsNewsEditor = $this->userIs ('newsEditors', $user['email'], $this->userIsAdministrator);
 		
 		# Write the login status in the top-right
-		$this->template['login-status'] = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']) . ($this->userIsAdministrator ? " | <a href=\"{$this->baseUrl}/admin/\">Admin</a> | <a href=\"{$this->baseUrl}/batch/\">Batch</a>" : '') . ($this->userIsDownloader ? " | <a href=\"{$this->baseUrl}/data/\">Data</a>" : '') . " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a> | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
+		$loginStatusHtml  = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']);
+		if ($this->userIsAdministrator) {
+			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>";
+			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/batch/\">Batch</a>";
+		}
+		if ($this->userIsDownloader) {
+			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/data/\">Data</a>";
+		}
+		$loginStatusHtml .= " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a>";
+		$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
+		$this->template['login-status'] = $loginStatusHtml;
 		
 		# Return the user details
 		return $user;

@@ -7,7 +7,7 @@ class news
 	private $html = '';
 	
 	# Constructor
-	public function __construct ($telluswhere, $areas)
+	public function __construct ($telluswhere, $areas, $userIsNewsEditor)
 	{
 		# Create handles to the properties
 		$this->telluswhere = $telluswhere;
@@ -15,11 +15,12 @@ class news
 		$this->databaseConnection = $telluswhere->databaseConnection;
 		$this->settings = $telluswhere->settings;
 		$this->user = $telluswhere->user;
-		$this->userIsNewsEditor = $telluswhere->userIsNewsEditor;
 		
 		# Get the areas
 		$this->areas = $areas;
 		
+		# Get the editing rights
+		$this->userIsNewsEditor = $userIsNewsEditor;
 	}
 	
 	

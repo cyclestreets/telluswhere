@@ -127,7 +127,7 @@ class telluswhere
 	private $tmpFolder = '/tmp/';
 	private $userIsDownloader = false;
 	private $userIsBatchUploader = false;
-	public $userIsNewsEditor = false;
+	private $userIsNewsEditor = false;
 	
 	# Labels for metadata fields
 	private $metadataFieldLabels = array (
@@ -1387,7 +1387,7 @@ class telluswhere
 		
 		# Load the news module
 		require_once ('classes/news.class.php');
-		$news = new news ($this, $areas);
+		$news = new news ($this, $areas, $this->userIsNewsEditor);
 		$news->main ();
 		$html = $news->getHtml ();
 		

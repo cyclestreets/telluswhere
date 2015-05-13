@@ -2241,10 +2241,12 @@ class telluswhere
 		$loginStatusHtml  = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']);
 		if ($this->userIsAdministrator) {
 			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>";
-			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/batch/\">Batch</a>";
 		}
 		if ($this->userIsDownloader) {
 			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/data/\">Data</a>";
+		}
+		if ($this->userIsBatchUploader) {
+			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/batch/\">Batch</a>";
 		}
 		$loginStatusHtml .= " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a>";
 		$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";

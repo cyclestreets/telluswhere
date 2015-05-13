@@ -2248,6 +2248,9 @@ class telluswhere
 		if ($this->userIsBatchUploader) {
 			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/batch/\">Batch</a>";
 		}
+		if ($this->userIsNewsEditor) {
+			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/news/\">News</a>";
+		}
 		$loginStatusHtml .= " | <a title=\"Link to embed page (public)\" href=\"{$this->baseUrl}/embed/\">Embed</a>";
 		$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/logout/\">Logout</a></p>";
 		$this->template['login-status'] = $loginStatusHtml;

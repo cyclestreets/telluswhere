@@ -325,7 +325,7 @@ class news
 	{
 		# Create the HTML
 		$html  = "\n<h3>" . htmlspecialchars ($article['title']) . '</h3>';
-		$html .= "\n<p><em><a href=\"{$article['permalink']}\">#</a> Posted by " . htmlspecialchars ($article['name']) . ' on ' . date ('jS F, Y', strtotime ($article['date'] . ' 12:00:00')) . ($area ? '' : " in <a href=\"{$this->baseUrl}/news/{$article['area']}/\">" . htmlspecialchars ($this->areas[$article['area']]) . '</a>') . '.</em></p>';
+		$html .= "\n<p><em><a href=\"{$article['permalink']}\">#</a> Posted by " . htmlspecialchars ($article['name']) . ' on ' . date ('jS F, Y', strtotime ($article['date'] . ' 12:00:00')) . ($article['area'] ? " in <a href=\"{$this->baseUrl}/news/{$article['area']}/\">" . htmlspecialchars ($this->areas[$article['area']]) . '</a>' : '') . '.</em></p>';
 		$html .= $article['articleRichtext'];
 		
 		# Link to edit
@@ -397,7 +397,7 @@ class news
 			'data' => $data,
 			'exclude' => array ('id'),
 			'attributes' => array (
-				'area'				=> array ('type' => 'select', 'values' => $this->areas, 'nullText' => 'No specific area', 'default' => $area),
+				'area'				=> array ('type' => 'select', 'values' => $this->areas, 'nullText' => '(No specific area)', 'default' => $area),
 				'urlMoniker'		=> array ('regexp' => '^([-_a-z0-9]+)$', 'placeholder' => 'E.g. title-of-article', 'prepend' => '/news/&lt;date&gt;/ ', 'size' => 40, ),
 				'articleRichtext'	=> array (
 					'editorBasePath'	=> $this->baseUrl . '/js/ckeditor/',

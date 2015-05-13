@@ -96,7 +96,6 @@ class telluswhere
 			'batch' => array (
 				'description' => false,
 				'url' => '/batch/',
-				'administrator' => true,
 				'rightRequired' => 'batchUploader',
 			),
 			'login' => array (

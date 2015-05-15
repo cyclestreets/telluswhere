@@ -2231,7 +2231,7 @@ class telluswhere
 		if (!$user) {return false;}
 		
 		# Determine privileges
-		$this->userIsAdministrator = $this->userIs ('administrators', $user['email']);
+		$this->userIsAdministrator = $this->userIs ('administrators', $user['email'], NULL);
 		$this->userIsDownloader = $this->userIs ('downloaders', $user['email'], $this->userIsAdministrator);
 		$this->userIsBatchUploader = $this->userIs ('batchUploaders', $user['email'], $this->userIsAdministrator);
 		$this->userIsNewsEditor = $this->userIs ('newsEditors', $user['email'], $this->userIsAdministrator);

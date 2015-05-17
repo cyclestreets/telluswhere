@@ -1755,10 +1755,10 @@ class telluswhere
 			div.graybox p {text-align: left; margin-top: 10px;}
 		</style>";
 		$instructionBoxHtml .= "\n<div class=\"graybox\">";
-		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations in a spreadsheet.</p>";
+		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations (either {$requiredLocationFieldsHtml}) in a spreadsheet.</p>";
 		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row, as shown in this example:</p>";
 		$instructionBoxHtml .= "\n\t<p><img src=\"{$this->baseUrl}/images/multipleupload.png\" alt=\"Multiple upload example\" width=\"606\" height=\"172\" /></p>";
-		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: " . $requiredLocationFieldsHtml . "<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
+		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: {$requiredLocationFieldsHtml}<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
 		$instructionBoxHtml .= "\n\t<p>If you have <strong>images</strong> of the locations, you will need to create a zip file of all the files. If these have been taken on a phone which captures the location automatically, that will be used in preference to the given latitutde/longitudes.</p>";
 		$instructionBoxHtml .= "\n</div>";
 		

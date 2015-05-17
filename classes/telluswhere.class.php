@@ -1834,7 +1834,7 @@ class telluswhere
 		# Ensure any images specified are present
 		$missingImages = array ();
 		foreach ($data as $index => $location) {
-			if ($location['filename']) {
+			if (isSet ($location['filename']) && $location['filename']) {
 				if (!is_file ($this->imagesDirectory . $location['filename'])) {
 					$missingImages[] = $location['filename'];
 				}
@@ -1908,7 +1908,7 @@ class telluswhere
 		# Determine if the submission has images
 		$hasImages = false;
 		foreach ($stage1Data as $index => $location) {
-			if ($location['filename']) {
+			if (isSet ($location['filename']) && $location['filename']) {
 				$hasImages = true;
 				break;	// No point checking for more
 			}
@@ -2009,11 +2009,13 @@ class telluswhere
 				'latitude'		=> $result["location_{$i}"]['latitude'],
 				'longitude'		=> $result["location_{$i}"]['longitude'],
 				'zoom'			=> $result["location_{$i}"]['zoom'],
-				'filename'		=> $stage1Data[$i]['filename'],
 				'metacategory'	=> $stage1Data[$i]['metacategory'],
 				'name'			=> $stage1Data[$i]['name'],
 				'email'			=> $stage1Data[$i]['email'],
 			);
+			if (isSet ($stage1Data[$i]['filename'])) {
+				$data[$i]['filename'] = $stage1Data[$i]['filename'];
+			}
 		}
 		
 		# Register the HTML

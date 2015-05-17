@@ -1918,6 +1918,25 @@ class telluswhere
 		$table = array ();
 		foreach ($stage1Data as $index => $location) {
 			
+			# Take account of any posted map changes in the map display
+			if ($_POST[$formName]) {	// If form posted
+				if (isSet ($_POST[$formName]["location_{$index}"])) {
+					$fields = array ('latitude', 'longitude', 'zoom');
+					foreach ($fields as $field) {
+						$collectionPresent = true;
+						if (!isSet ($_POST[$formName]["location_{$index}"][$field]) || !preg_match ('/^[-.0-9]+$/', $_POST[$formName]["location_{$index}"][$field])) {
+							$collectionPresent = false;
+							break;
+						}
+					}
+					if ($collectionPresent) {
+						foreach ($fields as $field) {
+							$location[$field] = $_POST[$formName]["location_{$index}"][$field];
+						}
+					}
+				}
+			}
+			
 			# Define the map JS
 			$mapJsHtml = "
 				<div id=\"map{$index}\" class=\"confirmationmap\" style=\"width: 250px; height: 120px; border: 1px solid gray;\"></div>

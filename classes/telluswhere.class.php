@@ -1818,7 +1818,7 @@ class telluswhere
 		# Validate and assemble the TSV data
 		$data = array ();
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
-			if ($unfinalisedData['metacategory'] && $unfinalisedData['metadata']) {
+			if ($unfinalisedData['metadata']) {
 				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $permittedFields, $requiredFields, $errorMessage)) {
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}

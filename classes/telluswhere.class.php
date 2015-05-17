@@ -1719,8 +1719,7 @@ class telluswhere
 		
 		# Define the location fields
 		$locationFields = array (
-			'latitude',
-			'longitude',
+			'international'	=> array ('latitude', 'longitude'),
 		);
 		
 		# Define other, optional fields
@@ -1730,7 +1729,11 @@ class telluswhere
 		);
 		
 		# Define a required fields list string; this has to be done manually because only one latitude/longitude nothings/eastings pair is required
-		$requiredLocationFieldsHtml = implode (',', $locationFields);
+		$requiredLocationFieldsHtml = array ();
+		foreach ($locationFields as $locationFieldGroup) {
+			$requiredLocationFieldsHtml[] = implode (', ', $locationFieldGroup);
+		}
+		$requiredLocationFieldsHtml = implode (' OR ', $requiredLocationFieldsHtml);
 		
 		# Define the metacategory labels
 		$metacategories = array ();
@@ -1815,7 +1818,7 @@ class telluswhere
 		$data = array ();
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
 			if ($unfinalisedData['metadata']) {
-				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $optionalFields, $locationFields, $errorMessage)) {
+				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 			}
@@ -2027,19 +2030,35 @@ class telluswhere
 	
 	
 	# Function to process submitted TSV batch string and assemble the data from it
-	private function getBatchData ($tsv, $optionalFields, $locationFields, &$errorMessage = '')
+	private function getBatchData ($tsv, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
 	{
 		# Parse the TSV string
 		require_once ('csv.php');
 		$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true);
 		
-		# Ensure headers are valid and that required headers are present
-		foreach ($data as $filename => $metadata) {
-			$invalidFields = array_diff (array_keys ($metadata), array_merge ($optionalFields, $locationFields));
-			$missingLocationFields = array_diff ($locationFields, array_keys ($metadata));
-			break;	// Only check the first row, i.e. the heading row
+		# Extract the fields in the data by taking the first row of data
+		$fields = array_keys ($data[0]);
+		
+		# Ensure one of the location sets is present
+		$locationGroupPresent = array ();
+		foreach ($locationFields as $type => $locationFieldGroup) {
+			if (!array_diff ($locationFieldGroup, $fields)) {
+				$locationGroupPresent[] = $type;
+			}
 		}
-		if ($invalidFields || $missingLocationFields) {
+		if (!$locationGroupPresent) {
+			$errorMessage = "The data does not appear to contain a valid pair of location columns - {$requiredLocationFieldsHtml}.";
+			return false;
+		}
+		if (count ($locationGroupPresent) > 1) {
+			$errorMessage = "The data appears to contain more than one pair of location columns - {$requiredLocationFieldsHtml}.";
+			return false;
+		}
+		$typeChosen = $locationGroupPresent[0];
+		
+		# Ensure headers are valid and that required headers are present
+		$invalidFields = array_diff ($fields, array_merge ($optionalFields, $locationFields[$typeChosen]));
+		if ($invalidFields) {
 			$errorMessage = "The fields in the pasted data do not match the specification noted below. Please correct the spreadsheet and try again.";
 			return false;
 		}

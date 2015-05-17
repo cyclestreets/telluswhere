@@ -1974,6 +1974,7 @@ class telluswhere
 			'div' => 'lines',
 			'display' => 'template',
 			'displayTemplate' => $instructionBoxHtml . '{[[PROBLEMS]]}' . $template . '{[[SUBMIT]]}',
+			'errorsCssClass'			=> 'notification error',
 			'submitButtonText' => 'Confirm',
 		));
 		foreach ($stage1Data as $index => $location) {

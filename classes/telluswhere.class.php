@@ -2063,6 +2063,12 @@ class telluswhere
 			return false;
 		}
 		
+		# Convert co-ordinates to lat/lon if required
+		if ($typeChosen != 'international') {
+			$conversionFunction = 'convertCoordinates' . ucfirst ($typeChosen);		// e.g. convertCoordinatesOs
+			$data = $this->{$conversionFunction} ($data);
+		}
+		
 		# Return the data
 		return $data;
 	}

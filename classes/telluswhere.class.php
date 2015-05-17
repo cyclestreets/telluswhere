@@ -2043,7 +2043,7 @@ class telluswhere
 			break;	// Only check the first row, i.e. the heading row
 		}
 		if ($invalidFields || $missingRequiredFields) {
-			$errorMessage = "The fields in the pasted data do not match the specification noted above. Please correct the spreadsheet and try again.";
+			$errorMessage = "The fields in the pasted data do not match the specification noted below. Please correct the spreadsheet and try again.";
 			return false;
 		}
 		

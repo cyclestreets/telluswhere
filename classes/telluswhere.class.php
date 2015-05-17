@@ -1717,24 +1717,20 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Define the required fields
-		$permittedFields = array (
-			'longitude'		=> true,
-			'latitude'		=> true,
-			'caption'		=> false,
-			'filename'		=> false,
+		# Define the location fields
+		$locationFields = array (
+			'latitude',
+			'longitude',
 		);
 		
-		# Determine the required and optional fields
-		$requiredFields = array ();
-		$optionalFields = array ();
-		foreach ($permittedFields as $field => $required) {
-			if ($required) {
-				$requiredFields[] = $field;
-			} else {
-				$optionalFields[] = $field;
-			}
-		}
+		# Define other, optional fields
+		$optionalFields = array (
+			'caption',
+			'filename',
+		);
+		
+		# Define a required fields list string; this has to be done manually because only one latitude/longitude nothings/eastings pair is required
+		$requiredLocationFieldsHtml = implode (',', $locationFields);
 		
 		# Define the metacategory labels
 		$metacategories = array ();
@@ -1758,7 +1754,7 @@ class telluswhere
 		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations in a spreadsheet.</p>";
 		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row, as shown in this example:</p>";
 		$instructionBoxHtml .= "\n\t<p><img src=\"{$this->baseUrl}/images/multipleupload.png\" alt=\"Multiple upload example\" width=\"606\" height=\"172\" /></p>";
-		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: " . implode (', ', $requiredFields) . "<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
+		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: " . $requiredLocationFieldsHtml . "<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
 		$instructionBoxHtml .= "\n\t<p>If you have <strong>images</strong> of the locations, you will need to create a zip file of all the files. If these have been taken on a phone which captures the location automatically, that will be used in preference to the given latitutde/longitudes.</p>";
 		$instructionBoxHtml .= "\n</div>";
 		
@@ -1819,7 +1815,7 @@ class telluswhere
 		$data = array ();
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
 			if ($unfinalisedData['metadata']) {
-				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $permittedFields, $requiredFields, $errorMessage)) {
+				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $optionalFields, $locationFields, $errorMessage)) {
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 			}
@@ -2031,7 +2027,7 @@ class telluswhere
 	
 	
 	# Function to process submitted TSV batch string and assemble the data from it
-	private function getBatchData ($tsv, $permittedFields, $requiredFields, &$errorMessage = '')
+	private function getBatchData ($tsv, $optionalFields, $locationFields, &$errorMessage = '')
 	{
 		# Parse the TSV string
 		require_once ('csv.php');
@@ -2039,11 +2035,11 @@ class telluswhere
 		
 		# Ensure headers are valid and that required headers are present
 		foreach ($data as $filename => $metadata) {
-			$invalidFields = array_diff (array_keys ($metadata), array_keys ($permittedFields));
-			$missingRequiredFields = array_diff ($requiredFields, array_keys ($metadata));
+			$invalidFields = array_diff (array_keys ($metadata), array_merge ($optionalFields, $locationFields));
+			$missingLocationFields = array_diff ($locationFields, array_keys ($metadata));
 			break;	// Only check the first row, i.e. the heading row
 		}
-		if ($invalidFields || $missingRequiredFields) {
+		if ($invalidFields || $missingLocationFields) {
 			$errorMessage = "The fields in the pasted data do not match the specification noted below. Please correct the spreadsheet and try again.";
 			return false;
 		}

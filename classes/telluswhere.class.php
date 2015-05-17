@@ -1720,6 +1720,7 @@ class telluswhere
 		# Define the location fields
 		$locationFields = array (
 			'international'	=> array ('latitude', 'longitude'),
+			'os'			=> array ('northings', 'eastings'),
 		);
 		
 		# Define other, optional fields
@@ -2070,6 +2071,24 @@ class telluswhere
 		}
 		
 		# Return the data
+		return $data;
+	}
+	
+	
+	# Function to convert OS co-ordinates to lat/lon
+	private function convertCoordinatesOs ($data)
+	{
+		# Load required library
+		require_once ('libraries/osLonLat.class.class.php');
+		
+		# Convert each set, and remove the original values
+		foreach ($data as $index => $location) {
+			list ($data[$index]['latitude'], $data[$index]['longitude']) = osLonLat::EastingNorthingToLatLong ($location['eastings'], $location['northings']);
+			unset ($data[$index]['northings']);
+			unset ($data[$index]['eastings']);
+		}
+		
+		# Return the modified dataset
 		return $data;
 	}
 	

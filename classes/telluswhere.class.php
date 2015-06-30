@@ -37,7 +37,7 @@ class telluswhere
 				'description' => 'Suggested cycle parking location',
 				'descriptionMultiple' => 'Suggested cycle parking locations',
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype,capacity',
 			),
@@ -45,7 +45,7 @@ class telluswhere
 				'description' => 'Current cycle parking location',
 				'descriptionMultiple' => 'Current cycle parking locations',
 				'url' => '/current/',
-				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,likes,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40&fields=id,latitude,longitude,name,nodeId,osmTags',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
@@ -732,7 +732,7 @@ class telluswhere
 		# Get the data for this location
 		$id = $_GET['id'];
 		#!# /v2/photomap.location metacategoryId,categoryId are inconsistent with metacategory,category in photomap.add/photomap.update
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryId,categoryId,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl' . '&thumbnailsize=400';
+		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryId,categoryId,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl,likes' . '&thumbnailsize=400';
 		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
@@ -754,8 +754,29 @@ class telluswhere
 			return false;
 		}
 		
-		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'current')
+		# Assign the virtual action (e.g. if the data's metacategory is 'bad', then the action is 'suggest')
 		$action = $this->metacategories[$data['metacategoryId']];
+		
+		# Divert to Like action if required
+		if (isSet ($_GET['mode'])) {
+			if ($_GET['mode'] == 'like') {
+				
+				# Permit only on suggested parking page
+				if ($action != 'suggest') {
+					$html = $this->page404 ();
+					echo $html;
+					return false;
+				}
+				
+				# Delegate to Like class
+				require_once ('classes/like.class.php');
+				$like = new like ($this);
+				$like->main ($data);
+				$html .= $like->getHtml;
+				echo $html;
+				return false;
+			}
+		}
 		
 		# Start an editing rights session and determine if the user has edit rights
 		$userCanEdit = NULL;
@@ -1081,6 +1102,16 @@ class telluswhere
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
 			
+			/* Likes */
+			#likes {margin: 0; float: right; padding-top: 0; margin-top: 0; color: #999; background-color: #fcfcfc; padding: 2px 5px 0; border: 1px solid #eee; margin-left: 4px;}
+			#likes.liked {border: 1px solid #999;}
+			#likes span {padding-left: 2px;}
+			#likes.changed {animation: yellow-fade 2s ease-in 1;}
+			@keyframes yellow-fade {
+				0% {background: yellow;}
+				100% {background: none;}
+			}
+			
 			/* \'Lines\' table style */
 			table.lines {border-collapse: collapse; /* width: 95%; */}
 			.lines td, .lines th {border-bottom: 1px solid #e9e9e9; padding: 6px 8px 2px 1px; vertical-align: top; text-align: left;}
@@ -1108,7 +1139,7 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?9\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?10\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
 		</script>
@@ -2144,7 +2175,7 @@ class telluswhere
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',
-			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,shortlink,license",
+			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,shortlink,license" . ($dataset == 'suggest' ? ',likes' : ''),
 			'datetime'		=> 'sqldatetime',
 		);
 		

@@ -108,6 +108,28 @@ var telluswhere = (function ($) {
 				_currentDataLayer2.addTo(map);
 			}
 			
+			// Add support for Like clicks
+			$('body').on('click','#likes a', function(event){	// http://stackoverflow.com/a/19133666/180733
+				event.preventDefault();
+				$.ajax({
+					url: $(this).attr('href'),
+					success: function(data) {
+						$('#likescurrent').text(data.total);
+						if(data.liked) {
+							$('#likes').addClass('liked');
+						} else {
+							$('#likes').removeClass('liked');
+						}
+						$('#likes').removeClass('changed');
+						$('#likes').addClass('changed');
+					},
+					error: function (xhr, status, error) {
+						var data = $.parseJSON(xhr.responseText);
+						alert(data.error);
+					}
+				});
+			});
+			
 			// Determine whether to use JSONP transport instead of JSON for the marker layer calls (for older browsers)
 			_useJsonpTransport = telluswhere.useJsonpTransport();
 			
@@ -353,6 +375,21 @@ var telluswhere = (function ($) {
 		// Define HTML to be used in the popup
 		popupHtml: function(properties) {
 			
+			// Determine whether to show the Like facility
+			var enableLike = (properties.metacategoryId == 'bad');
+			
+			// Determine if the user has Liked the location
+			if (enableLike) {
+				var isLiked = false;
+				var cookieValue = telluswhere.readCookie('photomap-like-' + properties.id);
+				if (cookieValue) {
+					cookieValue = decodeURIComponent(cookieValue);
+					if (cookieValue.split(':')[1] == '1') {
+						isLiked = true;
+					}
+				}
+			}
+			
 			var html = ''
 			+ '<div class="bubble">'
 			
@@ -363,6 +400,16 @@ var telluswhere = (function ($) {
 				: '<a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>'
 			)
 			+ '</p>'
+			
+			// Like button
+			+ (enableLike ? 
+				  '<div id="likes"' + (isLiked ? ' class="liked"' : '') + '>'
+				+ '	<a href="' + _baseUrl + '/location/' + properties.id + '/like/"><img src="/images/icons/thumb_up.png" class="icon" /></a>'
+				+ '	<span id="likescurrent">' + properties.likes + '</span>'
+				+ '</div>'
+			: '')
+			
+			//  Caption
 			+ '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br(telluswhere.truncateString(properties.caption, 200),true)) + '</p>'
 			
 			// Image
@@ -628,8 +675,20 @@ var telluswhere = (function ($) {
 			
 			// Return the status
 			return formOk;
-		}
+		},
 		
+		
+		// Cookie reading function; see: http://www.quirksmode.org/js/cookies.html
+		readCookie: function(name) {
+		    var nameEQ = name + "=";
+		    var ca = document.cookie.split(';');
+		    for(var i=0;i < ca.length;i++) {
+		        var c = ca[i];
+		        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+		    }
+		    return null;
+		}
 	};
 	
 })(jQuery);

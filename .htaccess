@@ -21,8 +21,8 @@ RewriteRule ^(suggest|current|embed|news|about|terms|contacts|data|admin|batch|l
 RewriteRule ^(suggest|current|embed|news|about|terms|contacts|data|admin|login|batch|logout)$ /$1/ [L,R=301]
 RewriteRule ^(location)/([1-9][0-9]*)/$ index.html?action=$1&id=$2 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)$ /$1/$2/ [L,R=301]
-RewriteRule ^(location)/([1-9][0-9]*)/(edit)/$ index.html?action=$1&id=$2&mode=$3 [L,QSA]
-RewriteRule ^(location)/([1-9][0-9]*)/(edit)$ /$1/$2/$3/ [L,R=301]
+RewriteRule ^(location)/([1-9][0-9]*)/(edit|like)/$ index.html?action=$1&id=$2&mode=$3 [L,QSA]
+RewriteRule ^(location)/([1-9][0-9]*)/(edit|like)$ /$1/$2/$3/ [L,R=301]
 RewriteRule ^(location)/([1-9][0-9]*)/problem/$ index.html?action=problem&id=$2 [L,QSA]
 RewriteRule ^(suggest|current)/embed/$ index.html?action=embed&type=$1 [L,QSA]
 RewriteRule ^(suggest|current)/embed$ /$1/embed/ [L,R=301]
@@ -43,6 +43,7 @@ RewriteCond %{REQUEST_FILENAME} !/images/multipleupload\.png$
 RewriteCond %{REQUEST_FILENAME} !/images/pencil\.png$
 RewriteCond %{REQUEST_FILENAME} !/images/ui-anim_basic_16x16\.gif$
 RewriteCond %{REQUEST_FILENAME} !/images/categories
+RewriteCond %{REQUEST_FILENAME} !/images/icons
 RewriteCond %{REQUEST_FILENAME} !/images/news
 RewriteCond %{REQUEST_FILENAME} !/js/ckeditor
 RewriteCond %{REQUEST_FILENAME} !/js/ckfinder

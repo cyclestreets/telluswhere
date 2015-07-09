@@ -114,7 +114,8 @@ var telluswhere = (function ($) {
 				$.ajax({
 					url: $(this).attr('href'),
 					success: function(data) {
-						$('#likescurrent').text(data.total);
+						var totalLikes = (data.total > 0 ? data.total : '');
+						$('#likescurrent').text(totalLikes);
 						if(data.liked) {
 							$('#likes').addClass('liked');
 						} else {
@@ -405,7 +406,7 @@ var telluswhere = (function ($) {
 			+ (enableLike ? 
 				  '<div id="likes"' + (isLiked ? ' class="liked"' : '') + '>'
 				+ '	<a href="' + _baseUrl + '/location/' + properties.id + '/like/"><img src="/images/icons/thumb_up.png" class="icon" /></a>'
-				+ '	<span id="likescurrent">' + properties.likes + '</span>'
+				+ '	<span id="likescurrent">' + (properties.likes > 0 ? properties.likes : '') + '</span>'
 				+ '</div>'
 			: '')
 			

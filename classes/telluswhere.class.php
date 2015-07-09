@@ -1123,6 +1123,9 @@ class telluswhere
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
 		';
+		if (!$this->userIsBatchUploader) {
+			$html .= '<style type="text/css">#likes {display: none;}</style>';
+		}
 		if (!$viewOnlyMode) {
 			if (!$selectedIdData) {
 				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';

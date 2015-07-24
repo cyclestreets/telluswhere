@@ -1103,7 +1103,7 @@ class telluswhere
 			p.metadata {margin-bottom: 2em;}
 			
 			/* Likes */
-			#likes {margin: 0; float: right; padding-top: 0; margin-top: 0; color: #999; background-color: #fcfcfc; padding: 2px 5px 0; border: 1px solid #eee; margin-left: 4px;}
+			#likes {margin: 0; float: right; min-width: 3em; padding-top: 0; margin-top: 0; color: #999; background-color: #fcfcfc; padding: 2px 5px 0; border: 1px solid #eee; margin-left: 4px;}
 			#likes.liked {border: 1px solid #999;}
 			#likes span {padding-left: 2px;}
 			#likes.changed {animation: yellow-fade 2s ease-in 1;}
@@ -1123,6 +1123,9 @@ class telluswhere
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 		</style>
 		';
+		if (!$this->userIsBatchUploader) {
+			$html .= '<style type="text/css">#likes {display: none;}</style>';
+		}
 		if (!$viewOnlyMode) {
 			if (!$selectedIdData) {
 				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';

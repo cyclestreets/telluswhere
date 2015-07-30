@@ -329,6 +329,8 @@ var telluswhere = (function ($) {
 			_geolocationData = telluswhere.extractGeolocationData(exifObject);
 			if(_geolocationData) {
 				telluswhere.setMarkerLatitudeLongitude(_geolocationData.latitude, _geolocationData.longitude);
+			} else {
+				alert ('Please now set the location on the map.');
 			}
 			//console.log(exifObject);
 		},

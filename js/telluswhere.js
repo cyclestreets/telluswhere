@@ -383,16 +383,9 @@ var telluswhere = (function ($) {
 			// Determine whether to show the Like facility
 			var enableLike = (properties.metacategoryId == 'bad');
 			
-			// Determine if the user has Liked the location
+			// Determine if the user has Liked the location, by reading the cookie
 			if (enableLike) {
-				var isLiked = false;
-				var cookieValue = telluswhere.readCookie('photomap-like-' + properties.id);
-				if (cookieValue) {
-					cookieValue = decodeURIComponent(cookieValue);
-					if (cookieValue.split(':')[1] == '1') {
-						isLiked = true;
-					}
-				}
+				var isLiked = telluswhere.isLiked (properties.id);
 			}
 			
 			var html = ''
@@ -454,6 +447,35 @@ var telluswhere = (function ($) {
 			
 			// Return HTML
 			return html;
+		},
+		
+		
+		// Function to determine whether a location is liked
+		isLiked: function(id) {
+			
+			// Read the cookie
+			var cookieValue = telluswhere.readCookie('photomap-like');
+			if (cookieValue) {
+				cookieValue = decodeURIComponent(cookieValue);
+				
+				// Split as token, IDs
+				var cookieValueComponents = cookieValue.split(':');
+				if (cookieValueComponents.length == 2) {
+					
+					// Split IDs to array
+					var cookieValueLiked = cookieValueComponents[1].split(',');
+					if (cookieValueLiked.length > 0) {
+						
+						// See if the the supplied ID (as string) is in the list
+						if ($.inArray (id.toString(), cookieValueLiked) > -1) {	// http://api.jquery.com/jQuery.inArray/
+							return true;
+						}
+					}
+				}
+			}
+			
+			// Not found or not liked
+			return false;
 		},
 		
 		

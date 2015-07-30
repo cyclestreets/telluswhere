@@ -5,6 +5,9 @@
  */
 class like
 {
+	# Class properties
+	var $likeCookieName = 'photomap-like';
+	
 	# Constructor
 	public function __construct ($telluswhere)
 	{
@@ -29,12 +32,13 @@ class like
 	public function isLiked ($id)
 	{
 		# Read the cookie value
-		$likeCookieName = $this->likeCookieName ($id);
-		$likeCookieValue = $this->likeCookieValue ($likeCookieName);
-		$state = $likeCookieValue['state'];
+		$likeCookieValue = $this->likeCookieValue ();
 		
-		# Return the augmented template array
-		return $state;
+		# Determine if the ID is in the list
+		$isLiked = (in_array ($id, $likeCookieValue['liked']));
+		
+		# Return the state
+		return $is;
 	}
 	
 	
@@ -86,13 +90,14 @@ class like
 		$id = $data['id'];
 		
 		# Retrieve the token from the cookie if set, or create the token
-		$cookieName = $this->likeCookieName ($id);
-		$hasCookie = (isSet ($_COOKIE[$cookieName]));
+		$hasCookie = (isSet ($_COOKIE[$this->likeCookieName]));
 		if ($hasCookie) {
-			$cookieValue = $this->likeCookieValue ($cookieName);
+			$cookieValue = $this->likeCookieValue ();
 			$token = $cookieValue['token'];
+			$liked = $cookieValue['liked'];
 		} else {
 			$token = md5 ('like' . time ());
+			$liked = array ();
 		}
 		
 		# Post to the public API
@@ -106,45 +111,49 @@ class like
 			return array ('error' => $result['error']);
 		}
 		
-		# Set the new total
-		$data['likes'] = $result['total'];
-		
 		# Set whether the user Liked the location (rather than removed the Like)
-		$data['liked'] = $result['liked'];
+		if ($result['liked']) {
+			$liked[] = $id;
+			$liked = array_unique ($liked);
+		} else {
+			$liked = array_diff ($liked, array ($id));	// Remove if present
+		}
 		
 		# Set the new cookie value
-		$cookieValue = $token . ':' . ($result['liked'] ? '1' : '0');
+		$cookieValue = $token . ':' . implode (',', $liked);
 		$validityDays = 365;
 		$timePeriod = time () + 60*60*24 * $validityDays;
 		$wholeServer = $this->baseUrl . '/';
-		setcookie ($cookieName, $cookieValue, $timePeriod, $wholeServer);
+		setcookie ($this->likeCookieName, $cookieValue, $timePeriod, $wholeServer);
 		
-		# Return the data
+		# Return the data obtained from the API
 		return $result;
 	}
 	
 	
-	# Helper function to return the Like cookie name for an ID
-	private function likeCookieName ($id)
-	{
-		return "photomap-like-{$id}";
-	}
-	
-	
 	# Helper function to return the Like cookie state
-	private function likeCookieValue ($cookieName)
+	private function likeCookieValue ()
 	{
 		# End if no cookie
-		if (!isSet ($_COOKIE[$cookieName])) {
+		if (!isSet ($_COOKIE[$this->likeCookieName])) {
 			return array (
 				'token' => false,
-				'state' => '0',
+				'liked' => array (),
 			);
 		}
 		
 		# Unpack and return the value
 		$data = array ();
-		list ($data['token'], $data['state']) = explode (':', $_COOKIE[$cookieName]);
+		list ($data['token'], $data['liked']) = explode (':', $_COOKIE[$this->likeCookieName]);
+		
+		# Convert the liked list into an array
+		if ($data['liked']) {
+			$data['liked'] = explode (',', $data['liked']);
+		} else {
+			$data['liked'] = array ();
+		}
+		
+		# Return the data
 		return $data;
 	}
 }

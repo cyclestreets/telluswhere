@@ -179,21 +179,21 @@ class telluswhere
 		
 		# Add additional settings from the database, ensuring the database is set up
 		if (!$this->settings = $this->getSettings ($fixedSettings)) {
-			$html = "\n<p class=\"warning\">The website could not be set up due to a configuration error. Please check back shortly.</p>";
+			$html = "\n<p class=\"warning\">The website could not be set up due to a configuration error (error #1). Please check back shortly.</p>";
 			echo $html;
 			return false;
 		}
 		
 		# Determine the tmp directory in use for file uploads and ensure it is writeable
 		if (!$this->tmpDirectory = $this->getWritableDirectory ($this->tmpFolder)) {
-			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
+			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error (error #2). Please check back shortly.</p>";
 			echo $html;
 			return false;
 		}
 		
 		# Determine the style directory in use
 		if (!$this->styleDirectory = $this->getStyleDirectory ($this->settings['style'])) {
-			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
+			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error (error #3). Please check back shortly.</p>";
 			echo $html;
 			return false;
 		}
@@ -540,7 +540,7 @@ class telluswhere
 #!# Move this check to constructor - should not have part of site working but not all
 		# Ensure the fileinfo extension is loaded
 		if (!function_exists ('finfo_open')) {
-			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error. Please check back shortly.</p>";
+			$this->html .= "\n<p class=\"warning\">The website could not be loaded due to a configuration error (error #4). Please check back shortly.</p>";
 			echo $this->html;
 			return true;
 		}

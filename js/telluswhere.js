@@ -154,7 +154,7 @@ var telluswhere = (function ($) {
 			
 			// EXIF callback for file upload
 			try {
-				$('#form_file_0').change(function() {
+				$('#form_filename_0').change(function() {
 					$(this).fileExif(telluswhere.exifCallback);
 				});
 			}

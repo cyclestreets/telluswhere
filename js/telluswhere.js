@@ -118,8 +118,10 @@ var telluswhere = (function ($) {
 						$('#likescurrent').text(totalLikes);
 						if(data.liked) {
 							$('#likes').addClass('liked');
+							$('#likestext').text('Agreed!');
 						} else {
 							$('#likes').removeClass('liked');
+							$('#likestext').text('Agree?');
 						}
 						$('#likes').removeClass('changed');
 						$('#likes').addClass('changed');
@@ -404,10 +406,12 @@ var telluswhere = (function ($) {
 			
 			// Like button
 			+ (enableLike ? 
-				  '<div id="likes"' + (isLiked ? ' class="liked"' : '') + '>'
-				+ '	<a href="' + _baseUrl + '/location/' + properties.id + '/like/"><img src="/images/icons/thumb_up.png" class="icon" /></a>'
+				  '<div id="likes"' + (isLiked ? ' class="liked"' : '') + '><p>'
+				+ '	<a href="' + _baseUrl + '/location/' + properties.id + '/like/"><img src="/images/icons/thumb_up.png" class="icon" />'
+				+ ' <span id="likestext">' + (isLiked ? 'Agreed!' : 'Agree?') + '</span>'
+				+ '</a>'
 				+ '	<span id="likescurrent">' + (properties.likes > 0 ? properties.likes : '') + '</span>'
-				+ '</div>'
+				+ '</p></div>'
 			: '')
 			
 			//  Caption

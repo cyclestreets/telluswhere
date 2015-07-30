@@ -1103,13 +1103,19 @@ class telluswhere
 			p.metadata {margin-bottom: 2em;}
 			
 			/* Likes */
-			#likes {margin: 0; float: right; min-width: 3em; padding-top: 0; margin-top: 0; color: #999; background-color: #fcfcfc; padding: 2px 5px 0; border: 1px solid #eee; margin-left: 4px;}
+			#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; border: 1px solid #eee; background-color: #fcfcfc; border-radius: 5px;}
+			#likes {transition: background-color .5s ease-in-out; transition: border-color .5s ease-in-out;}
+			#likes:hover {background-color: #eee; border-color: gray;}
 			#likes.liked {border: 1px solid #999;}
+			#likes p {margin: 0; padding: 0; line-height: 16px;}
+			#likes p img, #likes p span {vertical-align: middle;}
+			#likes p span, #likes a {color: gray; text-decoration: none;}
 			#likes span {padding-left: 2px;}
+			#likes.liked #likestext {color: #603;}
 			#likes.changed {animation: yellow-fade 2s ease-in 1;}
 			@keyframes yellow-fade {
-				0% {background: yellow;}
-				100% {background: none;}
+				0% {background-color: yellow;}
+				100% {background-color: none;}
 			}
 			
 			/* \'Lines\' table style */
@@ -1142,7 +1148,7 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?10\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?11\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
 		</script>

@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
- * Version 2.4.19
+ * Version 2.5.0
  * Uses prepared statements (see http://stackoverflow.com/questions/60174/best-way-to-stop-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -23,7 +23,7 @@ class database
 	
 	
 	# Function to connect to the database
-	public function __construct ($hostname, $username, $password, $database = NULL, $vendor = 'mysql', $logFile = false, $userForLogging = false, $unicode = true, $driverOptions = array ())
+	public function __construct ($hostname, $username, $password, $database = NULL, $vendor = 'mysql', $logFile = false, $userForLogging = false, $nativeTypes = false /* NB: a future release will change this to true */, $setNamesUtf8 = true, $driverOptions = array ())
 	{
 		# Assign the user for logging
 		$this->logFile = $logFile;
@@ -43,10 +43,18 @@ class database
 			}
 		}
 		
+		# Enable native types if required; currently implemented and tested only for MySQL; note that this requires the pdo-mysqlnd driver to be installed
+		if ($nativeTypes) {
+			if ($vendor == 'mysql') {
+				$driverOptions[PDO::ATTR_EMULATE_PREPARES] = false;
+				$driverOptions[PDO::ATTR_STRINGIFY_FETCHES] = false;	// This seems to be the default anyway
+			}
+		}
+		
 		# Connect to the database and return the status
 		if ($vendor == 'sqlite') {
 			$dsn = 'sqlite:' . $database;	// Database should be a filename with absolute path
-			$unicode = false;	// Disable SET NAMES statement
+			$setNamesUtf8 = false;
 		} else {
 			$dsn = "{$vendor}:host={$hostname}" . ($database ? ";dbname={$database}" : '');
 		}
@@ -58,7 +66,7 @@ class database
 		}
 		
 		# Set transfers to UTF-8
-		if ($unicode) {
+		if ($setNamesUtf8) {
 			$this->execute ("SET NAMES 'utf8'");
 			// # The following is a more portable version that could be used instead
 			//$charset = $this->getVariable ('character_set_database');
@@ -358,9 +366,12 @@ class database
 			$filenameBase .= '_savedAt' . date ('Ymd-His');
 		}
 		
+		# Determine the directory save location
+		$directory = ($saveToDirectory ? $saveToDirectory : sys_get_temp_dir () . '/');
+		
 		# Determine filename; the routine always writes to a file, even if this is subsequently removed, to avoid over-length strings (internal string size is max 2GB)
 		$filename = $filenameBase . '.csv';
-		$file = $saveToDirectory . $filename;
+		$file = $directory . $filename;
 		
 		# Delete any existing file, e.g. from an improperly-terminated run
 		if (is_file ($file)) {
@@ -420,7 +431,7 @@ class database
 		# Publish, by sending a header and then echoing the data
 		header ('Content-type: application/octet-stream');
 		header ('Content-Disposition: attachment; filename="' . $filename . '"');
-		echo $csv;
+		readfile ($file);
 		
 		# Delete the file
 		unlink ($file);
@@ -1045,7 +1056,10 @@ class database
 		
 		# Determine the number of fields in the data by checking against the first item in the dataset
 		require_once ('application.php');
-		if (!$fields = application::arrayFieldsConsistent ($dataSet)) {return false;}
+		if (!$fields = application::arrayFieldsConsistent ($dataSet)) {
+			#!# This needs to set an error so that a subsequent ->error() call shows useful information
+			return false;
+		}
 		
 		# Assemble the field names
 		$fields = '`' . implode ('`,`', $fields) . '`';

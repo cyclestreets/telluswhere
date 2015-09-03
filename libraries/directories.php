@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.1.2
+# Version 1.1.3
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -237,7 +237,7 @@ class directories
 	
 	
 	# Function to obtain an array of file details from a directory
-	public static function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false, $skipUnreadableFiles = true)
+	public static function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false, $skipUnreadableFiles = true, $skipZeroLengthFiles = false)
 	{
 		# Append the document root to the current directory (for the lifetime of this function only)
 		if (!$directoryIsFromRoot) {$directory = $_SERVER['DOCUMENT_ROOT'] . $directory;}
@@ -275,7 +275,16 @@ class directories
 					# Skip a file if it is not readable
 					if ($skipUnreadableFiles) {
 						#!# Fails if directory has no trailing slash
-						if (!is_readable ($directory . $file)) {continue;}
+						if (!is_readable ($directory . $file)) {
+							continue;
+						}
+					}
+					
+					# Skip zero-length files if required
+					if ($skipZeroLengthFiles) {
+						if (!filesize ($directory . $file)) {
+							continue;
+						}
 					}
 					
 					# Assign the file to the array if required

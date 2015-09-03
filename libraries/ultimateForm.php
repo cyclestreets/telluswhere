@@ -114,7 +114,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.22.1';
+	var $version = '1.22.3';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -452,7 +452,7 @@ class form
 		$widget->uniquenessCheck ();
 		
 		# Add autocomplete functionality if required
-		$widget->autocomplete ($arguments);
+		$widget->autocomplete ($arguments, ($arguments['expandable'] ? $subwidgets : false));
 		
 		# Add tags functionality if required
 		$widget->tags ();
@@ -2345,6 +2345,7 @@ class form
 			'separatorSpecialSetdatatype' => ',',	# Separator used for the special-setdatatype output types
 			'separatorSurround'		=> false,	# Whether, for the compiled and presented output types, if there are any output values, the separator should also be used to surround the values (e.g. |value1|value2|value3| rather than value1|value2|value3 for separator = '|')
 			'forceAssociative'		=> false,	# Force the supplied array of values to be associative
+			'labels'				=> true,	# Whether to generate labels
 			'linebreaks'			=> $this->settings['linebreaks'],	# Whether to put line-breaks after each widget: true = yes (default) / false = none / array (1,2,5) = line breaks after the 1st, 2nd, 5th items
 			'columns'				=> false,	# Split into columns
 			'discard'				=> false,	# Whether to process the input but then discard it in the results
@@ -2465,8 +2466,8 @@ class form
 				$disabled = ((isSet ($arguments['disabled'][$value]) && $arguments['disabled'][$value]) ? ' disabled="disabled"' : '');
 				
 				# Create the HTML; note that spaces (used to enable the 'label' attribute for accessibility reasons) in the ID will be replaced by an underscore (in order to remain valid XHTML)
-//				//$widgetHtml .= "\n\t\t\t" . '<input type="checkbox" name="' . ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}]" : $arguments['name']) . "[{$value}]" . '" id="' . $elementId . '" value="true"' . $stickynessHtml . ' /><label for="' . $elementId . '">' . htmlspecialchars ($visible) . '</label>';
-				$subelementsWidgetHtml[$value] = '<input type="checkbox"' . $this->nameIdHtml ($arguments['name'], false, $value, true) . ' value="true"' . $stickynessHtml . (($arguments['autofocus'] && $subwidgetIndex == 1)  ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml ($subwidgetIndex - 1) . $disabled . ' /><label for="' . $elementId . '">' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>';
+//				//$widgetHtml .= "\n\t\t\t" . '<input type="checkbox" name="' . ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}]" : $arguments['name']) . "[{$value}]" . '" id="' . $elementId . '" value="true"' . $stickynessHtml . ' />' . ($arguments['labels'] ? '<label for="' . $elementId . '">' . htmlspecialchars ($visible) . '</label>' : '');
+				$subelementsWidgetHtml[$value] = '<input type="checkbox"' . $this->nameIdHtml ($arguments['name'], false, $value, true) . ' value="true"' . $stickynessHtml . (($arguments['autofocus'] && $subwidgetIndex == 1)  ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml ($subwidgetIndex - 1) . $disabled . ' />' . ($arguments['labels'] ? '<label for="' . $elementId . '">' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>' : '');
 				$widgetHtml .= "\n\t\t\t\t" . ($splitIntoColumns ? "\t\t" : '') . $subelementsWidgetHtml[$value];
 				
 				# Add a line/column breaks when required

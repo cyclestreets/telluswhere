@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
- * Version 1.5.19
+ * Version 1.5.22
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -1222,8 +1222,8 @@ class application
 	public static function makeClickableLinks ($text, $addMailto = false, $replaceVisibleUrlWithText = false, $target = '_blank')
 	{
 		$delimiter = '!';
-		$text = preg_replace ($delimiter . '(((ftp|http|https)://)[-a-zA-Z0-9@:%_\+.~#?&//=;]+[-a-zA-Z0-9@:%_\+~#?&//=]+)' . "{$delimiter}i", '<a' . ($target ? " target=\"{$target}\"" : '') . ' href="$1">' . ($replaceVisibleUrlWithText ? $replaceVisibleUrlWithText : '$1') . '</a>', $text);
-		$text = preg_replace ($delimiter . '([\s()[{}])(www.[-a-zA-Z0-9@:%_\+.~#?&//=;]+[-a-zA-Z0-9@:%_\+~#?&//=]+)' . "{$delimiter}i", '$1<a' . ($target ? " target=\"{$target}\"" : '') . ' href="http://$2">' . ($replaceVisibleUrlWithText ? $replaceVisibleUrlWithText : '$2') . '</a>', $text);
+		$text = preg_replace ($delimiter . '(((ftp|http|https)://)[-a-zA-Z0-9@:%_\+.,~#?&//=;]+[-a-zA-Z0-9@:%_\+~#?&//=]+)' . "{$delimiter}i", '<a' . ($target ? " target=\"{$target}\"" : '') . ' href="$1">' . ($replaceVisibleUrlWithText ? $replaceVisibleUrlWithText : '$1') . '</a>', $text);
+		$text = preg_replace ($delimiter . '([\s()[{}])(www.[-a-zA-Z0-9@:%_\+.,~#?&//=;]+[-a-zA-Z0-9@:%_\+~#?&//=]+)' . "{$delimiter}i", '$1<a' . ($target ? " target=\"{$target}\"" : '') . ' href="http://$2">' . ($replaceVisibleUrlWithText ? $replaceVisibleUrlWithText : '$2') . '</a>', $text);
 		if ($addMailto) {$text = preg_replace ($delimiter . '([_\.0-9a-z-]+@([0-9a-z][0-9a-z-]+\.)+[a-z]{2,3})' . "{$delimiter}i", '<a href="mailto:$1">$1</a>', $text);}
 		return $text;
 	}
@@ -1663,6 +1663,44 @@ class application
 	}
 	
 	
+	# Function to rename fields in a dataset
+	public static function array_rename_dataset_fields ($dataset, $substitutions)
+	{
+		# Work through each record
+		$datasetAmended = array ();
+		foreach ($dataset as $key => $record) {
+			foreach ($record as $field => $value) {
+				
+				# Determine the new field if available
+				if (array_key_exists ($field, $substitutions)) {
+					if (is_null ($substitutions[$field])) {continue;}	// Skip fields marked as NULL
+					$field = $substitutions[$field];
+				}
+				
+				# Register in the result array
+				$datasetAmended[$key][$field] = $value;
+			}
+		}
+		
+		# Return the amended dataset
+		return $datasetAmended;
+	}
+	
+	
+	# Function to extract a single field from a dataset, returning an array of the values
+	public static function array_extract_dataset_field ($dataset, $field)
+	{
+		# Extract the values
+		$data = array ();
+		foreach ($dataset as $key => $record) {
+			$data[$key] = (array_key_exists ($field, $record) ? $record[$field] : NULL);	// Return NULL for this key if the field is not found
+		}
+		
+		# Return the array
+		return $data;
+	}
+	
+	
 	# Function to check the fieldnames in an associative array are consistent, and to return a list of them
 	public static function arrayFieldsConsistent ($dataSet)
 	{
@@ -1869,7 +1907,7 @@ class application
 		foreach ($unit as $name => $contents) {
 			$last = $lastOnly && is_array ($contents) && (empty ($contents));
 			$queryText = ($last ? '' : ($carryOverQueryText ? ($level != 0 ? $carryOverQueryText . ':' : '') : ($level + 1) . ':')) . str_replace (' ', '+', strtolower ($name));
-			$link = ($last /*(substr ($name, 0, 1) != '<')*/ ? "<a href=\"{$baseUrl}/category/{$queryText}\">" : '');
+			$link = ($last /*(substr ($name, 0, 1) != '<')*/ ? "<a href=\"{$baseUrl}/{$queryText}/\">" : '');
 			$html .= "\n\t{$tabs}<li>{$link}" . htmlspecialchars ($name) . ($link ? '</a>' : '');
 			if (is_array ($contents) && (!empty ($contents))) {
 				$html .= self::htmlUlHierarchical ($contents, false, ($carryOverQueryText ? $queryText : false), $lastOnly, $lowercaseLinks, ($level + 1), $baseUrl);
@@ -2961,18 +2999,32 @@ class application
 	# Equivalent of file_get_contents but for POST rather than GET
 	public static function file_post_contents ($url, $postData, $multipart = false, &$error = '', $userAgent = 'Proxy for: %HTTP_USER_AGENT')
 	{
+		# Define the user agent
+		$userAgent = str_replace ('%HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT'], $userAgent);
+		
+		# If not requiring multipart, avoid requirement for cURL
+		if (!$multipart) {
+			
+			# Set the stream options
+			$streamOptions = array (
+				'http' => array (
+					'method'		=> 'POST',
+					'header'		=> 'Content-type: application/x-www-form-urlencoded',
+					'user_agent'	=> $userAgent,
+					'content'		=> http_build_query ($postData),
+				)
+			);
+			
+			# Post the data and return the result
+			return file_get_contents ($url, false, stream_context_create ($streamOptions));
+		}
+		
 		# Create a CURL instance
 		$handle = curl_init ();
 		curl_setopt ($handle, CURLOPT_URL, $url);
 		
 		# Set the user agent
-		$userAgent = str_replace ('%HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT'], $userAgent);
 		curl_setopt ($handle, CURLOPT_USERAGENT, $userAgent);
-		
-		# When not multipart (i.e. when a file is not included), build the data into a string: see http://stackoverflow.com/a/5224895/180733 "If value is an array, the Content-Type header will be set to multipart/form-data"
-		if (!$multipart) {
-			$postData = http_build_query ($postData);
-		}
 		
 		# Build the POST query
 		curl_setopt ($handle, CURLOPT_POST, 1);

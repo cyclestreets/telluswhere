@@ -114,7 +114,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.22.3';
+	var $version = '1.22.4';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -4349,8 +4349,13 @@ class form
 			}
 		}
 		
+		# In template mode, add the auto-generated fields
+		if ($this->settings['display'] == 'template') {
+			$this->settings['displayTemplate'] .= "\n\t<label class=\"__token\">{__token}</label>";
+		}
+		
 		# Register CSS to hide the HTML
-		$this->html .= "\n" . '<style type="text/css">form tr.__token {display: none;}</style>';
+		$this->html .= "\n" . '<style type="text/css">form .__token {display: none;}</style>';
 	}
 	
 	

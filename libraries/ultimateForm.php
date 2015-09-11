@@ -41,11 +41,8 @@
  * If attempting to set in .htaccess, remove admin_ from the directives
  * 
  * <code>
- * php_flag register_globals 0
  * php_flag display_errors 0
- * php_flag magic_quotes_gpc 0
- * php_flag magic_quotes_sybase 0
- * php_value error_reporting 2047
+ * php_value error_reporting -1
  * 
  * # If using file uploads also include the following and set a suitable amount in MB; upload_max_filesize must not be more than post_max_size
  * php_admin_flag file_uploads 1
@@ -114,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.22.4';
+	var $version = '1.23.0';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -7144,6 +7141,7 @@ class form
 		$argumentDefaults = array (
 			'database' => NULL,
 			'table' => NULL,
+			'callback' => array (),		// array (object, dataBindingCallbackMethod), with object containing function dataBindingCallback () returning $fields;
 			'attributes' => array (),
 			'data' => array (),
 			'includeOnly' => array (),
@@ -7173,6 +7171,12 @@ class form
 			'notNullExceptFields' => array (),	// Assume all elements are treated as NOT NULL (even if the database structure says they are nullable), except for these specified elements (or single element as string)
 		);
 		
+		# If a callback is supplied, set database and table to be optional
+		if (isSet ($suppliedArguments['callback']) && ($suppliedArguments['callback'])) {
+			$argumentDefaults['database']	= false;
+			$argumentDefaults['table']		= false;
+		}
+		
 		# Merge the arguments
 		$arguments = application::assignArguments ($this->formSetupErrors, $suppliedArguments, $argumentDefaults, 'dataBinding');
 		foreach ($arguments as $key => $value) {
@@ -7180,12 +7184,29 @@ class form
 			$$key = $value;
 		}
 		
+		# If there is a callback, check its existence
+		if ($callback) {
+			if (!is_callable ($callback)) {
+				$this->formSetupErrors['dataBindingCallbackNotCallable'] = 'Data binding has been requested, but the callback is not callable.';
+				return false;
+			}
+			list ($callbackObject, $callbackMethod) = $callback;
+		}
+		
+		# Avoid callback crashes when using lookupFunction/simpleJoin as support is not yet enabled below
+		if ($callback && ($lookupFunction || $simpleJoin)) {
+			$this->formSetupErrors['dataBindingCallbackAdvanced'] = 'The databinding callback feature is not yet available when using lookupFunction and/or simpleJoin.';
+			return false;
+		}
+		
 		# Ensure there is a database connection or exit here (errors will already have been thrown)
 		if (!$this->databaseConnection) {
-			if ($this->databaseConnection === NULL) {	// rather than === NULL, which means no connection requested
-				$this->formSetupErrors['dataBindingNoDatabaseConnection'] = 'Data binding has been requested, but no valid database connection has been set up in the main settings.';
+			if (!$callback) {	// Unless using callback
+				if ($this->databaseConnection === NULL) {	// rather than === NULL, which means no connection requested
+					$this->formSetupErrors['dataBindingNoDatabaseConnection'] = 'Data binding has been requested, but no valid database connection has been set up in the main settings.';
+				}
+				return false;
 			}
-			return false;
 		}
 		
 		# Global the dataBinding connection details
@@ -7197,7 +7218,17 @@ class form
 		# If simple join mode is enabled, proxy in the values for lookupFunction
 		if ($simpleJoin) {
 			$lookupFunction = array ('database', 'lookup');
-			$tables = $this->databaseConnection->getTables ($database);	// Table lookup needed for the simple pluraliser which will favour pluralised table names (e.g. field 'caseId' will look for a table 'cases' then 'case')
+/*
+Work-in-progress implementation for callback; need to complete: (i) form setup checks to determine whether databaseConnection is needed, and (ii) implementing callback mode for uses of the database connection below
+			if ($callback) {
+				$callbackMethodTables = $callbackMethod . 'GetTables';
+				$tables = $callbackObject->{$callbackMethodTables} ();
+			} else {
+*/
+				$tables = $this->databaseConnection->getTables ($database);	// Table lookup needed for the simple pluraliser which will favour pluralised table names (e.g. field 'caseId' will look for a table 'cases' then 'case')
+/*
+			}
+*/
 		}
 		
 		# Ensure any lookup function has been defined
@@ -7221,7 +7252,12 @@ class form
 		$notNullExceptFields	= application::ensureArray ($notNullExceptFields);
 		
 		# Get the database fields
-		if (!$fields = $this->databaseConnection->getFields ($database, $table)) {
+		if ($callback) {
+			$fields = $callbackObject->{$callbackMethod} ();
+		} else {
+			$fields = $this->databaseConnection->getFields ($database, $table);
+		}
+		if (!$fields) {
 			$this->formSetupErrors['dataBindingFieldRetrievalFailed'] = 'The database fields could not be retrieved. Please check that the database library you are using is supported.';
 			return false;
 		}

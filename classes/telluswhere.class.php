@@ -432,7 +432,7 @@ class telluswhere
 		$templateHtml = templating::convertDesignerHtmlToTemplate ($page, $this->styleDirectory, $this->replacedPlaceholders, $this->getStyleDirectory (true));
 		
 		# Get the HTML
-		$html = templating::doTemplateSubstitution ($templateHtml, $this->template);
+		$html = templating::doTemplateSubstitution ($templateHtml, $this->template, $this->styleDirectory);
 		
 		# Return the HTML
 		return $html;

@@ -258,8 +258,12 @@ class telluswhere
 			}
 		}
 		
-		# Load the template
-		$this->templateHtml = $this->getTemplateHtml ($this->action);
+		# Load the template; if not present, fallback to 404 page
+		if (!$this->templateHtml = $this->getTemplateHtml ($this->action)) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
 		
 		# Determine the supported metacategories and the action they are mapped to
 		$this->metacategories = array ();
@@ -447,6 +451,13 @@ class telluswhere
 		
 		# Determine the location of the template
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
+		
+		# If the template does not exist, and the action is optional, signal this by returning false
+		if (!file_exists ($_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $templateLocation)) {
+			if (isSet ($this->actions[$this->action]['optional']) && $this->actions[$this->action]['optional']) {
+				return false;
+			}
+		}
 		
 		# Obtain the template
 		$html = templating::convertDesignerHtmlToTemplate ($templateLocation, $this->styleDirectory, $this->replacedPlaceholders, $this->getStyleDirectory (true));

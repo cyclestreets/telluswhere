@@ -317,7 +317,12 @@ class telluswhere
 		# Obtain the settings
 		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
 			$this->isFirstRun = true;
-			$databaseSettings = array ('administrators' => false, 'downloaders' => false);	// $databaseSettings = false would crash array_merge below
+			$databaseSettings = array (	// $databaseSettings = false would crash array_merge below
+				'administrators' => false,
+				'downloaders' => false,
+				'batchUploaders' => false,
+				'newsEditors' => false,
+			);
 		}
 		
 		# Add in the database settings, with the database settings taking priority

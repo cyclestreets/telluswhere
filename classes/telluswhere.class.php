@@ -474,8 +474,13 @@ class telluswhere
 	
 	
 	# Function to take an extracted part of the template and convert to ultimateForm form template format
-	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $selectedIdData = false)
+	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $optional = false, $selectedIdData = false)
 	{
+		# If internal placeholdering is optional, if there are no internal placeholders, end, meaning the form will be treated as a single block
+		if ($optional) {
+			if (!$this->replacedPlaceholders) {return false;}
+		}
+		
 		# Obtain the form template which was extracted during the template pre-processing
 		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
 		
@@ -1236,7 +1241,7 @@ class telluswhere
 		}
 		
 		# Determine the form template
-		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, $data);
+		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, false, $data);
 		
 		# Determine whether an existing photo already exists
 		$existingPhoto = ($existingData && $existingData['hasPhoto'] ? $existingData['thumbnailUrl'] : false);

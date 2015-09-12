@@ -133,6 +133,12 @@ class telluswhere
 	private $userIsBatchUploader = false;
 	private $userIsNewsEditor = false;
 	
+	# Labels for known categories
+	private $categoryLabels = array (
+		'cycleparking'	=> 'Cycle parking',
+		'obstructions'	=> 'Obstructions',
+	);
+	
 	# Labels for metadata fields
 	private $metadataFieldLabels = array (
 		'type'		=> 'Type of parking',
@@ -282,6 +288,7 @@ class telluswhere
 		$this->categories = ($this->settings['categories'] ? preg_split ("/\s+/", trim ($this->settings['categories'])) : array ());	// The ternary exists because first run will have none
 		
 		# Perform the action, which will write into the page template array
+		#!# Need to handle 404s properly by using return value for each action
 		$this->{$this->action} ();
 		
 		# Render the page
@@ -355,7 +362,7 @@ class telluswhere
 			  `username` VARCHAR(255) NOT NULL,				-- Username for submissions
 			  `password` VARCHAR(255) NOT NULL,				-- Password for submissions
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
-			  `categories` VARCHAR(255) NOT NULL,					-- Categories
+			  `categories` TEXT NOT NULL,					-- Categories
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
@@ -622,11 +629,50 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# If there are multiple categories, force selection
+		$category = $this->categories[0];
+		if (count ($this->categories) > 1) {
+			
+			# Force selection if not specified
+			if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
+				$this->template['form'] = $this->categorySelection ();
+				return true;
+			}
+			
+			# End if not valid
+			if (!in_array ($_GET['category'], $this->categories)) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+			
+			# Register the category
+			$category = $_GET['category'];
+		}
+		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $existingData);
+		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
+	}
+	
+	
+	# Function to create category selection
+	private function categorySelection ()
+	{
+		# Create the list
+		$list = array ();
+		foreach ($this->categories as $category) {
+			$list[$category] = "<a href=\"{$this->baseUrl}/suggest/{$category}/\">" . htmlspecialchars ($this->categoryLabels[$category]) . '</a>';
+		}
+		
+		# Compile the HTML
+		$html  = "\n<p>Please select a category:</p>";
+		$html .= application::htmlUl ($list, 0, 'spaced');
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -637,7 +683,8 @@ class telluswhere
 		$html = '';
 		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $existingData);
+		$category = $this->categories[0];	// #!# Multiple category support not yet in place
+		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -905,7 +952,7 @@ class telluswhere
 	
 	
 	# Submission page logic
-	private function submissionPage ($action, $existingData = array ())
+	private function submissionPage ($action, $category, $existingData = array ())
 	{
 		# Start the HTML
 		$html = '';
@@ -916,7 +963,7 @@ class telluswhere
 		}
 		
 		# Send the data (including any image) to the API
-		if (!$result = $this->postSubmission ($data, $action, $this->tmpDirectory, $existingData, $errorText)) {
+		if (!$result = $this->postSubmission ($data, $action, $category, $this->tmpDirectory, $existingData, $errorText)) {
 			$html = "\n<p class=\"warning\">" . htmlspecialchars ($errorText) . '</p>';
 			return $html;
 		}
@@ -968,7 +1015,7 @@ class telluswhere
 	
 	
 	# Function to post submissions to the API
-	private function postSubmission ($rawdata, $action, $filePath, $existingData, &$errorText = '')
+	private function postSubmission ($rawdata, $action, $category, $filePath, $existingData, &$errorText = '')
 	{
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
@@ -989,7 +1036,7 @@ class telluswhere
 			'username'				=> $this->settings['username'],
 			'password'				=> $this->settings['password'],
 			'metacategory'			=> $this->actions[$action]['metacategory'],
-			'category'				=> 'cycleparking',
+			'category'				=> $category,
 			'caption'				=> $rawdata['caption'],
 			'latitude'				=> $rawdata['latitude'],
 			'longitude'				=> $rawdata['longitude'],
@@ -1703,7 +1750,8 @@ class telluswhere
 		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
 			$action = $this->metacategories[$location['metacategory']];
-			if (!$result = $this->postSubmission ($location, $action, $this->imagesDirectory, false, $errorText)) {
+			$category = $this->categories[0];	// #!# Multiple category support not yet in place
+			if (!$result = $this->postSubmission ($location, $action, $category, $this->imagesDirectory, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}

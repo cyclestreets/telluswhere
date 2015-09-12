@@ -1534,13 +1534,16 @@ class telluswhere
 		# Unpack user details cookie if present from a previous submission
 		$data = $this->getCourtesyUserdetails ();
 		
+		# Obtain the internal form element templates
+		$formTemplate = $this->placeholderHtmlToFormTemplate ('form', $this->action);
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> "Many thanks for your message - we'll be in touch shortly if applicable.",
-			'display'					=> 'template',
-			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form', $this->action),
+			'display'					=> ($formTemplate ? 'template' : 'tables'),
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $formTemplate,
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'			=> 'Send message',
 			'submitButtonAccesskey'		=> false,

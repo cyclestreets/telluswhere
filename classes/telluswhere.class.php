@@ -192,11 +192,7 @@ class telluswhere
 		}
 		
 		# Determine the style directory in use
-		if (!$this->styleDirectory = $this->getStyleDirectory ($this->settings['style'])) {
-			$html = "\n<p class=\"warning\">The website could not be loaded due to a configuration error (error #3). Please check back shortly.</p>";
-			echo $html;
-			return false;
-		}
+		$this->styleDirectory = $this->getStyleDirectory ();
 		
 		# Register standard placeholder substitutions
 		$this->template['date'] = date ('Y');
@@ -341,7 +337,6 @@ class telluswhere
 			  `id` INTEGER PRIMARY KEY,						-- Site number
 			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
 			  `applicationName` VARCHAR(255) NOT NULL,		-- Site name
-			  `style` VARCHAR(255) NOT NULL,				-- Style
 			  `apiKey` VARCHAR(255) NOT NULL,				-- API key
 			  `username` VARCHAR(255) NOT NULL,				-- Username for submissions
 			  `password` VARCHAR(255) NOT NULL,				-- Password for submissions
@@ -380,29 +375,27 @@ class telluswhere
 	}
 	
 	
-	# Function to get the available styles
-	private function getStyles ()
+	# Function to determine the style directory in use, not slash-terminated
+	private function getStyleDirectory ($default = false)
 	{
 		# Get the folders in the directory
-		$directory = $_SERVER['DOCUMENT_ROOT'] . '/style/';
+		$stylesLocation = '/style/';
+		$directory = $_SERVER['DOCUMENT_ROOT'] . $stylesLocation;
 		require_once ('directories.php');
-		$folderNames = directories::listContainedDirectories ($directory, array (), '^([a-zA-Z0-9]+)$');
+		$styles = directories::listContainedDirectories ($directory, array (), '^([a-zA-Z0-9]+)$');
 		
-		# Return the list
-		return $folderNames;
-	}
-	
-	
-	# Function to determine the style directory in use
-	private function getStyleDirectory ($style)
-	{
-		# Check the existence of the directory
-		$location = '/style/' . $style;
-		$directory = $_SERVER['DOCUMENT_ROOT'] . $location;
-		if (!is_dir ($directory)) {return false;}
+		# If forced to default style, return that
+		if ($default) {return $stylesLocation . 'default';}
 		
-		# Return the location, not slash-terminated
-		return $location;
+		# Find the first style which matches the domain name
+		foreach ($styles as $style) {
+			if (substr_count ($_SERVER['SERVER_NAME'], $style)) {
+				return $stylesLocation . $style;
+			}
+		}
+		
+		# Return the default if no match
+		return $stylesLocation . 'default';
 	}
 	
 	
@@ -431,7 +424,7 @@ class telluswhere
 		$page = '/404.html';
 		
 		# Get the template
-		$templateHtml = templating::convertDesignerHtmlToTemplate ($page, $this->styleDirectory, $this->replacedPlaceholders, $this->getStyleDirectory ('default'));
+		$templateHtml = templating::convertDesignerHtmlToTemplate ($page, $this->styleDirectory, $this->replacedPlaceholders, $this->getStyleDirectory (true));
 		
 		# Get the HTML
 		$html = templating::doTemplateSubstitution ($templateHtml, $this->template);
@@ -451,7 +444,7 @@ class telluswhere
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
 		
 		# Obtain the template
-		$html = templating::convertDesignerHtmlToTemplate ($templateLocation, $this->styleDirectory, $this->replacedPlaceholders, $this->getStyleDirectory ('default'));
+		$html = templating::convertDesignerHtmlToTemplate ($templateLocation, $this->styleDirectory, $this->replacedPlaceholders, $this->getStyleDirectory (true));
 		
 		# Return the template HTML
 		return $html;
@@ -1614,7 +1607,6 @@ class telluswhere
 			'attributes' => array (
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
 				'aboutPageHtml'		=> array ('heading' => array (3 => 'Page texts'), ),
-				'style'				=> array ('type' => 'select', 'values' => $this->getStyles (), ),
 				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
 				'downloaders'		=> array ('description' => 'One e-mail address per line', ),
 				'batchUploaders'		=> array ('type' => 'textarea', ),

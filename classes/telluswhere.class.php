@@ -1583,7 +1583,7 @@ class telluswhere
 		$data = $this->getCourtesyUserdetails ();
 		
 		# Obtain the internal form element templates
-		$formTemplate = $this->placeholderHtmlToFormTemplate ('form', $this->action);
+		$formTemplate = $this->placeholderHtmlToFormTemplate ('form', $this->action, true);
 		
 		# Create a new form
 		require_once ('ultimateForm.php');

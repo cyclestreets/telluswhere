@@ -279,8 +279,7 @@ class telluswhere
 		}
 		
 		# Determine the supported categories
-		#!# Generalise to setting
-		$this->categories = array ('cycleparking');
+		$this->categories = ($this->settings['categories'] ? preg_split ("/\s+/", trim ($this->settings['categories'])) : array ());	// The ternary exists because first run will have none
 		
 		# Perform the action, which will write into the page template array
 		$this->{$this->action} ();
@@ -327,6 +326,7 @@ class telluswhere
 		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
 			$this->isFirstRun = true;
 			$databaseSettings = array (	// $databaseSettings = false would crash array_merge below
+				'categories' => false,
 				'administrators' => false,
 				'downloaders' => false,
 				'batchUploaders' => false,
@@ -355,13 +355,14 @@ class telluswhere
 			  `username` VARCHAR(255) NOT NULL,				-- Username for submissions
 			  `password` VARCHAR(255) NOT NULL,				-- Password for submissions
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
+			  `categories` VARCHAR(255) NOT NULL,					-- Categories
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
 			  `administrators` TEXT NOT NULL,				-- E-mail logins of administrators
 			  `downloaders` TEXT NOT NULL,					-- E-mail logins for access to downloads
 			  `batchUploaders` TEXT NULL,					-- E-mail logins for access to batch upload section
-			  `newsEditors` TEXT NULL,					-- E-mail logins for access to news editors
+			  `newsEditors` TEXT NULL,						-- E-mail logins for access to news editors
 			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
 			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
 			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
@@ -1643,6 +1644,7 @@ class telluswhere
 			'data' => $data,
 			'attributes' => array (
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
+				'categories'	=> array ('description' => 'One category ID per line', ),
 				'aboutPageHtml'		=> array ('heading' => array (3 => 'Page texts'), ),
 				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
 				'downloaders'		=> array ('description' => 'One e-mail address per line', ),

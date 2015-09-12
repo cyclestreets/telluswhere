@@ -70,6 +70,11 @@ class telluswhere
 				'description' => false,
 				'url' => '/about/',
 			),
+			'programme' => array (
+				'description' => false,
+				'url' => '/programme/',
+				'optional' => true,
+			),
 			'terms' => array (
 				'description' => false,
 				'url' => '/terms/',
@@ -453,7 +458,8 @@ class telluswhere
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
 		
 		# If the template does not exist, and the action is optional, signal this by returning false
-		if (!file_exists ($_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $templateLocation)) {
+		$templateFile = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $templateLocation;
+		if (!file_exists ($templateFile)) {
 			if (isSet ($this->actions[$this->action]['optional']) && $this->actions[$this->action]['optional']) {
 				return false;
 			}
@@ -1470,6 +1476,13 @@ class telluswhere
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Programme page
+	private function programme ()
+	{
+		// No action - template contains everything
 	}
 	
 	

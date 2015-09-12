@@ -88,9 +88,9 @@ class telluswhere
 				'url' => false,
 				'rightRequired' => 'downloader',
 			),
-			'admin' => array (
+			'settings' => array (
 				'description' => false,
-				'url' => '/admin/',
+				'url' => '/settings/',
 				'administrator' => true,
 			),
 			'batch' => array (
@@ -220,7 +220,7 @@ class telluswhere
 		
 		# In first run mode, force settings to be entered, temporarily promoting the logged-in user to be an administrator
 		if ($this->isFirstRun) {
-			if ($this->isFirstRun) {$this->forcedAction = 'admin';}
+			if ($this->isFirstRun) {$this->forcedAction = 'settings';}
 			if ($this->user) {
 				$this->userIsAdministrator = true;
 			}
@@ -1557,7 +1557,7 @@ class telluswhere
 	
 	
 	# Settings page
-	private function admin ()
+	private function settings ()
 	{
 		# Start the HTML
 		$html = '';
@@ -2338,7 +2338,7 @@ class telluswhere
 		# Write the login status in the top-right
 		$loginStatusHtml  = "\n<p style=\"text-align: right\"><span style=\"color: #ccc;\">Logged in as: </span>" . htmlspecialchars ($user['email']);
 		if ($this->userIsAdministrator) {
-			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/admin/\">Admin</a>";
+			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/settings/\">Settings</a>";
 		}
 		if ($this->userIsDownloader) {
 			$loginStatusHtml .= " | <a href=\"{$this->baseUrl}/data/\">Data</a>";

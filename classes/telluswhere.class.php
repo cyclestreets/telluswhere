@@ -634,23 +634,25 @@ class telluswhere
 		
 		# If there are multiple categories, force selection
 		$category = $this->categories[0];
-		if (count ($this->categories) > 1) {
-			
-			# Force selection if not specified
-			if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
-				$this->template['form'] = $this->categorySelection ();
-				return true;
+		if (!$existingData) {
+			if (count ($this->categories) > 1) {
+				
+				# Force selection if not specified
+				if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
+					$this->template['form'] = $this->categorySelection ();
+					return true;
+				}
+				
+				# End if not valid
+				if (!in_array ($_GET['category'], $this->categories)) {
+					$html = $this->page404 ();
+					echo $html;
+					return false;
+				}
+				
+				# Register the category
+				$category = $_GET['category'];
 			}
-			
-			# End if not valid
-			if (!in_array ($_GET['category'], $this->categories)) {
-				$html = $this->page404 ();
-				echo $html;
-				return false;
-			}
-			
-			# Register the category
-			$category = $_GET['category'];
 		}
 		
 		# Show the submission page

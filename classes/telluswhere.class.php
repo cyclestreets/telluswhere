@@ -482,7 +482,7 @@ class telluswhere
 	
 	
 	# Function to take an extracted part of the template and convert to ultimateForm form template format
-	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $optional = false, $selectedIdData = false)
+	private function placeholderHtmlToFormTemplate ($placeholderName, $action, $optional = false, $selectedIdData = false, &$formFieldsInTemplate = array ())
 	{
 		# If internal placeholdering is optional, if there are no internal placeholders, end, meaning the form will be treated as a single block
 		if ($optional) {
@@ -494,6 +494,9 @@ class telluswhere
 		
 		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
 		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders);
+		
+		# Capture the list of form fields in the template and pass back by reference
+		$formFieldsInTemplate = array_keys ($replacedPlaceholders);
 		
 		# Convert each replaced placeholder to ultimateForm format
 		$replacements = array ();
@@ -979,10 +982,12 @@ class telluswhere
 		}
 		
 		# Add to mailing list data if required
-		if ($data['mailinglist'] == 'Yes') {
-			$file = $_SERVER['DOCUMENT_ROOT'] . '/db/mailinglist.csv';
-			$string = $data['email'] . ',' . $data['name'] . ',' . $result['id'] . "\n";
-			file_put_contents ($file, $string, FILE_APPEND);
+		if (isSet ($data['mailinglist'])) {	// Templates can chose to include/omit this optionally
+			if ($data['mailinglist'] == 'Yes') {
+				$file = $_SERVER['DOCUMENT_ROOT'] . '/db/mailinglist.csv';
+				$string = $data['email'] . ',' . $data['name'] . ',' . $result['id'] . "\n";
+				file_put_contents ($file, $string, FILE_APPEND);
+			}
 		}
 		
 		# Determine the redirection target, namely the location page
@@ -1021,10 +1026,6 @@ class telluswhere
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
 		$apiUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
 		
-		# Assemble the additional metadata
-		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
-		$additionalMetadata = application::arrayFields ($rawdata, $additionalMetadataFields);
-		
 		# If the message is empty, add a generic message as the API sets caption as a required field
 		if (empty ($rawdata['caption'])) {
 			$rawdata['caption'] = 'Cycle parking ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
@@ -1044,8 +1045,14 @@ class telluswhere
 			'basemap'				=> 'mapnik',
 			'credit'				=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
 			'license'				=> 'publicdomain',
-			'additionalMetadata'	=> json_encode ($additionalMetadata),
 		);
+		
+		# If additional metadata is present (templates can choose to include/omit it optionally), assemble and add it
+		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
+		$additionalMetadata = application::arrayFields ($rawdata, $additionalMetadataFields);
+		if ($additionalMetadata) {
+			$data['additionalMetadata'] = json_encode ($additionalMetadata);
+		}
 		
 		#!# Currently no support for deleting an existing image when doing an update
 		
@@ -1289,7 +1296,7 @@ class telluswhere
 		}
 		
 		# Determine the form template
-		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, false, $data);
+		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, false, $data, $formFieldsInTemplate);
 		
 		# Determine whether an existing photo already exists
 		$existingPhoto = ($existingData && $existingData['hasPhoto'] ? $existingData['thumbnailUrl'] : false);
@@ -1336,19 +1343,23 @@ class telluswhere
 				'default'		=> (isSet ($data['type']) ? $data['type'] : false),
 			));
 		}
-		$form->number (array (
-			'name'			=> 'capacity',
-			'title'			=> $this->metadataFieldLabels['capacity'],
-			'required'		=> true,
-			'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
-		));
-		$form->select (array (
-			'name'			=> 'landtype',
-			'title'			=> $this->metadataFieldLabels['landtype'],
-			'required'		=> true,
-			'values'		=> $this->landTypes,
-			'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
-		));
+		if (in_array ('capacity', $formFieldsInTemplate)) {
+			$form->number (array (
+				'name'			=> 'capacity',
+				'title'			=> $this->metadataFieldLabels['capacity'],
+				'required'		=> true,
+				'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
+			));
+		}
+		if (in_array ('landtype', $formFieldsInTemplate)) {
+			$form->select (array (
+				'name'			=> 'landtype',
+				'title'			=> $this->metadataFieldLabels['landtype'],
+				'required'		=> true,
+				'values'		=> $this->landTypes,
+				'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
+			));
+		}
 		$form->textarea (array (
 			'name'			=> 'caption',
 			'title'			=> $this->metadataFieldLabels['caption'],
@@ -1369,21 +1380,25 @@ class telluswhere
 			'required'		=> true,
 			'default'		=> (isSet ($data['email']) ? $data['email'] : false),
 		));
-		$form->select (array (
-			'name'			=> 'mailinglist',
-			'title'			=> 'Would you like to be kept up-to-date via e-mail?',
-			'required'		=> true,
-			'values'		=> array ('Yes', 'No'),
-			'default'		=> 'Yes',
-		));
-		$form->select (array (
-			'name'			=> 'terms',
-			'title'			=> "Do you accept our <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>?",
-			'required'		=> true,
-			'values'		=> array ('Yes'),
-			'default'		=> 'Yes',
-			'discard'		=> true,
-		));
+		if (in_array ('mailinglist', $formFieldsInTemplate)) {
+			$form->select (array (
+				'name'			=> 'mailinglist',
+				'title'			=> 'Would you like to be kept up-to-date via e-mail?',
+				'required'		=> true,
+				'values'		=> array ('Yes', 'No'),
+				'default'		=> 'Yes',
+			));
+		}
+		if (in_array ('mailinglist', $formFieldsInTemplate)) {
+			$form->select (array (
+				'name'			=> 'terms',
+				'title'			=> "Do you accept our <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>?",
+				'required'		=> true,
+				'values'		=> array ('Yes'),
+				'default'		=> 'Yes',
+				'discard'		=> true,
+			));
+		}
 		
 		# Location (hidden)
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS

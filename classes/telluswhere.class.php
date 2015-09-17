@@ -37,7 +37,7 @@ class telluswhere
 				'description' => 'Suggested cycle parking location',
 				'descriptionMultiple' => 'Suggested cycle parking locations',
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype,capacity',
 			),
@@ -657,6 +657,9 @@ class telluswhere
 				$category = $_GET['category'];
 			}
 		}
+		
+		# Finalise the API URL
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Show the submission page
 		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);

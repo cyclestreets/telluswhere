@@ -135,9 +135,10 @@ class telluswhere
 	
 	# Labels for known categories
 	private $categoryLabels = array (
-		'cycleparking'	=> 'Cycle parking',
-		'obstructions'	=> 'Obstructions',
-		'cycleways'	=> 'Cycleways',
+		'cycleparking'		=> 'Cycle parking',
+		'obstructions'		=> 'Obstructions',
+		'cycleways'		=> 'Cycleways',
+		'dutchcycleways'	=> 'Dutch-style cycleways',
 	);
 	
 	# Labels for metadata fields

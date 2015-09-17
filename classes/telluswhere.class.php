@@ -363,6 +363,7 @@ class telluswhere
 			  `password` VARCHAR(255) NOT NULL,				-- Password for submissions
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `categories` TEXT NOT NULL,					-- Categories
+			  `showOthers` INT(1) NULL,					-- Show submissions by others?
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
@@ -1152,7 +1153,8 @@ class telluswhere
 		
 		# Determine the URL for the browsing API; if a selected ID is requested, request that this always be included in the returned data
 		#!# Improve way key is added here
-		$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '');
+		$browsingApiUrl = ($this->settings['showOthers'] ? $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') : false);
+		$browsingApiUrlJs = ($browsingApiUrl ? "'" . $browsingApiUrl . "'" : 'false');
 		
 		# Define a second browsing layer if required
 		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
@@ -1222,9 +1224,9 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?13\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?14\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, '{$browsingApiUrl}', '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
+			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, {$browsingApiUrlJs}, '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
 		</script>
 		";
 		
@@ -1708,6 +1710,7 @@ class telluswhere
 			'database' => 'main',
 			'table' => 'settings',
 			'intelligence' => true,
+			'int1ToCheckbox' => true,
 			'data' => $data,
 			'attributes' => array (
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),

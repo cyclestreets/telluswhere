@@ -93,12 +93,14 @@ var telluswhere = (function ($) {
 			// Register click handler
 			map.on('click', telluswhere.onMapClick);
 			
-			// Add the data layer to the map
-			_currentDataLayer = L.geoJson(null, {
-				pointToLayer: telluswhere.setIcon,
-				filter: telluswhere.setIconFilter
-			});
-			_currentDataLayer.addTo(map);
+			// Add the data layer to the map, if enabled
+			if(_browsingApiUrl) {
+				_currentDataLayer = L.geoJson(null, {
+					pointToLayer: telluswhere.setIcon,
+					filter: telluswhere.setIconFilter
+				});
+				_currentDataLayer.addTo(map);
+			}
 			
 			// Add second data layer to the map if defined
 			if(_browsingApiUrl2) {
@@ -564,7 +566,9 @@ var telluswhere = (function ($) {
 		getData: function() {
 			
 			// Get data layer (pass to implementation function)
-			telluswhere.getDataLayer(_browsingApiUrl, telluswhere.showCurrentData);
+			if(_browsingApiUrl) {
+				telluswhere.getDataLayer(_browsingApiUrl, telluswhere.showCurrentData);
+			}
 			
 			// Get second data layer if defined
 			if(_browsingApiUrl2) {

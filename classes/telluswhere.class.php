@@ -1045,7 +1045,7 @@ class telluswhere
 			'longitude'				=> $rawdata['longitude'],
 			'zoom'					=> $rawdata['zoom'],
 			'basemap'				=> 'mapnik',
-			'credit'				=> $rawdata['name'] . ' <' . $rawdata['email'] . '>',
+			'credit'				=> (isSet ($rawdata['name']) ? $rawdata['name'] . ' <' . $rawdata['email'] . '>' : $rawdata['email']),
 			'license'				=> 'publicdomain',
 		);
 		
@@ -1370,12 +1370,14 @@ class telluswhere
 			'cols'			=> 20,
 			'default'		=> (isSet ($data['caption']) ? $data['caption'] : false),
 		));
-		$form->input (array (
-			'name'			=> 'name',
-			'title'			=> 'Your name',
-			'required'		=> true,
-			'default'		=> (isSet ($data['name']) ? $data['name'] : false),
-		));
+		if (in_array ('name', $formFieldsInTemplate)) {		// Templates can choose to require only e-mail
+			$form->input (array (
+				'name'			=> 'name',
+				'title'			=> 'Your name',
+				'required'		=> true,
+				'default'		=> (isSet ($data['name']) ? $data['name'] : false),
+			));
+		}
 		$form->email (array (
 			'name'			=> 'email',
 			'title'			=> 'Your e-mail address',
@@ -1434,7 +1436,8 @@ class telluswhere
 		
 		# Upon a successful submission, save the name and e-mail in a cookie for a short period to save the user having to re-type these
 		if ($result) {
-			$this->setCourtesyUserdetails ($result['name'], $result['email']);
+			$name = (isSet ($result['name']) ? $result['name'] : false);
+			$this->setCourtesyUserdetails ($name, $result['email']);
 		}
 		
 		# Return the result
@@ -1448,7 +1451,7 @@ class telluswhere
 		# Get the data, if any
 		$data = array ();
 		if (isSet ($_COOKIE['userdetails'])) {
-			if (preg_match ('/^(.+) <([^>]+)>$/', $_COOKIE['userdetails'], $matches)) {
+			if (preg_match ('/^(.*) <([^>]+)>$/', $_COOKIE['userdetails'], $matches)) {
 				$data = array ('name' => $matches[1], 'email' => $matches['2']);
 			}
 		}

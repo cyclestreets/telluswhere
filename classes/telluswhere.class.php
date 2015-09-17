@@ -137,6 +137,7 @@ class telluswhere
 	private $categoryLabels = array (
 		'cycleparking'	=> 'Cycle parking',
 		'obstructions'	=> 'Obstructions',
+		'cycleways'	=> 'Cycleways',
 	);
 	
 	# Labels for metadata fields

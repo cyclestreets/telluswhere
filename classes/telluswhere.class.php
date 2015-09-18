@@ -311,7 +311,7 @@ class telluswhere
 		if (!extension_loaded ('pdo_sqlite')) {return false;}
 		
 		# Ensure the database directory exists and is writable
-		$databaseFolder = '/db/';
+		$databaseFolder = '/db/sqlite/';
 		if (!$databaseDirectory = $this->getWritableDirectory ($databaseFolder)) {return false;}
 		
 		# Connect to the database, or create it if it does not yet exist (for PDO SQLite, a connection will attempt to create the file if it does not exist)

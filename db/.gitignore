@@ -1,2 +1,4 @@
+# Ignore any contents of the database folder
+sqlite/*
+!sqlite/.gitignore
 
-# Empty .gitignore to ensure this folder is retained in the repository

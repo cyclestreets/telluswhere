@@ -273,7 +273,8 @@ var telluswhere = (function ($) {
 			// Set marker position
 			_marker = new L.Marker(latlng, {icon: _icons[useIcon], draggable: markerIsDraggable, zIndexOffset: 1000});
 			map.addLayer(_marker);
-			_marker.bindPopup('Cycle parking is ' + (useIcon == 'suggest' ? 'needed' : 'present') + ' here').openPopup();
+			// #!# Need to show the category name
+			_marker.bindPopup((useIcon == 'suggest' ? 'Needed' : 'Present') + ' here').openPopup();
 			
 			// Register dragend processing function
 			_marker.on('dragend', telluswhere.markerDrag);

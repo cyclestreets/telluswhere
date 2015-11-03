@@ -974,7 +974,7 @@ class telluswhere
 		}
 		
 		# Send the data (including any image) to the API
-		if (!$result = $this->postSubmission ($data, $action, $category, $this->tmpDirectory, $existingData, $errorText)) {
+		if (!$result = $this->postSubmission ($data, $action, $category, 'publicdomain', $this->tmpDirectory, $existingData, $errorText)) {
 			$html = "\n<p class=\"warning\">" . htmlspecialchars ($errorText) . '</p>';
 			return $html;
 		}
@@ -1028,7 +1028,7 @@ class telluswhere
 	
 	
 	# Function to post submissions to the API
-	private function postSubmission ($rawdata, $action, $category, $filePath, $existingData, &$errorText = '')
+	private function postSubmission ($rawdata, $action, $category, $license, $filePath, $existingData, &$errorText = '')
 	{
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
@@ -1052,7 +1052,7 @@ class telluswhere
 			'zoom'					=> $rawdata['zoom'],
 			'basemap'				=> 'mapnik',
 			'credit'				=> (isSet ($rawdata['name']) ? $rawdata['name'] . ' <' . $rawdata['email'] . '>' : $rawdata['email']),
-			'license'				=> 'publicdomain',
+			'license'				=> $license,
 		);
 		
 		# If additional metadata is present (templates can choose to include/omit it optionally), assemble and add it
@@ -1779,7 +1779,7 @@ class telluswhere
 		foreach ($data as $location) {
 			$action = $this->metacategories[$location['metacategory']];
 			$category = $this->categories[0];	// #!# Multiple category support not yet in place
-			if (!$result = $this->postSubmission ($location, $action, $category, $this->imagesDirectory, false, $errorText)) {
+			if (!$result = $this->postSubmission ($location, $action, $category, 'publicdomain', $this->imagesDirectory, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}

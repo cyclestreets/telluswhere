@@ -1779,7 +1779,7 @@ class telluswhere
 		foreach ($data as $location) {
 			$action = $this->metacategories[$location['metacategory']];
 			$category = $this->categories[0];	// #!# Multiple category support not yet in place
-			if (!$result = $this->postSubmission ($location, $action, $category, 'publicdomain', $this->imagesDirectory, false, $errorText)) {
+			if (!$result = $this->postSubmission ($location, $action, $category, $location['license'], $this->imagesDirectory, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}
@@ -1919,11 +1919,11 @@ class telluswhere
 			'errorsCssClass'			=> 'notification error',
 		));
 		$form->heading ('', $instructionBoxHtml);
-		$form->checkboxes (array (
-			'name'				=> 'confirmation',
-			'title'				=> 'Data entered must be public domain',
-			'values'			=> array ("Yes, I confirm the data is licensed as public domain"),
-			'required'			=> true,	// Ensures that a submission must be ticked for the form to be processed
+		$form->select (array (
+			'name'			=> 'license',
+			'title'			=> 'License',
+			'values'		=> array ('publicdomain' => 'Public domain (preferred)', 'ogl' => 'Open Government Licence'),
+			'required'		=> true,
 		));
 		$form->select (array (
 			'name'			=> 'metacategory',
@@ -1998,6 +1998,7 @@ class telluswhere
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
 			$data[$index]['metacategory'] = $metacategory;
+			$data[$index]['license'] = $result['license'];
 			$data[$index]['name'] = $result['name'];
 			$data[$index]['email'] = $result['email'];
 		}
@@ -2174,6 +2175,7 @@ class telluswhere
 				'longitude'		=> $result["location_{$i}"]['longitude'],
 				'zoom'			=> $result["location_{$i}"]['zoom'],
 				'metacategory'	=> $stage1Data[$i]['metacategory'],
+				'license'		=> $stage1Data[$i]['license'],
 				'name'			=> $stage1Data[$i]['name'],
 				'email'			=> $stage1Data[$i]['email'],
 			);

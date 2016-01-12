@@ -861,7 +861,7 @@ class telluswhere
 				require_once ('classes/like.class.php');
 				$like = new like ($this);
 				$like->main ($data);
-				$html .= $like->getHtml;
+				$html .= $like->getHtml ();
 				echo $html;
 				return false;
 			}

@@ -573,11 +573,12 @@ class telluswhere
 		$etag = md5_file ($file);
 		header ('Last-Modified: ' . gmdate ('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
 		header ('Etag: ' . $etag);
-	    if (isset ($_SERVER['HTTP_IF_MODIFIED_SINCE']) || isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
-			if (strtotime ($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime || trim ($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
-				header ('HTTP/1.1 304 Not Modified');
-				return true;
-			}
+		$notModified = false;
+		if (isSet ($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime ($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $lastModifiedTime)) {$notModified = true;}
+		if (isSet ($_SERVER['HTTP_IF_NONE_MATCH']) && (trim ($_SERVER['HTTP_IF_NONE_MATCH']) == $etag)) {$notModified = true;}
+		if ($notModified) {
+			header ('HTTP/1.1 304 Not Modified');
+			return true;
 		}
 		
 #!# Move this check to constructor - should not have part of site working but not all

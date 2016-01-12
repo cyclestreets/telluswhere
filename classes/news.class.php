@@ -114,21 +114,23 @@ class news
 			$data[$index]['permalink'] = "{$this->baseUrl}/news/" . date ('Y/m/d/', strtotime ($article['date'] . ' 12:00:00')) . "{$article['urlMoniker']}/";
 		}
 		
-		# If no article but single one expected, create 404
+		# Actions for display of single article, i.e. /news/<date>/<moniker>/
 		if ($isSingle) {
+			
+			# If no article but single one expected, create 404
 			if (!$data) {
 				$html = $this->telluswhere->page404 ();
 				echo $html;
 				return false;
 			}
 			$area = $data[0]['area'];
+			
+			# Edit article if required
+			if ($this->articleManipulate ($html, $data[0], $area)) {return;}
+			
+			# Delete article if required
+			if ($this->articleDelete ($html, $data[0])) {return;}
 		}
-		
-		# Edit article if required
-		if ($this->articleManipulate ($html, $data[0], $area)) {return;}
-		
-		# Delete article if required
-		if ($this->articleDelete ($html, $data[0])) {return;}
 		
 		# Show each article
 		$html .= $this->createList ($data, $area, $isSingle);

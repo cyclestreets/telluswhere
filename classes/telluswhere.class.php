@@ -92,6 +92,7 @@ class telluswhere
 				'description' => false,
 				'url' => false,
 				'rightRequired' => 'downloader',
+				'export' => true,
 			),
 			'settings' => array (
 				'description' => false,
@@ -271,11 +272,16 @@ class telluswhere
 			}
 		}
 		
-		# Load the template; if not present, fallback to 404 page
-		if (!$this->templateHtml = $this->getTemplateHtml ($this->action)) {
-			$html = $this->page404 ();
-			echo $html;
-			return false;
+		# Determine if the action is an export type, in which files are served rather than a page generated
+		$isExportAction = (isSet ($this->actions[$this->action]['export']) && $this->actions[$this->action]['export']);
+		
+		# Load the template; if not present, fallback to 404 page; export type pages do not have a template
+		if (!$isExportAction) {
+			if (!$this->templateHtml = $this->getTemplateHtml ($this->action)) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
 		}
 		
 		# Determine the supported metacategories and the action they are mapped to
@@ -292,6 +298,9 @@ class telluswhere
 		# Perform the action, which will write into the page template array
 		#!# Need to handle 404s properly by using return value for each action
 		$this->{$this->action} ();
+		
+		# End if an export action, which should not generate HTML
+		if ($isExportAction) {return;}
 		
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);

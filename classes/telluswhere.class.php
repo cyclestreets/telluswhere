@@ -1924,6 +1924,7 @@ class telluswhere
 		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row, as shown in this example:</p>";
 		$instructionBoxHtml .= "\n\t<p><img src=\"{$this->baseUrl}/images/multipleupload.png\" alt=\"Multiple upload example\" width=\"606\" height=\"172\" /></p>";
 		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: {$requiredLocationFieldsHtml}<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
+		$instructionBoxHtml .= "\n\t<p>Lat/lon pairs are assumed to be supplied in WGS84 (Web Mercator) projection.<br />If supplying northings/eastings pairs instead, these must be in OSGB36 projection; they will be converted to WGS84.</p>";
 		$instructionBoxHtml .= "\n\t<p>If you have <strong>images</strong> of the locations, you will need to create a zip file of all the files. If these have been taken on a phone which captures the location automatically, that will be used in preference to the given latitutde/longitudes.</p>";
 		$instructionBoxHtml .= "\n</div>";
 		
@@ -1959,6 +1960,18 @@ class telluswhere
 			'rows' => 12,
 			'cols' => 60,
 		));
+		/*
+		$form->select (array (
+			'name'			=> 'projection',
+			'title'			=> 'Projection (co-ordinate system) in data',
+			'required'		=> true,
+			'values'		=> array (
+				'wgs84'			=> 'WGS84 (Web Mercator)',
+				'osgb36'		=> 'OSGB36 (Ordnance Survey)',
+			),
+			'default'		=> 'wgs84',
+		));
+		*/
 		$form->upload (array (
 			'name' => 'images',
 			'title' => '(Optional) Images - zipped as single file (maximum size: ' . ini_get ('upload_max_filesize') . ')',
@@ -2266,15 +2279,18 @@ class telluswhere
 	}
 	
 	
-	# Function to convert OS co-ordinates to lat/lon
+	# Function to convert OS co-ordinates to lat/lon; this assumes Eastings & Northings are always OSGB36 and need to be converted to WGS84
 	private function convertCoordinatesOs ($data)
 	{
 		# Load required library
-		require_once ('libraries/osLonLat.class.class.php');
+		//require_once ('libraries/osLonLat.class.class.php');	// Disabled, as outputs OSGB36 values
+		require_once ('libraries/conversionslatlong.class.php');
+		$conversionslatlong = new conversionslatlong ();
 		
 		# Convert each set, and remove the original values
 		foreach ($data as $index => $location) {
-			list ($data[$index]['latitude'], $data[$index]['longitude']) = osLonLat::EastingNorthingToLatLong ($location['eastings'], $location['northings']);
+			//list ($data[$index]['latitude'], $data[$index]['longitude']) = osLonLat::EastingNorthingToLatLong ($location['eastings'], $location['northings']);
+			list ($data[$index]['latitude'], $data[$index]['longitude']) = $conversionslatlong->osgb36_to_wgs84 ($location['eastings'], $location['northings']);
 			unset ($data[$index]['northings']);
 			unset ($data[$index]['eastings']);
 		}

@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
- * Version 1.5.22
+ * Version 1.5.26
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -225,12 +225,15 @@ class application
 	# Generalised support function to allow quick dumping of form data to screen, for debugging purposes
 	public static function dumpData ($data, $hide = false, $return = false, $htmlspecialchars = true)
 	{
+		# End if debugging is supressed via a constant which is set to true
+		if (defined ('SUPPRESS_DEBUG') && (SUPPRESS_DEBUG)) {return false;}
+		
 		# Start the HTML
 		$html = '';
 		
 		# Show the data
 		if ($hide) {$html .= "\n<!--";}
-		$html .= "\n" . '<pre class="debug">DEBUG: ';
+		$html .= "\n" . '<pre class="debug"><strong>DEBUG:</strong> ';
 		if (is_array ($data)) {
 			$data = print_r ($data, true);
 		}
@@ -625,6 +628,13 @@ class application
 		
 		# Return the newly sorted list
 		return $resortedList;
+	}
+	
+	
+	# Function to get the first value in an array
+	public static function array_first_value ($array)
+	{
+		return reset ($array);	// Safe to do as this function receives a copy of the array
 	}
 	
 	
@@ -1724,6 +1734,37 @@ class application
 		return $fieldnames;
 	}
 	
+	
+	# Function to count the number of regexp matches in an array of values
+	public static function array_preg_match_total ($pattern, $subjectArray)
+	{
+		# Find matches
+		$matches = 0;
+		foreach ($subjectArray as $value) {
+			if (preg_match ($pattern, $value)) {
+				$matches++;
+			}
+		}
+		
+		# Return the total matches
+		return $matches;
+	}
+	
+	
+	# Function to find a regexp match in an array of values
+	public static function preg_match_array ($pattern, $subjectArray, $returnKey = false)
+	{
+		# Search for a match
+		foreach ($subjectArray as $key => $value) {
+			$delimiter = '@';
+			if (preg_match ($delimiter . addcslashes ($pattern, $delimiter) . $delimiter, $value)) {
+				return ($returnKey ? $key : $value);
+			}
+		}
+		
+		# No match
+		return false;
+	}
 	
 	
 	# Function to add an ordinal suffix to a number from 0-99 [from http://forums.devshed.com/t43304/s.html]
@@ -3095,6 +3136,171 @@ class application
 		
 		# Return success
 		return true;
+	}
+	
+	
+	# Function to provide spell-checking of a dataset and provide alternatives
+	# Package dependencies: php5-enchant hunspell-ru
+	public static function spellcheck ($strings, $languageTag, $databaseConnection = false, $database = false, $enableSuggestions = true, $whitelistStrings = array (), $protectBlockRegexp = false, $testFirst = 0, $suggestionsImplodeString = '&#10;', $ignoreItalicised = true)
+	{
+		# Prevent timeouts for large datasets
+		if (count ($strings) > 50) {
+			set_time_limit (0);
+		}
+		
+		# Initialise the spellchecker
+		$r = enchant_broker_init ();
+		// application::dumpData (enchant_broker_describe ($r));	// List available backends
+		// application::dumpData (enchant_broker_list_dicts ($r));	// List available dictionaries; should have "ru_RU": "Myspell Provider" present (which seems to be the same thing as hunspell)
+		if (!enchant_broker_dict_exists ($r, $languageTag)) {
+			echo "<p class=\"warning\">The spell-checker could not be initialised.</p>";
+			return $strings;
+		}
+		$d = enchant_broker_request_dict ($r, $languageTag);
+		
+		# If testing, test only first slice of the array
+		if ($testFirst) {
+			$strings = array_slice ($strings, 0, $testFirst, true);	// Return only the tested portion, not all
+		}
+		
+		# Use a database cache if required
+		$cache = array ();
+		if ($databaseConnection) {
+			
+			# Initialise a cache table; this can be persistent across imports
+			$sql = "
+				CREATE TABLE IF NOT EXISTS spellcheckcache (
+				`id` VARCHAR(255) COLLATE utf8_bin NOT NULL COMMENT 'Word',		/* utf8_bin needed to ensure case-sensitivity in a unique column */
+				`isCorrect` INT(1) NULL COMMENT 'Whether the word is correct',
+				`suggestions` VARCHAR(255) COLLATE utf8_unicode_ci NULL COMMENT 'Suggestions, pipe-separated',
+				  PRIMARY KEY (`id`)
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Spellcheck cache';";
+			$databaseConnection->execute ($sql);
+			
+			# Load the cache
+			require_once ('database.php');		// Obtain from http://download.geog.cam.ac.uk/projects/database/
+			$cache = $databaseConnection->select ($database, 'spellcheckcache');
+			$originalCacheSize = count ($cache);
+		}
+		
+		# Loop through each record
+		foreach ($strings as $id => $string) {
+			
+			# Strip protected block if required, leaving only the relevant section
+			$relevantString = $string;
+			if ($protectBlockRegexp) {
+				$delimeter = '@';
+				$relevantString = preg_replace ($delimeter . addcslashes ($protectBlockRegexp, $delimeter) . $delimeter . 'u', '', $string);
+			}
+			
+			# If a string whitelist has been supplied, strip from consideration
+			foreach ($whitelistStrings as $whitelistString) {
+				if (preg_match ('|^/.+/i?$|', $whitelistString)) {
+					$relevantString = preg_replace ($whitelistString, '', $relevantString);
+				} else {
+					$relevantString = str_replace ($whitelistString, '', $relevantString);
+				}
+			}
+			
+			# Strip punctuation characters connected to word boundaries
+			$relevantString = preg_replace ("/(\s)\p{P}/u", '\1', $relevantString);
+			$relevantString = preg_replace ("/\p{P}(\s)/u", '\1', $relevantString);
+			
+			# If required, skip checking of words in italics, which can be regarded as proper nouns (e.g. species); this is done at whole-string level, rather than word-based, as italics may surround multiple words
+			if ($ignoreItalicised) {
+				$relevantString = preg_replace ('|<em>(.+)</em>|uU', '', $relevantString);		// Uses /U ungreedy, to avoid "a <em>b</em> c <em>d</em> e" becoming "a  e"
+			}
+			
+			# Extract words from the string words, splitting by whitespace
+			$words = preg_split ('/\s+/', trim ($relevantString), -1, PREG_SPLIT_NO_EMPTY);
+			
+			# Work through each word and attach to the main data
+			$substitutions = array ();
+			foreach ($words as $word) {
+				
+				# Skip where the 'word' is just a punctuation mark or number / number range
+				if (preg_match ('/^([-:;()0-9])+$/', $word)) {continue;}
+				
+				# Initialise the cache container for this entry if not already present; the cache is indexed by word, to avoid unnecessary calls to enchant_dict_check/enchant_dict_suggest
+				if (!isSet ($cache[$word])) {$cache[$word] = array ('id' => $word);}	// id passed through in structure field makes databasing the cache easier
+				
+				# Determine if the word is correct
+				if (isSet ($cache[$word]['isCorrect'])) {
+					$isCorrect = $cache[$word]['isCorrect'];	// Read from cache if present
+				} else {
+					$isCorrect = enchant_dict_check ($d, $word);
+					$cache[$word]['isCorrect'] = $isCorrect;	// Add to cache
+					if ($isCorrect) {
+						$cache[$word]['suggestions'] = NULL;	// Since the $enableSuggestions phase will not be reached, leaving holes in some array entries
+					}
+				}
+				
+				# Skip further processing if correct
+				if ($isCorrect) {continue;}
+				
+				# Find alternative suggestions
+				$suggestions = false;
+				if ($enableSuggestions) {
+					
+					# Determine suggestions
+					if (isSet ($cache[$word]['suggestions'])) {
+						$suggestions = $cache[$word]['suggestions'];	// Read from cache if present
+					} else {
+						$suggestions = enchant_dict_suggest ($d, $word);	// Returns either array of values or NULL if no values
+						if ($suggestions) {
+							$suggestions = implode ('|', $suggestions);		// Convert to string before any use; pipe-separator used for optimal database storage; later unpacked for presentation by $suggestionsImplodeString
+						}
+						$cache[$word]['suggestions'] = $suggestions;	// Add to cache, either string or NULL
+					}
+					
+					# Format
+					$suggestions = ($suggestions ? 'Suggestions:' . $suggestionsImplodeString . implode ($suggestionsImplodeString, explode ('|', $suggestions)) : '[No suggestions]');
+				}
+				
+				# Highlight in HTML the present word and add suggestions
+				$substitutions[$word] = '<span class="spelling"' . ($suggestions ? " title=\"{$suggestions}\"" : '') . ">{$word}</span>";
+			}
+			
+			# Overwrite with the spellchecked HTML version
+			$strings[$id] = strtr ($string, $substitutions);	// 'The longest keys will be tried first.' - http://php.net/strtr ; also seems to be multibyte-safe
+		}
+		
+		# If database caching is enabled, replace the database's cache with the new cache dataset if it has grown
+		if ($databaseConnection) {
+			if (count ($cache) > $originalCacheSize) {
+				$databaseConnection->truncate ($database, 'spellcheckcache', true);
+				$databaseConnection->insertMany ($database, 'spellcheckcache', array_values ($cache), $chunking = 500);		// Use of array_values avoids bound parameter naming problems
+			}
+		}
+		
+		# Unload the dictionary
+		enchant_broker_free_dict ($d);
+		enchant_broker_free ($r);
+		
+		# Return the modified list of strings
+		return $strings;
+	}
+	
+	
+	
+	# Function to convert a number to a Roman numeral; see: http://php.net/base-convert#92960
+	public static function romanNumeral ($integer)
+	{
+		# Convert the number
+		$table = array ('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
+		$result = '';
+		while ($integer > 0) {
+			foreach ($table as $roman => $arabic) {
+				if ($integer >= $arabic) {
+					$result .= $roman;
+					$integer -= $arabic;
+					break;
+				}
+			}
+		}
+		
+		# Return the result
+		return $result;
 	}
 	
 	

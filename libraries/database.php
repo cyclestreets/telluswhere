@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
- * Version 2.5.0
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-16
+ * Version 2.5.3
  * Uses prepared statements (see http://stackoverflow.com/questions/60174/best-way-to-stop-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -349,7 +349,7 @@ class database
 	
 	
 	# Function to export data served as a CSV, optimised to use low memory; this is a combination of database::getData() and csv::serve
-	public function serveCsv ($query, $preparedStatementValues = array (), $filenameBase = 'data', $timestamp = true, $headerLabels = array (), $zipped = false /* false, or true (zip), or 'zip'/'gz') */, $saveToDirectory = false /* or full directory path, slash-terminated */)
+	public function serveCsv ($query, $preparedStatementValues = array (), $filenameBase = 'data', $timestamp = true, $headerLabels = array (), $zipped = false /* false, or true (zip), or 'zip'/'gz') */, $saveToDirectory = false /* or full directory path, slash-terminated */, $includeHeaderRow = true, $chunksOf = 500)
 	{
 		# Global the query and any values
 		$this->query = $query;
@@ -381,13 +381,9 @@ class database
 		# Add CSV processing support
 		require_once ('csv.php');
 		
-		# Define the number of records per chunk of CSV string to append, to keep memory usage down
-		$chunksOf = 500;
-		
 		# Set chunking state
 		$data = array ();
 		$i = 0;
-		$includeHeaderRow = true;
 		
 		# Fetch the data
 		$this->preparedStatement->setFetchMode (PDO::FETCH_ASSOC);
@@ -441,17 +437,21 @@ class database
 	# Function to do getData via pagination
 	public function getDataViaPagination ($query, $associative = false /* or string as "{$database}.{$table}" */, $keyed = true, $preparedStatementValues = array (), $onlyFields = array (), $paginationRecordsPerPage, $page = 1, $searchResultsMaximumLimit = false, $knownTotalAvailable = false)
 	{
+		# Trim the query to ensure that placeholder matching works consistently
+		$query = trim ($query);
+		
 		# If the total is already known, use that
 		if ($knownTotalAvailable) {
 			$totalAvailable = $knownTotalAvailable;
 		} else {
 			
 			# Prepare the counting query; use a negative lookahead to match the section between SELECT ... FROM - see http://stackoverflow.com/questions/406230
+			#!# "ORDER BY generatedcolumn, ..." will cause a failure, but we cannot wipe out '/\s+ORDER\s+BY\s+.+$/isU' because a LIMIT clause may follow
 			$placeholders = array (
-				'/^\s*SELECT\s+(?!\s+FROM\s).+\s+FROM/misU' => 'SELECT COUNT(*) AS total FROM',
+				'/^SELECT\s+(?!\s+FROM\s).+\s+FROM/isU' => 'SELECT COUNT(*) AS total FROM',
 				# This works but isn't in use anywhere, so enable if/when needed with more testing '/^SELECT\s+DISTINCT\(([^)]+)\)\s+(?!\s+FROM ).+\s+FROM/' => 'SELECT COUNT(DISTINCT(\1)) AS total FROM',
 			);
-			$countingQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), trim ($query));
+			$countingQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), $query);
 			
 			# If any named placeholders are not now in the counting query, remove them from the list
 			$countingPreparedStatementValues = $preparedStatementValues;
@@ -484,7 +484,7 @@ class database
 		$placeholders = array (
 			'/;$/' => " LIMIT {$offset}, {$limitPerPage};",
 		);
-		$dataQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), trim ($query));
+		$dataQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), $query);
 		
 		# Get the data
 		$data = $this->getData ($dataQuery, $associative, $keyed, $preparedStatementValues, $onlyFields);
@@ -663,7 +663,7 @@ class database
 				return 'numeric';
 			case preg_match ('/^(enum|set)/', $type):
 				return 'list';
-			case preg_match ('/^(date)/', $type):
+			case preg_match ('/^(date|year)/', $type):
 				return 'date';
 		}
 		
@@ -1117,6 +1117,9 @@ class database
 			
 			# Execute the query
 			$rows = $this->execute ($query, $preparedStatementValues, $showErrors);
+			
+			#!# Needs to report failure if one execution in a chunk failed; detect using $this->error () perhaps
+			// application::dumpData ($this->error ());
 			
 			# Determine the result
 			$result = ($rows !== false);

@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.23.0';
+	var $version = '1.23.3';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -209,8 +209,10 @@ class form
 		'prefixedGroupsFilterEmpty'			=> false,							# Whether to filter out empty groups when using group prefixing in dataBinding; currently limited to detecting scalar types only
 		'unsavedDataProtection'				=> false,							# Add DHTML to give a warning about unsaved form data if navigating away from the page (false/true/text)
 		'jQuery'							=> true,							# If using DHTML features, where to load jQuery from (true = default, or false if already loaded elsewhere on the page)
+		'jQueryUi'							=> true,							# If using DHTML features, where to load jQueryUi from (currently only true/false are supported)
 		'scripts'							=> false,							# Where to load GitHub files from; false = use default, string = library files in this URL/path location
 		'autofocus'							=> false,							# Place HTML5 autofocus on the first widget (true/false)
+		'reorderableRows'				=> false,							# Whether to enable drag-and-drop reorderability of rows
 		'errorsCssClass'					=> 'error'							# CSS class for div of errors box
 	);
 	
@@ -1148,6 +1150,18 @@ class form
 							['Bold','Italic'],
 							['BulletedList','NumberedList'],
 							['Link','Unlink'],
+							['About']
+						]
+					",
+					
+					# Basic, plus image
+					'BasicImage' => "
+						[
+							['Source'],
+							['Bold','Italic'],
+							['BulletedList','NumberedList'],
+							['Link','Unlink'],
+							['Image'],
 							['About']
 						]
 					",
@@ -3606,10 +3620,12 @@ class form
 	{
 		# Add the libraries, ensuring that the loading respects the protocol type (HTTP/HTTPS) of the current page, to avoid mixed content warnings
 		# Need to keep this in sync with a compatible jQuery version
-		$this->jQueryLibraries['jQueryUI'] = '
-			<link href="' . $_SERVER['_SERVER_PROTOCOL_TYPE'] . '://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
-			<script src="' . $_SERVER['_SERVER_PROTOCOL_TYPE'] . '://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
-		';
+		if ($this->settings['jQueryUi']) {
+			$this->jQueryLibraries['jQueryUI'] = '
+				<script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+				<link href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css"/>
+			';
+		}
 	}
 	
 	
@@ -5491,6 +5507,50 @@ class form
 	}
 	
 	
+	# Function to define DHTML for drag-and-drop reorderable rows - see: http://www.avtex.com/blog/2015/01/27/drag-and-drop-sorting-of-table-rows-in-priority-order/
+	private function reorderableRows ($formId)
+	{
+		# Create the jQuery code
+		$this->jQueryCode[__FUNCTION__] = "
+			\$(document).ready(function() {
+
+				// Helper function to keep table row from collapsing when being sorted
+				var fixHelperModified = function(e, tr) {
+					var \$originals = tr.children();
+					var \$helper = tr.clone();
+					\$helper.children().each(function(index)
+					{
+						\$(this).width(\$originals.eq(index).width())
+					});
+					return \$helper;
+				};
+					
+				// Make table sortable
+				\$('#{$formId} table tbody').sortable({
+					helper: fixHelperModified,
+					stop: function(event,ui) {renumber_table('#{$formId}} table')}
+				});
+				
+				// Set pointer style
+				\$('#{$formId} table tr').css({'cursor':'move'});
+				\$('#{$formId} table tr:hover').css({'background-color':'#f7f7f7'});
+				
+				/*
+				// Delete button in table rows
+				\$('table').on('click','.btn-delete',function() {
+					tableID = '#' + \$(this).closest('table').attr('id');
+					r = confirm('Delete this item?');
+					if(r) {
+						\$(this).closest('tr').remove();
+						renumber_table(tableID);
+					}
+				});
+				*/
+			});
+		";
+	}
+	
+	
 	/**
 	 * Function actually to display the form
 	 * @access private
@@ -5513,10 +5573,19 @@ class form
 		
 		# Add unsaved data protection HTML if required, ensuring that an ID exists for the form tag
 		if ($this->settings['unsavedDataProtection']) {
+			#!# This needs to be handled more generically as this code is duplicated
 			if (!$this->settings['id']) {
 				$this->settings['id'] = 'ultimateForm';
 			}
 			$this->unsavedDataProtectionJs ($this->settings['id']);
+		}
+		
+		# Add drag-and-drop reorderability of rows if required
+		if ($this->settings['reorderableRows']) {
+			if (!$this->settings['id']) {
+				$this->settings['id'] = 'ultimateForm';
+			}
+			$html .= $this->reorderableRows ($this->settings['id']);
 		}
 		
 		# Load the jQuery library and client code if a widget/option has enabled its use and the setting for the source URL is specified
@@ -5966,6 +6035,7 @@ class form
 			'all'		=> 'The values for all of the sections %fields must be completed if one of them is.',
 			'master'	=> 'The value for the field %fields must be completed if any of the other %parameter fields are completed.',
 			'total'		=> 'In the sections %fields, the total number of items selected must be exactly %parameter.',
+			'details'	=> 'In the sections %fields, no details were submitted.',
 		);
 		
 		# Loop through each registered rule to check for setup problems (but do not perform the validations themselves)
@@ -6070,7 +6140,7 @@ class form
 			}
 			
 			# Check the rule
-			#!# Ideally refactor to avoid the same list of cases specified as $this->validationTypes
+			#!# Ideally refactor to avoid duplicating the same list of cases specified as $this->validationTypes
 			$validationFailed = false;
 			if (
 				   ( ($rule['type'] == 'different') && ($nonEmptyValues) && (count ($nonEmptyValues) != count (array_unique ($nonEmptyValues))) )
@@ -6079,18 +6149,23 @@ class form
 				|| ( ($rule['type'] == 'all')       && $nonEmptyValues && $emptyValues )
 				|| ( ($rule['type'] == 'total')     && ($total != $rule['parameter']) )
 				|| ( ($rule['type'] == 'master')    && $nonEmptyValues && array_key_exists ($firstField, $emptyValues) )
+				|| ( ($rule['type'] == 'details')   && $nonEmptyValues && $this->elements[$rule['fields'][0]]['data']['presented'] == 'Yes' && !strlen ($this->elements[$rule['fields'][1]]['data']['presented']) )
 			) {
 				$problems['validationFailed' . ucfirst ($rule['type']) . $index] = str_replace (array ('%fields', '%parameter'), array ($this->_fieldListString ($rule['fields']), $rule['parameter']), $this->validationTypes[$rule['type']]);
 				$validationFailed = true;
 			}
 			
 			# Highlight empty fields if validation failed
-			#!# Currently only implemented for 'all' - this must have all highlighted (others are more selective)
+			#!# Currently only implemented for 'all'/'details' - this must have all highlighted (others are more selective)
 			if ($validationFailed) {
 				if ($rule['type'] == 'all') {
 					foreach (array_keys ($emptyValues) as $emptyField) {
 						$this->elements[$emptyField]['requiredButEmpty'] = true;
 					}
+				}
+				if ($rule['type'] == 'details') {
+					$emptyField = $rule['fields'][1];
+					$this->elements[$emptyField]['requiredButEmpty'] = true;
 				}
 			}
 		}
@@ -6570,7 +6645,7 @@ class form
 		}
 		
 		# Construct the introductory text, including the IP address for the e-mail type
-		$introductoryText = ($outputType == 'confirmationEmail' ? $this->settings['confirmationEmailIntroductoryText'] . ($this->settings['confirmationEmailIntroductoryText'] ? "\n\n\n" : '') : $this->settings['emailIntroductoryText'] . ($this->settings['emailIntroductoryText'] ? "\n\n\n" : '')) . ($outputType == 'email' ? 'Below is a submission from the form' :  'Below is a confirmation of (apparently) your submission from the form') . " at \n" . $_SERVER['_PAGE_URL'] . "\nmade at " . date ('g:ia, jS F Y') . ($this->settings['ip'] ? ', from the IP address ' . $_SERVER['REMOTE_ADDR'] : '') . ($this->settings['browser'] ? (empty ($_SERVER['HTTP_USER_AGENT']) ? '; no browser type information was supplied.' : ', using the browser "' . $_SERVER['HTTP_USER_AGENT']) . '"' : '') . '.';
+		$introductoryText = ($outputType == 'confirmationEmail' ? $this->settings['confirmationEmailIntroductoryText'] . ($this->settings['confirmationEmailIntroductoryText'] ? "\n\n\n" : '') : $this->settings['emailIntroductoryText'] . ($this->settings['emailIntroductoryText'] ? "\n\n\n" : '')) . ($outputType == 'email' ? 'Below is a submission from the form' :  'Below is a confirmation of' . ($this->settings['user'] ? '' : ' (apparently)') . ' your submission from the form') . " at \n" . $_SERVER['_PAGE_URL'] . "\nmade at " . date ('g:ia, jS F Y') . ($this->settings['ip'] ? ', from the IP address ' . $_SERVER['REMOTE_ADDR'] : '') . ($this->settings['browser'] ? (empty ($_SERVER['HTTP_USER_AGENT']) ? '; no browser type information was supplied.' : ', using the browser "' . $_SERVER['HTTP_USER_AGENT']) . '"' : '') . '.';
 		
 		# Add an abuse notice if required
 		if (($outputType == 'confirmationEmail') && ($this->configureResultConfirmationEmailAbuseNotice)) {$introductoryText .= "\n\n(If it was not you who submitted the form, please report it as abuse to " . $this->configureResultConfirmationEmailAdministrator . ' .)';}
@@ -7445,6 +7520,15 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 				$timestampFieldnames = array ('createdAt', 'createdOn', 'updatedAt', 'updatedOn');
 				if (in_array ($fieldName, $timestampFieldnames)) {
 					continue;	// Skip widget creation
+				}
+				
+				# Select fields containing Yes/No, with a subsequent field with 'Details' appended to the name, should trigger a 'details' validation rule
+				if (is_array ($fieldAttributes['_values']) && in_array ('Yes', $fieldAttributes['_values']) && in_array ('No', $fieldAttributes['_values'])) {
+					$detailsField = $fieldName . 'Details';		// e.g. foo and fooDetails
+					#!# Ideally this would also check that the details field was the next field, rather than just existing
+					if (isSet ($fields[$detailsField])) {
+						$this->validation ('details', array ($fieldName, $detailsField));
+					}
 				}
 			}
 			

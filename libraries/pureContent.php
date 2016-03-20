@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
- * Version 1.9.5
+ * Version 1.9.6
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/purecontent/
@@ -607,7 +607,7 @@ class pureContent {
 		$html .= "\n$tabs\t\t" . "<select name=\"$name\"" . ($onchangeJavascript ? ' onchange="window.location.href/*stopBots*/=this[selectedIndex].value"' : '') . '>';	// The inline 'stopBots' javascript comment is an attempt to stop rogue bots picking up the "href=" text
 		$html .= "\n$tabs\t\t\t" . implode ("\n$tabs\t\t\t", $fragments);
 		$html .= "\n$tabs\t\t" . '</select>';
-		$html .= "\n$tabs\t\t" . '<input type="submit" value="Go!" class="button" />';
+		$html .= "\n$tabs\t\t" . '<noscript><input type="submit" value="Go!" class="button" /></noscript>';
 		$html .= "\n$tabs\t" . '</form>';
 		$html .= "\n$tabs" . '</div>' . "\n";
 		

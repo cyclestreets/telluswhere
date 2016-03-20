@@ -1941,16 +1941,16 @@ class telluswhere
 		));
 		$form->heading ('', $instructionBoxHtml);
 		$form->select (array (
-			'name'			=> 'license',
-			'title'			=> 'License',
-			'values'		=> array ('publicdomain' => 'Public domain (preferred)', 'ogl' => 'Open Government Licence'),
-			'required'		=> true,
-		));
-		$form->select (array (
 			'name'			=> 'metacategory',
 			'title'			=> 'Type',
 			'required'		=> true,
 			'values'		=> $metacategories,
+		));
+		$form->select (array (
+			'name'			=> 'license',
+			'title'			=> 'License',
+			'values'		=> array ('publicdomain' => 'Public domain (preferred)', 'ogl' => 'Open Government Licence'),
+			'required'		=> true,
 		));
 		$form->textarea (array (
 			'name' => 'metadata',

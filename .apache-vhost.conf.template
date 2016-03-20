@@ -29,8 +29,8 @@
 
 	# Permit file uploads
 	php_admin_flag file_uploads On
-        php_value upload_max_filesize 15M
-        php_value post_max_size 15M
+	php_value upload_max_filesize 15M
+	php_value post_max_size 15M
 	
 </VirtualHost>
 

@@ -1776,11 +1776,14 @@ class telluswhere
 		$this->imagesDirectory = $this->tmpDirectory . $folder;
 		$this->imagesLocation = $this->tmpFolder . $folder;
 		
+		# Define the session name
+		$sessionName = 'batch';
+		
 		# Get initial data or end
-		if (!$data = $this->batchInitialDataForm ()) {return;}
+		if (!$data = $this->batchInitialDataForm ($sessionName)) {return;}
 		
 		# Confirm data
-		if (!$data = $this->batchConfirmDataForm ($data)) {return;}
+		if (!$data = $this->batchConfirmDataForm ($sessionName, $data)) {return;}
 		
 		# Start the HTML
 		$html = '';
@@ -1857,10 +1860,9 @@ class telluswhere
 	
 	
 	# Batch form stage 1
-	private function batchInitialDataForm ()
+	private function batchInitialDataForm ($sessionName)
 	{
 		# Retrieve and return session data, if it exists
-		$sessionName = 'batch';
 		if ($data = $this->sessionGet ($sessionName)) {
 			return $data;
 		}
@@ -2025,7 +2027,7 @@ class telluswhere
 	
 	
 	# Batch form stage 2
-	private function batchConfirmDataForm ($stage1Data)
+	private function batchConfirmDataForm ($sessionName, $stage1Data)
 	{
 		# Start the HTML
 		$html = '';

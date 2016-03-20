@@ -1779,14 +1779,23 @@ class telluswhere
 		# Define the session name
 		$sessionName = 'batch';
 		
+		# Start the HTML
+		$html = '';
+		
+		# Clear the session if required, returning afterwards to the main batch page
+		if (isSet ($_GET['do']) && $_GET['do'] == 'cancel') {
+			$this->sessionDestroy ($sessionName);
+			$redirectTo = $_SERVER['_SITE_URL'] . $this->baseUrl . $this->actions[__FUNCTION__]['url'];
+			$html .= application::sendHeader (302, $redirectTo, true);
+			$this->template['contents'] = $html;
+			return;
+		}
+		
 		# Get initial data or end
 		if (!$data = $this->batchInitialDataForm ($sessionName)) {return;}
 		
 		# Confirm data
 		if (!$data = $this->batchConfirmDataForm ($sessionName, $data)) {return;}
-		
-		# Start the HTML
-		$html = '';
 		
 		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
@@ -2053,6 +2062,8 @@ class telluswhere
 				table.lines td.value p:last-child {margin-bottom: 0;}
 				table.lines td:last-child ul:first-child {margin-top: 0;}
 				table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
+				
+				p.right {float: right;}
 			</style>
 		';
 		
@@ -2143,6 +2154,9 @@ class telluswhere
 		$instructionBoxHtml .= "\n<p><strong>Then press the submit button</strong> at the end.</p>";
 		$instructionBoxHtml .= "\n</div>";
 		
+		# Provide a link to cancel
+		$instructionBoxHtml .= "\n<p class=\"right\">Or <a href=\"{$this->baseUrl}/batch/cancel.html\" onclick=\"return confirm('Are you sure?');\">Clear and go back &hellip;</a></p>";
+		
 		# Start a confirmation form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -2200,7 +2214,7 @@ class telluswhere
 		$this->template['contents'] = $html;
 		
 		# Destroy the session data from the first stage
-		$this->sessionDestroy ('batch');
+		$this->sessionDestroy ($sessionName);
 		
 		# Return the finalised data
 		return $data;

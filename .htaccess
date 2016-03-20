@@ -36,6 +36,7 @@ RewriteRule ^(news)/([^/]+)$ /$1/$2/ [L,R=301]
 RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)/(edit|delete).html$ index.html?action=$1&mode=$6&date=$2-$3-$4&urlMoniker=$5 [L,QSA]
 RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)/$ index.html?action=$1&date=$2-$3-$4&urlMoniker=$5 [L,QSA]
 RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)$ /$1/$2/$3/$4/$5/ [L,R=301]
+RewriteRule ^(batch)/cancel.html$ index.html?action=$1&do=cancel [L]
 
 # If no match above, serve files from the style folder directly, via the web application, for the configured style, other than specified static files
 RewriteCond %{REQUEST_FILENAME} !/index\.html$

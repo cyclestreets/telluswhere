@@ -2076,7 +2076,7 @@ class telluswhere
 		foreach ($stage1Data as $index => $location) {
 			
 			# Take account of any posted map changes in the map display
-			if ($_POST[$formName]) {	// If form posted
+			if (isSet ($_POST[$formName])) {	// If form posted
 				if (isSet ($_POST[$formName]["location_{$index}"])) {
 					$fields = array ('latitude', 'longitude', 'zoom');
 					foreach ($fields as $field) {

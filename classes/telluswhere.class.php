@@ -1183,6 +1183,8 @@ class telluswhere
 			#helptext.display {background-color: yellow;}
 			#helptext.hide {background-color: transparent;}
 			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
+			ul.ui-autocomplete li a {color: #ed1c24;}
+			ul.ui-autocomplete li span {color: #333; font-size: smaller;}
 			.leaflet-popup-content-wrapper {width: 250px; min-height: 80px;}
 			.bubble p {margin: 0 0 5px;}
 			.bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}

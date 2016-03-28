@@ -1239,7 +1239,7 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?15\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?16\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, {$browsingApiUrlJs}, '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
 		</script>
@@ -1251,7 +1251,7 @@ class telluswhere
 		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js"></script>';
+		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?2"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">
 		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
 		function useJsonpTransport () {
@@ -1280,7 +1280,7 @@ class telluswhere
 		</script>";
 		$html .= "\n" . "<script type=\"text/javascript\">
 			autocomplete.addTo (\"input[name='location']\", {
-				sourceUrl: '{$geocoderApiUrl}&bounded=1&viewbox=-6.6577,57.6924,1.7797,49.9370',
+				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=-6.6577,49.9370,1.7797,57.6924',
 				select: function (event, ui) {
 					var result = ui.item;
 					map.setView (L.latLng (result.lat, result.lon));

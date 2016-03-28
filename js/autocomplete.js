@@ -157,17 +157,14 @@ var autocomplete = (function ($) {
 	    if (window.cyclestreetsNS !== undefined && cyclestreetsNS.getPreferedNameSearchBoundingBox()) {
 
 		// Explode
-		bounds = cyclestreetsNS.getPreferedNameSearchBoundingBox().split(',');
-
-		// Set as viewbox WNES
-		urlParams.viewbox = bounds[3] + "," + bounds[0] + "," + bounds[1] + "," + bounds[2];
+		urlParams.bbox = cyclestreetsNS.getPreferedNameSearchBoundingBox();
 	    }
 
 	    // If there is a map on the page then assume it will provide bounds
 	    else if ($("#map")) {
 
 		// Callback that returns a csv: <left>,<top>,<right>,<bottom>
-		urlParams.viewbox = autocomplete.mapBoundsCallBack();
+		urlParams.bbox = autocomplete.mapBoundsCallBack();
 	    }
 
 	    // Country codes
@@ -251,7 +248,7 @@ var autocomplete = (function ($) {
 	mapBoundsCallBack: function () {
 
 	    // Declarations
-	    var bounds, r4;
+	    var bounds;
 
 	    // Abandon if no map
 	    if (window.cyclestreetsNS === undefined || cyclestreetsNS.map === undefined) {return;}
@@ -261,13 +258,9 @@ var autocomplete = (function ($) {
 
 	    // Expand the bounds to be as least as big as a city
 	    bounds = this.atLeastAsBigAsACity (bounds);
-
-	    // Rounds to four places of decimals - ie about 100 metres
-	    r4 = function (x) {return Math.round(10000 * x) / 10000;};
-
-	    // Cannot use toBBoxString() because that returns WSEN, whereas WNES is needed
-	    return Math.max (-180, r4 (bounds.getSouthWest().lng)) + "," + Math.min (90, r4 (bounds.getNorthEast().lat)) + "," +
-		Math.min (180, r4 (bounds.getNorthEast().lng)) + "," + Math.max (-90, r4 (bounds.getSouthWest().lat));
+		
+		// Return WSEN
+		return bounds.toBBoxString();
 	},
 
 	// Expand the bounds to be as least as big as a city
@@ -295,15 +288,12 @@ var autocomplete = (function ($) {
 	// Used to process each result from the geocoder
 	renderGeocoderResult: function (item) {
 
-	    // Extract the street and neighbourhood
-	    var sn = autocomplete.streetNeighbourhood (item.properties.display_name),
-
 	    // Form result object
-	    result = {
+	    var result = {
 		// The display_name is used as the full value for the widget because feeding it back into the query seems to be the best way of getting a repeatable result.
-		value: item.properties.display_name,
-		label: sn.street,
-		desc: sn.neighbourhood,
+		value: item.properties.name + ', ' + item.properties.near,	// Feeding it back into the query seems to be the best way of getting a repeatable result.
+		label: item.properties.name,
+		desc: item.properties.near,
 		lat: item.geometry.coordinates[1],
 		lon: item.geometry.coordinates[0],
 		feature: item
@@ -311,49 +301,6 @@ var autocomplete = (function ($) {
 
 	    // Result
 	    return result;
-	},
-
-
-	// The display_name contains a comma separated address, usually very comprehensive.
-	// The user needs to know the right level of detail in the given context.
-	// If addressdetails are requested the result contains those details - but not in a consistent pattern and so cannot be easily selected.
-	streetNeighbourhood: function (display_name) {
-
-	    // Set defaults
-	    var street = "Unknown street", neighbourhood = "Unknown neighbourhood";
-
-	    // Use display_name which is usually a full address
-	    if (display_name !== undefined) {
-
-		// Disassemble display name
-		var nameComponents = display_name.split(", ");
-
-		// When there are plenty of components
-		if (nameComponents.length >= 4) {
-
-		    // Use the first couple of bits for the street
-		    street = nameComponents[0] + ", " + nameComponents[1];
-
-		    // Use the next couple of bits for the neighbourhood
-		    neighbourhood = nameComponents[2] + ", " + nameComponents[3];
-
-		} else if (nameComponents.length >= 2) {
-
-		    // Use the first bit for the street
-		    street = nameComponents.shift();
-
-		    // Use the rest for the neighbourhood
-		    neighbourhood = nameComponents.join(", ");
-
-		} else {
-
-		    // Use all of it for the street
-		    street = display_name;
-		}
-	    }
-
-	    // Result
-	    return {"street": street, "neighbourhood": neighbourhood};
 	}
     };
 }(jQuery));

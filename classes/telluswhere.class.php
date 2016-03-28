@@ -1285,7 +1285,8 @@ class telluswhere
 				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=-6.6577,49.9370,1.7797,57.6924',
 				select: function (event, ui) {
 					var result = ui.item;
-					map.setView (L.latLng (result.lat, result.lon));
+					var geojsonItemLayer = L.geoJson(result.feature);
+					map.fitBounds(geojsonItemLayer.getBounds ());
 					event.preventDefault();
 				}
 			});

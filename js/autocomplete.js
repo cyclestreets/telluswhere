@@ -100,15 +100,18 @@ var autocomplete = (function ($) {
 
 	    // Declarations
 	    var result = ui.item;
-
+		
 	    // Abandon if no map
 	    if (cyclestreetsNS === undefined || cyclestreetsNS.map === undefined) {return;}
-
-	    // Zoom to at least 15
-	    var zoomTo = cyclestreetsNS.map.getZoom() <= 15 ? 15 : 16;
-
-	    // Set the centre
-	    cyclestreetsNS.map.setView ([result.lat, result.lon], zoomTo);
+		
+		// Zoom to fit the bounds of the polygon
+		var geojsonItemLayer = L.geoJson(ui.item.feature);
+		cyclestreetsNS.map.fitBounds(geojsonItemLayer.getBounds());
+		
+		// Zoom out if now too close
+		if (cyclestreetsNS.map.getZoom() > 17) {
+			cyclestreetsNS.map.setZoom(17);
+		}
 	},
 
 
@@ -120,8 +123,9 @@ var autocomplete = (function ($) {
 	    // The url should already include the api key, this object collates additional query string arguments for the CycleStreets geocoder api call
 	    // http://www.cyclestreets.net/api/v2/geocoder/
 	    var urlParams = {
-		q: request.term, // Ie the search string
-		limit: 12	// Ideally this and perhaps other parameters that are sent to the geocoder could be settings
+			q: request.term, // I.e. the search string
+			limit: 12,	// Ideally this and perhaps other parameters that are sent to the geocoder could be settings
+			geometries: '1'
 	    },
 
 	    // Useful var to help determine any bounding box for the geocoding search
@@ -324,3 +328,4 @@ var autocomplete = (function ($) {
 	}
     };
 }(jQuery));
+

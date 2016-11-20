@@ -1253,7 +1253,7 @@ class telluswhere
 		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?2"></script>';
+		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?3"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">
 		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
 		function useJsonpTransport () {
@@ -1284,9 +1284,8 @@ class telluswhere
 			autocomplete.addTo (\"input[name='location']\", {
 				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=-6.6577,49.9370,1.7797,57.6924',
 				select: function (event, ui) {
-					var result = ui.item;
-					var geojsonItemLayer = L.geoJson(result.feature);
-					map.fitBounds(geojsonItemLayer.getBounds ());
+					var bbox = ui.item.feature.properties.bbox.split(',');
+					map.fitBounds([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ]);	// See: http://leafletjs.com/reference.html#latlngbounds
 					event.preventDefault();
 				}
 			});

@@ -360,7 +360,7 @@ class telluswhere
 	}
 	
 	
-	# Function to bootstrap the database structure; note the SQLite format comments: http://stackoverflow.com/questions/7426205/
+	# Function to bootstrap the database structure; note the SQLite format comments: https://stackoverflow.com/questions/7426205/
 	private function createDatabaseStructure ($databaseFile)
 	{
 		# Settings table
@@ -568,7 +568,7 @@ class telluswhere
 			return false;	// Front controller will go on to serve a 404
 		}
 		
-		# Enable caching to improve browser performance; see: http://stackoverflow.com/a/1583753/180733
+		# Enable caching to improve browser performance; see: https://stackoverflow.com/a/1583753/180733
 		$lastModifiedTime = filemtime ($file);
 		$etag = md5_file ($file);
 		header ('Last-Modified: ' . gmdate ('D, d M Y H:i:s', $lastModifiedTime) . ' GMT');
@@ -604,10 +604,10 @@ class telluswhere
 	}
 	
 	
-	# Function to get the MIME type; this is basically a wrapper to finfo_file because of a PHP bug; see: http://stackoverflow.com/a/17736797/180733
+	# Function to get the MIME type; this is basically a wrapper to finfo_file because of a PHP bug; see: https://stackoverflow.com/a/17736797/180733
 	private function getMimeType ($file)
 	{
-		# Workaround for bug with finfo_file(); see http://bugs.php.net/53035
+		# Workaround for bug with finfo_file(); see https://bugs.php.net/53035
 		$extension = pathinfo ($file, PATHINFO_EXTENSION);
 		switch ($extension) {
 			case 'css':
@@ -1030,7 +1030,7 @@ class telluswhere
 	# Function to set the addition confirmation message
 	private function confirmationMessage ($id, $isUpdate, $action)
 	{
-		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$html  = "\n<p>{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number {$id}.") . '</p>';
 		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}\">Add another?</a></p>";
 		return $html;
@@ -1082,7 +1082,7 @@ class telluswhere
 				if (function_exists ('curl_file_create')) {
 					$mediaupload = curl_file_create ($file);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
 				} else {
-					$mediaupload = '@' . $file;	// Deprecated method using @ symbol - see: http://stackoverflow.com/a/4270282/180733
+					$mediaupload = '@' . $file;	// Deprecated method using @ symbol - see: https://stackoverflow.com/a/4270282/180733
 				}
 				$data['mediaupload'] = $mediaupload;
 			}
@@ -1176,8 +1176,8 @@ class telluswhere
 		
 		# Create the map application HTML
 		$html .= '
-		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
-		<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.2/dist/leaflet.css" />
+		<script src="https://unpkg.com/leaflet@0.7.2/dist/leaflet.js"></script>
 		<style type="text/css">
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}
@@ -1250,13 +1250,13 @@ class telluswhere
 		
 		# Add autocomplete name search
 		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];
-		// Libraries available at: http://cdnjs.com/libraries/jqueryui/
+		// Libraries available at: https://cdnjs.com/libraries/jqueryui/
 		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?3"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">
-		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
+		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: https://stackoverflow.com/a/19562445/180733
 		function useJsonpTransport () {
 			
 			// Determine details of the current browser
@@ -1286,7 +1286,7 @@ class telluswhere
 				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=-6.6577,49.9370,1.7797,57.6924',
 				select: function (event, ui) {
 					var bbox = ui.item.feature.properties.bbox.split(',');
-					map.fitBounds([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ]);	// See: http://leafletjs.com/reference.html#latlngbounds
+					map.fitBounds([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ]);	// See: https://leafletjs.com/reference.html#latlngbounds
 					event.preventDefault();
 				}
 			});
@@ -1737,10 +1737,10 @@ class telluswhere
 				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
 				'downloaders'		=> array ('description' => 'One e-mail address per line', ),
 				'batchUploaders'		=> array ('type' => 'textarea', ),
-				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: http://stackoverflow.com/questions/15303940/
+				#!# Add max/min/step/pattern for defaultLatitude/defaultLongitude when ultimateForm has support; see: https://stackoverflow.com/questions/15303940/
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
-				'bbox'				=> array ('description' => 'W,S,E,N; data from: http://wiki.openstreetmap.org/wiki/Bounding_Box', ),
+				'bbox'				=> array ('description' => 'W,S,E,N; data from: https://wiki.openstreetmap.org/wiki/Bounding_Box', ),
 				'trackingCode'		=> array ('heading' => array (3 => 'Analytics'), 'rows' => 11, ),
 				'password'			=> array ('type' => 'input', 'confirmation' => false, 'editable' => true, ),	// Override intelligence=true for field named 'password'
 				'areas'				=> array ('heading' => array (3 => 'Areas'), 'rows' => 12, ),
@@ -1758,7 +1758,7 @@ class telluswhere
 		}
 		
 		# Confirm success
-		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$message  = "\n<p><strong>{$unicodeTick} The settings have been saved.</strong></p>";
 		$message .= "\n<p><a href=\"{$this->baseUrl}/\">Continue to the front page.</a></p>";
 		$html = $message . $html;
@@ -1813,7 +1813,7 @@ class telluswhere
 		$this->rrmdir ($this->imagesDirectory);
 		
 		# Confirm success
-		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$html .= "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
 		$html .= "\n<p>You can view these on the <a href=\"{$this->baseUrl}/{$action}/\">" . lcfirst ($this->actions[$action]['descriptionMultiple']) . "</a> page.</p>";
 		
@@ -1918,7 +1918,7 @@ class telluswhere
 		
 		# Instruction text
 		$instructionBoxHtml  = "\n<style type=\"text/css\">
-			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see https://gtwebdev.com/workshop/floats/enclosing-floats.php */}
 			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
 			div.graybox p {text-align: left; margin-top: 10px;}
 		</style>";
@@ -2059,11 +2059,11 @@ class telluswhere
 		
 		# Define standard map JS
 		$html .= "
-			<link rel=\"stylesheet\" href=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css\" />
-			<script src=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js\"></script>
+			<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@0.7.2/dist/leaflet.css\" />
+			<script src=\"https://unpkg.com/leaflet@0.7.2/dist/leaflet.js\"></script>
 			<script type=\"text/javascript\">
 				var osmLayer = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
-				var osmAttribution = '&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors'
+				var osmAttribution = '&copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors'
 			</script>
 		";
 		
@@ -2161,7 +2161,7 @@ class telluswhere
 		
 		# Define instruction text
 		$instructionBoxHtml  = "\n<style type=\"text/css\">
-			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see https://gtwebdev.com/workshop/floats/enclosing-floats.php */}
 			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
 			div.graybox p {text-align: left; margin-top: 10px;}
 		</style>";
@@ -2346,12 +2346,12 @@ class telluswhere
 		$csv = file_get_contents ($apiUrl);
 		
 		# Replace cycle.st links with internal links
-		#!# Bit of a dirty way to do this - should have an API parameter, e.g. shortlink=http://{$_SERVER['SERVER_NAME']}/location/%s/
-		$csv = preg_replace ('|,http://cycle.st/p([0-9]+),|', ",http://{$_SERVER['SERVER_NAME']}/location/\$1/,", $csv);
+		#!# Bit of a dirty way to do this - should have an API parameter, e.g. shortlink=https://{$_SERVER['SERVER_NAME']}/location/%s/
+		$csv = preg_replace ('|,https://cycle.st/p([0-9]+),|', ",http://{$_SERVER['SERVER_NAME']}/location/\$1/,", $csv);
 		
 		# Serve the file
 		$filenameBase = $dataset . '_savedAt' . date ('Ymd-His');
-		header ('Content-type: text/csv');	// Note that Chrome will still give "Resource interpreted as Document but transferred with MIME type text/csv" - see: http://stackoverflow.com/a/3899453/180733
+		header ('Content-type: text/csv');	// Note that Chrome will still give "Resource interpreted as Document but transferred with MIME type text/csv" - see: https://stackoverflow.com/a/3899453/180733
 		header ('Content-Disposition: attachment; filename="' . $filenameBase . '.csv"');
 		echo $csv;
 	}

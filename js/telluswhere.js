@@ -62,8 +62,8 @@ var telluswhere = (function ($) {
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
 			
 			// Set tile layer
-			var tileUrl = 'http://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
-			var tileAttribution = 'Map data &copy; <a href=\"http://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>)';
+			var tileUrl = 'https://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
+			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
 			_maxZoom = 18;
 			L.tileLayer(tileUrl, {
 				attribution: tileAttribution,
@@ -111,7 +111,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Add support for Like clicks
-			$('body').on('click','#likes a', function(event){	// http://stackoverflow.com/a/19133666/180733
+			$('body').on('click','#likes a', function(event){	// https://stackoverflow.com/a/19133666/180733
 				event.preventDefault();
 				$.ajax({
 					url: $(this).attr('href'),
@@ -364,7 +364,7 @@ var telluswhere = (function ($) {
 		
 		
 		
-		/* Existing locations browsing functions; see: http://chris-osm.blogspot.co.uk/2013/11/using-leaflet-with-database.html */
+		/* Existing locations browsing functions; see: https://chris-osm.blogspot.co.uk/2013/11/using-leaflet-with-database.html */
 		
 		
 		// Newline-to-breaks helper function
@@ -397,7 +397,7 @@ var telluswhere = (function ($) {
 			// Caption and ID; if nodeId exists then this is a location from OSM and so is fixed, read-only data
 			+ '<p class="id">'
 			+ (properties.nodeId
-				? '<a href="' + 'http://www.openstreetmap.org' + '/node/' + properties.nodeId + '/" target="_blank">' + '(From OpenStreetMap)' + '</a>'
+				? '<a href="' + 'https://www.openstreetmap.org' + '/node/' + properties.nodeId + '/" target="_blank">' + '(From OpenStreetMap)' + '</a>'
 				: '<a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>'
 			)
 			+ '</p>'
@@ -470,7 +470,7 @@ var telluswhere = (function ($) {
 					if (cookieValueLiked.length > 0) {
 						
 						// See if the the supplied ID (as string) is in the list
-						if ($.inArray (id.toString(), cookieValueLiked) > -1) {	// http://api.jquery.com/jQuery.inArray/
+						if ($.inArray (id.toString(), cookieValueLiked) > -1) {	// https://api.jquery.com/jQuery.inArray/
 							return true;
 						}
 					}
@@ -537,7 +537,7 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: http://stackoverflow.com/a/19562445/180733
+		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: https://stackoverflow.com/a/19562445/180733
 		useJsonpTransport: function() {
 			
 			// Determine details of the current browser
@@ -584,7 +584,7 @@ var telluswhere = (function ($) {
 			$.ajax({
 				url: browsingApiUrl,
 				dataType: (_useJsonpTransport ? 'jsonp' : 'json'),
-				crossDomain: true,	// Needed for IE<=9; see: http://stackoverflow.com/a/12644252/180733
+				crossDomain: true,	// Needed for IE<=9; see: https://stackoverflow.com/a/12644252/180733
 				data: data,
 				success: successFunction
 			});
@@ -631,7 +631,7 @@ var telluswhere = (function ($) {
 					// Determine if form not complete, showing any error
 					var thisFormOk = telluswhere.formOk('#problem', e);
 					
-					// Submit the form if no problem detected; based on: http://stackoverflow.com/questions/1960240/jquery-ajax-submit-form
+					// Submit the form if no problem detected; based on: https://stackoverflow.com/questions/1960240/jquery-ajax-submit-form
 					if (thisFormOk) {
 						$.ajax({
 							type: ajaxform.attr('method'),
@@ -712,7 +712,7 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Cookie reading function; see: http://www.quirksmode.org/js/cookies.html
+		// Cookie reading function; see: https://www.quirksmode.org/js/cookies.html
 		readCookie: function(name) {
 		    var nameEQ = name + "=";
 		    var ca = document.cookie.split(';');

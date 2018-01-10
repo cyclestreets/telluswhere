@@ -48,7 +48,7 @@ class news
 			/* Article listing */
 			p.actionbutton a {border: 1px solid #eee; padding: 5px 10px; border-radius: 3px; background-color: #f7f7f7;}
 			div.article {margin-bottom: 3em;}
-			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see http://gtwebdev.com/workshop/floats/enclosing-floats.php */}
+			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see https://gtwebdev.com/workshop/floats/enclosing-floats.php */}
 			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
 			div.graybox p {text-align: left; margin-top: 10px;}
 			
@@ -173,7 +173,7 @@ class news
 				$this->html = $html;
 				return true;
 			}
-			$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+			$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 			
 			# Reset the HTML
 			$link = "{$this->baseUrl}/news/" . ($do == 'update' ? date ('Y/m/d/', strtotime ($article['date'] . ' 12:00:00')) . "{$article['urlMoniker']}/" : ($article['area'] ? "{$article['area']}/" : ''));	// When adding, take the user to the front page
@@ -225,7 +225,7 @@ class news
 		}
 
 		$html  = "\n<h2>Delete article</h2>";
-		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// http://www.fileformat.info/info/unicode/char/2714/
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$html .= "\n<p>{$unicodeTick} The article has been deleted.</p>";
 		$html .= "\n<p><a href=\"{$this->baseUrl}/news/\">Return to main news page.</a></p>";
 		

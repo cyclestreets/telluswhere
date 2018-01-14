@@ -1,11 +1,11 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-15
- * Version 1.9.6
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-17
+ * Version 1.9.9
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
- * Download latest from: http://download.geog.cam.ac.uk/projects/purecontent/
+ * Download latest from: https://download.geog.cam.ac.uk/projects/purecontent/
  */
 
 
@@ -362,11 +362,11 @@ class pureContent {
 	public static function editLink ($internalHostRegexp, $port = 8080, $class = 'editlink', $tag = 'p')
 	{
 		# If the host matches and the port is not the edit port, give a link
-		if (preg_match ('/' . addcslashes ($internalHostRegexp, '/') . '/', gethostbyaddr ($_SERVER['REMOTE_ADDR']))) {
+		if (preg_match ('/' . addcslashes ($internalHostRegexp, '/') . '/', gethostbyaddr ($_SERVER['REMOTE_ADDR'])) || isSet ($_COOKIE['purecontenteditorlink'])) {
 			if ($_SERVER['SERVER_PORT'] != $port) {
-				return "<{$tag} class=\"" . ($class ? "{$class} " : '') . "noprint\"><a href=\"http://{$_SERVER['SERVER_NAME']}:{$port}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . '"><img src="/images/icons/page_edit.png" class="icon" /> Editing&nbsp;mode</a>' . "</{$tag}>";
+				return "<{$tag} class=\"" . ($class ? "{$class} " : '') . "noprint\"><a href=\"https://{$_SERVER['SERVER_NAME']}:{$port}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . '"><img src="/images/icons/page_edit.png" class="icon" /> Editing&nbsp;mode</a>' . "</{$tag}>";
 			} else {
-				return "<{$tag} class=\"" . ($class ? "{$class} " : '') . "noprint\"><a href=\"http://{$_SERVER['SERVER_NAME']}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . "\">[Return to live]</a></{$tag}>";
+				return "<{$tag} class=\"" . ($class ? "{$class} " : '') . "noprint\"><a href=\"https://{$_SERVER['SERVER_NAME']}" . htmlspecialchars ($_SERVER['REQUEST_URI']) . "\">[Return to live]</a></{$tag}>";
 			}
 		}
 		
@@ -376,8 +376,15 @@ class pureContent {
 	
 	
 	# Function to provide an SSO link area
-	public static function ssoLinks ($ssoBrandName = false, $profileUrl = false, $profileName = 'My profile')
+	public static function ssoLinks ($ssoBrandName = false, $profileUrl = false, $profileName = 'My profile', $superusersSwitching = array (), $internalHostRegexp = false)
 	{
+		# End if not to be shown for the user's host
+		if ($internalHostRegexp) {
+			if (!preg_match ('/' . addcslashes ($internalHostRegexp, '/') . '/', gethostbyaddr ($_SERVER['REMOTE_ADDR']))) {
+				return false;
+			}
+		}
+		
 		# End if SSO not installed
 		if (!isSet ($_SERVER['SINGLE_SIGN_ON_ENABLED'])) {return false;}
 		
@@ -387,17 +394,26 @@ class pureContent {
 		# Determine any return-to appended reference
 		$returnTo = ($_SERVER['REQUEST_URI'] && ($_SERVER['REQUEST_URI'] != '/') ? '?' . htmlspecialchars ($_SERVER['REQUEST_URI']) : '');
 		
-		# Show the link
+		# Enable superusers to switch to another user
+		$userSwitchingEnabled = (isSet ($_SERVER['REMOTE_USER']) && strlen ($_SERVER['REMOTE_USER']) && in_array ($_SERVER['REMOTE_USER'], $superusersSwitching, true));
+		$userSwitching = self::userSwitching ($userSwitchingEnabled);
+		
+		# Show the links
 		if (preg_match ('|^/logout|', $_SERVER['REQUEST_URI'])) {
 			$html .= "\n\t\t<li><span>Logging out&hellip;</span></li>";	// NB the user will actually have been logged out already
 		} else if ($_SERVER['REMOTE_USER']) {
 			$html .= "\n\t\t<li class=\"submenu\">";
-			$html .= "<span>Logged in as <strong>" . htmlspecialchars ($_SERVER['REMOTE_USER']) . "</strong> &#9660;</span>";
+			$html .= ($userSwitching ? '<span class="impersonation">Impersonating' : '<span>Logged in as') . ' <strong>' . htmlspecialchars ($_SERVER['REMOTE_USER']) . "</strong> &#9660;</span>";
 			$html .= "\n\t\t<ul>";
 			if ($profileUrl) {
 				$html .= "\n\t\t\t<li><a href=\"{$profileUrl}\">{$profileName}</a></li>";
 			}
-			$html .= "\n\t\t\t<li><a href=\"/logout/{$returnTo}\">Logout</a></li>";	// Note that this will not maintain any #anchor, because the server doesn't see any hash: http://stackoverflow.com/questions/940905
+			if ($userSwitchingEnabled) {
+				$html .= "\n\t\t\t<li>";
+				$html .= '<form name="switchuser" action="" method="post"><input type="search" name="switchuser[username]" value="' . htmlspecialchars ($userSwitching) . '" placeholder="Switch user" size="10" /> <input type="submit" value="Go!"></form>';
+				$html .= '</li>';
+			}
+			$html .= "\n\t\t\t<li><a href=\"/logout/{$returnTo}\">Logout</a></li>";	// Note that this will not maintain any #anchor, because the server doesn't see any hash: https://stackoverflow.com/questions/940905
 			$html .= "\n\t\t</ul>";
 			$html .= "</li>";
 		} else {
@@ -417,6 +433,46 @@ class pureContent {
 		return $html;
 	}
 	
+	
+	# Helper function to implement user switching
+	private static function userSwitching ($userSwitchingEnabled, $usernameRegexp = '/^([a-z0-9]+)$/')
+	{
+		# End if not enabled
+		if (!$userSwitchingEnabled) {return false;}
+		
+		# Assume disabled by default
+		$userSwitching = false;
+		
+		# If logged in, get the real username and ensure they have superuser rights
+		if ($userSwitchingEnabled) {
+			session_start ();
+			
+			# Maintain an existing session
+			if (isSet ($_SESSION['switchuser']) && isSet ($_SESSION['switchuser']['username']) && preg_match ($usernameRegexp, $_SESSION['switchuser']['username'])) {
+				$userSwitching = $_SESSION['switchuser']['username'];
+			}
+			
+			# If the form is posted, select or clear the user
+			if (isSet ($_POST['switchuser']) && isSet ($_POST['switchuser']['username'])) {
+				if (strlen ($_POST['switchuser']['username']) && preg_match ($usernameRegexp, $_POST['switchuser']['username']) && ($_POST['switchuser']['username'] != $_SERVER['REMOTE_USER'])) {
+					$userSwitching = trim ($_POST['switchuser']['username']);
+					$_SESSION['switchuser']['username'] = $userSwitching;
+				} else {
+					unset ($_SESSION['switchuser']);
+					$userSwitching = false;
+				}
+				header ("Location: {$_SERVER['_PAGE_URL']}");	// 302 Redirect (temporary)
+			}
+			
+			# Switch the user, and refresh the page to avoid POST warnings
+			if ($userSwitching) {
+				$_SERVER['REMOTE_USER'] = $userSwitching;
+			}
+		}
+		
+		# Return the user switching status (false or username)
+		return $userSwitching;
+	}
 	
 	
 	# Function to combine a set of files having a submenu into a single page
@@ -587,6 +643,8 @@ class pureContent {
 	
 	
 	# Function to create a jumplist form
+	#!# Need to move this to the application library
+	#!# Needs support for nested lists
 	public static function htmlJumplist ($values /* will have htmlspecialchars applied to both keys and values */, $selected = '', $action = '', $name = 'jumplist', $parentTabLevel = 0, $class = 'jumplist', $introductoryText = 'Go to:', $valueSubstitution = false, $onchangeJavascript = true)
 	{
 		# Return an empty string if no items
@@ -595,7 +653,7 @@ class pureContent {
 		# Prepare the tab string
 		$tabs = str_repeat ("\t", ($parentTabLevel));
 		
-		# Build the list; note that the visible value can never have tags within (e.g. <span>): http://stackoverflow.com/questions/5678760
+		# Build the list; note that the visible value can never have tags within (e.g. <span>): https://stackoverflow.com/questions/5678760
 		foreach ($values as $value => $visible) {
 			$fragments[] = '<option value="' . ($valueSubstitution ? str_replace ('%value', htmlspecialchars ($value), $valueSubstitution) : htmlspecialchars ($value)) . '"' . ($value == $selected ? ' selected="selected"' : '') . '>' . htmlspecialchars ($visible) . '</option>';
 		}

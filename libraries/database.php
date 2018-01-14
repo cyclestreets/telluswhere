@@ -1,10 +1,10 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-16
- * Version 2.5.3
- * Uses prepared statements (see http://stackoverflow.com/questions/60174/best-way-to-stop-sql-injection-in-php ) where possible
- * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-17
+ * Version 3.0.7
+ * Uses prepared statements (see https://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php ) where possible
+ * Distributed under the terms of the GNU Public Licence - https://www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/database/
  */
@@ -13,13 +13,19 @@
 # Class containing basic generalised database manipulation functions for PDO
 class database
 {
-	# Global class variables
+	# General class properties
 	public $connection = NULL;
 	private $preparedStatement = NULL;
 	private $query = NULL;
 	private $queryValues = NULL;
 	private $strictWhere = false;
 	private $fieldsCache = array ();
+	
+	# Error logger properties
+	private $errorLoggerCallback = NULL;
+	private $errorLoggerCustomCode = NULL;
+	private $errorLoggerCustomCodeText = NULL;
+	private $errorLoggerEntryFunction = NULL;
 	
 	
 	# Function to connect to the database
@@ -46,10 +52,13 @@ class database
 		# Enable native types if required; currently implemented and tested only for MySQL; note that this requires the pdo-mysqlnd driver to be installed
 		if ($nativeTypes) {
 			if ($vendor == 'mysql') {
-				$driverOptions[PDO::ATTR_EMULATE_PREPARES] = false;
+				$driverOptions[PDO::ATTR_EMULATE_PREPARES] = false;		// #!# This seems to cause problems with e.g. "SHOW DATABASES LIKE"; see point 3 at: http://stackoverflow.com/a/10455228/180733 and http://stackoverflow.com/a/12202218/180733
 				$driverOptions[PDO::ATTR_STRINGIFY_FETCHES] = false;	// This seems to be the default anyway
 			}
 		}
+		
+		# Enable exception throwing; see: http://php.net/pdo.error-handling
+		$driverOptions[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
 		
 		# Connect to the database and return the status
 		if ($vendor == 'sqlite') {
@@ -60,17 +69,17 @@ class database
 		}
 		try {
 			$this->connection = new PDO ($dsn, $username, $password, $driverOptions);
-		} catch (PDOException $e) {
+		} catch (PDOException $e) {		// "PDO::__construct() will always throw a PDOException if the connection fails regardless of which PDO::ATTR_ERRMODE is currently set." noted at http://php.net/pdo.error-handling
 			// error_log ("{$e} {$dsn}, {$username}, {$password}");		// Not enabled by default as $e can contain passwords which get dumped to the webserver's error log
 			return false;
 		}
 		
 		# Set transfers to UTF-8
 		if ($setNamesUtf8) {
-			$this->execute ("SET NAMES 'utf8'");
+			$this->_execute ("SET NAMES 'utf8'");
 			// # The following is a more portable version that could be used instead
 			//$charset = $this->getVariable ('character_set_database');
-			//$this->execute ("SET NAMES '{$charset}';");
+			//$this->_execute ("SET NAMES '{$charset}';");
 		}
 	}
 	
@@ -90,9 +99,78 @@ class database
 	}
 	
 	
-	# Function to execute a generic SQL query
+	# Function to register an error logger callback; the callback should either be a function name or specified as an array (object instance, publicly-visible method)
+	public function registerErrorLogger ($callback)
+	{
+		# Register the callback
+		$this->errorLoggerCallback = $callback;
+	}
+	
+	
+	# Function to set a custom error code and text that will be applied to the following call only
+	public function errorCode ($code = NULL, $text = NULL)
+	{
+		# Register the code and text
+		$this->errorLoggerCustomCode = $code;
+		$this->errorLoggerCustomCodeText = $text;
+	}
+	
+	
+	# Function to reset any custom error code
+	private function resetErrorCode ()
+	{
+		# Reset the values
+		$this->errorCode ();
+	}
+	
+	
+	# Function to call the error logger, if it is defined; currently this supports only an external callback
+	private function logError ($forcedErrorText = false)
+	{
+		# Ignore this functionality if no callback
+		if (!$this->errorLoggerCallback) {return;}
+		
+		# Append forced error text if required
+		if ($forcedErrorText) {
+			$divider = ($this->errorLoggerCustomCodeText ? (substr ($this->errorLoggerCustomCodeText, -1) == '.' ? '' : ';') . ' ' : '');
+			$this->errorLoggerCustomCodeText .= $divider . $forcedErrorText;
+		}
+		
+		# Call the logger, sending back the called function (e.g. 'query', 'getData', 'select', etc.) and the error details
+		if (is_array ($this->errorLoggerCallback)) {
+			$class  = $this->errorLoggerCallback[0];
+			$method = $this->errorLoggerCallback[1];
+			$class->$method ($this->errorLoggerEntryFunction, $this->error (), $this->errorLoggerCustomCode, $this->errorLoggerCustomCodeText);
+		} else {
+			$callback = $this->errorLoggerCallback;
+			$callback ($this->errorLoggerEntryFunction, $this->error (), $this->errorLoggerCustomCode, $this->errorLoggerCustomCodeText);
+		}
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+	}
+	
+	
+	# Function to do a generic SQL query
 	#!# Currently no ability to enable logging for write-based queries; need to allow external callers to specify this, but without this affecting internal use of this function
 	public function query ($query, $preparedStatementValues = array (), $debug = false)
+	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Hand off to the implementation
+		$result = $this->_query ($query, $preparedStatementValues, $debug);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+    	
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Implementation for query
+	private function _query ($query, $preparedStatementValues = array (), $debug = false)
 	{
 		return $this->queryOrExecute (__FUNCTION__, $query, $preparedStatementValues, $debug);
 	}
@@ -101,6 +179,23 @@ class database
 	# Function to execute a generic SQL query
 	#!# Currently no ability to enable logging for write-based queries; need to allow external callers to specify this, but without this affecting internal use of this function
 	public function execute ($query, $preparedStatementValues = array (), $debug = false)
+	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Hand off to the implementation
+		$result = $this->_execute ($query, $preparedStatementValues, $debug);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Implementation for execute
+	private function _execute ($query, $preparedStatementValues = array (), $debug = false)
 	{
 		return $this->queryOrExecute (__FUNCTION__, $query, $preparedStatementValues, $debug);
 	}
@@ -124,24 +219,28 @@ class database
 		if ($preparedStatementValues) {
 			
 			# Execute the statement (ending if there is an error in the query or parameters)
-			$this->preparedStatement = $this->connection->prepare ($query);
-			if (!$result = $this->preparedStatement->execute ($preparedStatementValues)) {
+			try {
+				$this->preparedStatement = $this->connection->prepare ($query);
+				$result = $this->preparedStatement->execute ($preparedStatementValues);
+			} catch (PDOException $e) {		// Enabled by PDO::ERRMODE_EXCEPTION in constructor
+				$this->logError ();
 				return false;
 			}
 			
 			# In execute mode, get the number of affected rows
-			if ($mode == 'execute') {
+			if ($mode == '_execute') {
 				$result = $this->preparedStatement->rowCount ();
 			}
 			
 		} else {
 			
 			# Execute the query and get the number of affected rows
-			$function = ($mode == 'query' ? 'query' : 'exec');
+			$function = ($mode == '_query' ? 'query' : 'exec');
 			try {
 				$result = $this->connection->$function ($query);
-			} catch (PDOException $e) {
+			} catch (PDOException $e) {		// Enabled by PDO::ERRMODE_EXCEPTION in constructor
 				if ($debug) {echo $e;}
+				$this->logError ();
 				return false;
 			}
 		}
@@ -155,14 +254,39 @@ class database
 	# Uses prepared statement approach if a fourth parameter providing the placeholder values is supplied
 	public function getOne ($query, $associative = false, $keyed = true, $preparedStatementValues = array ())
 	{
-		# Get the data
-		$data = $this->getData ($query, $associative, $keyed, $preparedStatementValues);
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Hand off to the implementation
+		$result = $this->_getOne ($query, $associative, $keyed, $preparedStatementValues);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Implementation for getOne
+	private function _getOne ($query, $associative = false, $keyed = true, $preparedStatementValues = array (), $expectMode = false)
+	{
+		# Get the data; NB this is not done in expect mode as that is handled explicitly below with a more customised error message
+		$data = $this->_getData ($query, $associative, $keyed, $preparedStatementValues, array ());
 		
 		# Ensure that only one item is returned
-		if (count ($data) > 1) {return NULL;}
-		if (count ($data) !== 1) {return false;}
+		if (count ($data) > 1) {
+			$this->logError ("Query produces more than one result, in {$this->errorLoggerEntryFunction}().");
+			return NULL;
+		}
+		if (count ($data) !== 1) {
+			if ($expectMode) {
+				$this->logError ("Expected exactly one result, in {$this->errorLoggerEntryFunction}().");
+			}
+			return false;
+		}
 		
-		# Return the data, taking the first item; $data[0] would fail when using $associative
+		# Return the data, taking the first (and now confirmed as the only) item; $data[0] would fail when using $associative
 		foreach ($data as $keyOrIndex => $item) {
 			return $item;
 		}
@@ -172,46 +296,94 @@ class database
 	# Return the value of the field column from the single-result query
 	public function getOneField ($query, $field, $preparedStatementValues = array ())
 	{
-		# Get the result or end (returning null or false)
-		if (!$result = $this->getOne ($query, false, true, $preparedStatementValues)) {return $result;}
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Hand off to the implementation
+		$result = $this->_getOneField ($query, $field, $preparedStatementValues);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Implementation for getOneField
+	private function _getOneField ($query, $field, $preparedStatementValues = array (), $expectMode = false)
+	{
+		# Get the result or end (returning NULL or false)
+		if (!$result = $this->_getOne ($query, false, true, $preparedStatementValues, $expectMode)) {
+			return $result;
+		}
 		
 		# If the field doesn't exist, return false
-		if (!isSet ($result[$field])) {return false;}
+		if (!isSet ($result[$field])) {
+			$this->logError ("Field '{$field}' doesn't exist.");
+			return false;
+		}
 		
-		# Return the field
+		# Return the field value
 		return $result[$field];
-	}
-	
-	
-	# A single row of data from the query is expected and returned; otherwise false is returned (never NULL)
-	public function expectOne ($query)
-	{
-		# Get the data or end
-		if (!$result = $this->getOne ($query)) {return false;}
-    	
-		# Return the result
-		return $result;
-	}
-	
-	
-	# A single row of data from the query is expected and returned; otherwise false is returned
-	public function expectOneField ($query, $field)
-	{
-		// Without any error handling this is the same as getOneField
-		#!# Is this expectOneField() function needed therefore - or is this just incomplete?
-		$result = $this->getOneField ($query, $field);
-    	
-		# Return the result
-		return $result;
 	}
 	
 	
 	# Gets results from the query, returning false if there are none (never an empty array)
 	public function expectData ($query)
 	{
-		# Get the data or end
-		if (!$result = $this->getData ($query)) {return false;}
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Get the data or end; expectMode will have caused a logError to have been thrown
+		if (!$result = $this->_getData ($query, false, true, array (), array (), $expectMode = true)) {
+			return false;
+		}
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
     	
+		# Return the result
+		return $result;
+	}
+	
+	
+	# A single row of data from the query is expected and returned; otherwise false is returned (never NULL)
+	public function expectOne ($query)
+	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Get the data or end; expectMode will have caused a logError to have been thrown
+		if (!$result = $this->_getOne ($query, false, true, array (), $expectMode = true)) {
+			return false;
+		}
+   		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# A single field of data from the query is expected and returned; otherwise false is returned (never NULL)
+	public function expectOneField ($query, $field, $preparedStatementValues = array ())
+	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Get the data
+		$result = $this->_getOneField ($query, $field, $preparedStatementValues, $expectMode = true);
+    	
+		# NULL is an error condition indicating that there was more than one result; expectMode will have caused a logError to have been thrown
+		if (is_null ($result)) {
+			return false;
+		}
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+		
 		# Return the result
 		return $result;
 	}
@@ -222,7 +394,7 @@ class database
 	public function getPairs ($query, $unique = false, $preparedStatementValues = array ())
 	{
 		# Get the data
-		$data = $this->getData ($query, false, $keyed = false, $preparedStatementValues);
+		$data = $this->_getData ($query, false, $keyed = false, $preparedStatementValues);
 		
 		# Convert to pairs
 		$pairs = $this->toPairs ($data, $unique);
@@ -266,6 +438,23 @@ class database
 	# Uses prepared statement approach if a fourth parameter providing the placeholder values is supplied
 	public function getData ($query, $associative = false, $keyed = true, $preparedStatementValues = array (), $onlyFields = array ())
 	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Hand off to the implementation
+		$data = $this->_getData ($query, $associative, $keyed, $preparedStatementValues, $onlyFields);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+		
+		# Return the data
+		return $data;
+	}
+	
+	
+	# Implementation for getData
+	private function _getData ($query, $associative = false, $keyed = true, $preparedStatementValues = array (), $onlyFields = array (), $expectMode = false)
+	{
 		# Global the query and any values
 		$this->query = $query;
 		$this->queryValues = $preparedStatementValues;
@@ -281,9 +470,11 @@ class database
 		if ($preparedStatementValues) {
 			
 			# Execute the statement (ending if there is an error in the query or parameters)
-			$this->preparedStatement = $this->connection->prepare ($query);
-			#!# This sometimes gives off warnings - would be good to catch these
-			if (!$this->preparedStatement->execute ($preparedStatementValues)) {
+			try {
+				$this->preparedStatement = $this->connection->prepare ($query);
+				$this->preparedStatement->execute ($preparedStatementValues);
+			} catch (PDOException $e) {		// Enabled by PDO::ERRMODE_EXCEPTION in constructor
+				$this->logError ();
 				return $data;
 			}
 			
@@ -294,7 +485,10 @@ class database
 		} else {
 			
 			# Assign the query
-			if (!$statement = $this->connection->query ($query)) {
+			try {
+				$statement = $this->connection->query ($query);
+			} catch (PDOException $e) {		// Enabled by PDO::ERRMODE_EXCEPTION in constructor
+				$this->logError ();
 				return $data;
 			}
 			
@@ -318,6 +512,7 @@ class database
 			
 			# Return as non-keyed data if no unique field
 			if (!$uniqueField) {
+				$this->logError ();
 				return $data;
 			}
 			
@@ -343,6 +538,14 @@ class database
 			}
 		}
 		
+		# In expect mode, if there is no result, treat that as an error case
+		if ($expectMode) {
+			if (!$data) {
+				$this->logError ("Expected result(s), but none were obtained, in {$this->errorLoggerEntryFunction}().");
+				return $data;
+			}
+		}
+		
 		# Return the array
 		return $data;
 	}
@@ -356,8 +559,13 @@ class database
 		$this->queryValues = $preparedStatementValues;
 		
 		# Execute the statement (ending if there is an error in the query or parameters)
-		$this->preparedStatement = $this->connection->prepare ($query);
-		if (!$this->preparedStatement->execute ($preparedStatementValues)) {
+		try {
+			$this->preparedStatement = $this->connection->prepare ($query);
+			if ($this->vendor == 'mysql') {
+				$this->connection->setAttribute (PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+			}
+			$this->preparedStatement->execute ($preparedStatementValues);
+		} catch (PDOException $e) {		// Enabled by PDO::ERRMODE_EXCEPTION in constructor
 			return false;
 		}
 		
@@ -447,6 +655,7 @@ class database
 			
 			# Prepare the counting query; use a negative lookahead to match the section between SELECT ... FROM - see http://stackoverflow.com/questions/406230
 			#!# "ORDER BY generatedcolumn, ..." will cause a failure, but we cannot wipe out '/\s+ORDER\s+BY\s+.+$/isU' because a LIMIT clause may follow
+			#!# TRIM(... FROM ...) in the SELECT clause will a failure
 			$placeholders = array (
 				'/^SELECT\s+(?!\s+FROM\s).+\s+FROM/isU' => 'SELECT COUNT(*) AS total FROM',
 				# This works but isn't in use anywhere, so enable if/when needed with more testing '/^SELECT\s+DISTINCT\(([^)]+)\)\s+(?!\s+FROM ).+\s+FROM/' => 'SELECT COUNT(DISTINCT(\1)) AS total FROM',
@@ -462,7 +671,7 @@ class database
 			}
 			
 			# Perform a count first
-			$totalAvailable = $this->getOneField ($countingQuery, 'total', $countingPreparedStatementValues);
+			$totalAvailable = $this->_getOneField ($countingQuery, 'total', $countingPreparedStatementValues);
 		}
 		
 		# Enforce a maximum limit if required, by overwriting the total available, which the pagination mechanism will automatically adjust to
@@ -487,10 +696,10 @@ class database
 		$dataQuery = preg_replace (array_keys ($placeholders), array_values ($placeholders), $query);
 		
 		# Get the data
-		$data = $this->getData ($dataQuery, $associative, $keyed, $preparedStatementValues, $onlyFields);
+		$data = $this->_getData ($dataQuery, $associative, $keyed, $preparedStatementValues, $onlyFields);
 		
 		# Return the data and metadata
-		return array ($data, $totalAvailable, $totalPages, $page, $actualMatchesReachedMaximum);
+		return array ($data, (int) $totalAvailable, $totalPages, $page, $actualMatchesReachedMaximum);
 	}
 	
 	
@@ -504,7 +713,7 @@ class database
 		# Get the total
 		#!# 'WHERE' should be within this here, not part of the supplied parameter
 		$query = "SELECT COUNT(*) AS total FROM `{$database}`.`{$table}` {$restrictionSql};";
-		$data = $this->getOne ($query);
+		$data = $this->_getOne ($query);
 		
 		# Return the value
 		return $data['total'];
@@ -512,7 +721,7 @@ class database
 	
 	
 	# Function to get fields
-	public function getFields ($database, $table, $addSimpleType = false, $matchingRegexpNoForwardSlashes = false, $asTotal = false)
+	public function getFields ($database, $table, $addSimpleType = false, $matchingRegexpNoForwardSlashes = false, $asTotal = false, $excludeAuto = false)
 	{
 		# If the raw fields list is already in the fields cache, use that to avoid a pointless SHOW FULL FIELDS lookup
 		if (isSet ($this->fieldsCache[$database]) && isSet ($this->fieldsCache[$database][$table])) {
@@ -529,7 +738,7 @@ class database
 			} else {
 				$query = "SHOW FULL FIELDS FROM `{$database}`.`{$table}`;";
 			}
-			$data = $this->getData ($query);
+			$data = $this->_getData ($query);
 			
 			# Restablish the catched query and its values if there is one
 			if (!is_null ($cachedQuery)) {$this->query = $cachedQuery;}
@@ -575,6 +784,15 @@ class database
 			}
 		}
 		
+		# Exclude automatic fields if required
+		if ($excludeAuto) {
+			foreach ($fields as $field => $attributes) {
+				if ($attributes['Extra'] == 'auto_increment' || $attributes['Default'] == 'CURRENT_TIMESTAMP') {
+					unset ($fields[$field]);
+				}
+			}
+		}
+		
 		# If returning as a total, convert to a count
 		if ($asTotal) {
 			$fields = count ($fields);
@@ -590,7 +808,7 @@ class database
 	{
 		# Obtain the comments and whether the field is unique by obtaining the original CREATE TABLE SQL
 		$ddlQuery = "SELECT name, sql FROM sqlite_master WHERE type='table' AND name='{$table}' ORDER BY name;";
-		$originalCreateTableQuery = $this->getOneField ($ddlQuery, 'sql');
+		$originalCreateTableQuery = $this->_getOneField ($ddlQuery, 'sql');
 		$lines = explode ("\n", trim ($originalCreateTableQuery));
 		$comments = array ();
 		$unique = array ();
@@ -633,7 +851,7 @@ class database
 		
 		# Detect keywords
 		if ($string == 'NOW()') {return true;}
-		if (preg_match ('/^(GEOMCOLL|GEOMETRYCOLLECTION|GEOM|GEOMETRY|LINE|LINESTRING|MLINE|MULTILINESTRING|MPOINT|MULTIPOINT|MPOLY|MULTIPOLYGON|POINT|POLY|POLYGON)FROMTEXT\(/', $string)) {return true;}
+		if (preg_match ('/^(ST_)?(GEOMCOLL|GEOMETRYCOLLECTION|GEOM|GEOMETRY|LINE|LINESTRING|MLINE|MULTILINESTRING|MPOINT|MULTIPOINT|MPOLY|MULTIPOLYGON|POINT|POLY|POLYGON)FROMTEXT\(/', $string)) {return true;}
 		// Add more here
 		
 		# Treat as standard string if not detected
@@ -691,10 +909,10 @@ class database
 	
 	
 	# Function to get field names
-	public function getFieldNames ($database, $table, $fields = false, $matchingRegexpNoForwardSlashes = false)
+	public function getFieldNames ($database, $table, $fields = false, $matchingRegexpNoForwardSlashes = false, $excludeAuto = false)
 	{
 		# Get the fields if not already supplied
-		if (!$fields) {$fields = $this->getFields ($database, $table, false, $matchingRegexpNoForwardSlashes);}
+		if (!$fields) {$fields = $this->getFields ($database, $table, false, $matchingRegexpNoForwardSlashes, false, $excludeAuto);}
 		
 		#!# Bug: $matchingRegexpNoForwardSlashes is not used if $fields is supplied
 		
@@ -704,10 +922,10 @@ class database
 	
 	
 	# Function to get field descriptions as a simple associative array
-	public function getHeadings ($database, $table, $fields = false, $useFieldnameIfEmpty = true, $commentsAsHeadings = true)
+	public function getHeadings ($database, $table, $fields = false, $useFieldnameIfEmpty = true, $commentsAsHeadings = true, $excludeAuto = false)
 	{
 		# Get the fields if not already supplied
-		if (!$fields) {$fields = $this->getFields ($database, $table);}
+		if (!$fields) {$fields = $this->getFields ($database, $table, false, false, false, $excludeAuto);}
 		
 		# Rearrange the data
 		$headings = array ();
@@ -725,7 +943,7 @@ class database
 	{
 		# Get the data
 		$query = "SHOW DATABASES;";
-		$data = $this->getData ($query);
+		$data = $this->_getData ($query);
 		
 		# Sort the list
 		if ($data) {sort ($data);}
@@ -742,13 +960,43 @@ class database
 	}
 	
 	
+	# Function to return whether a database (or match using %) exists (for which the caller has privileges)
+	public function databaseExists ($database)
+	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Hand off to the implementation
+		$result = $this->_databaseExists ($database);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+    	
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Implementation for databaseExists
+	private function _databaseExists ($database)
+	{
+		# Get the data; note that this uses getData rather than getOne - getOne would return false if there was more than one match when using %; note that the caller will only be able to see those databases for which it has some kind of privilege, unless it has the global SHOW DATABASES privilege
+		$query = "SHOW DATABASES LIKE :database;";
+		$preparedStatementValues = array ('database' => $database);
+		$data = $this->_getData ($query, false, true, $preparedStatementValues);
+		
+		# Return boolean result of whether there was a result (or more than one match)
+		return (bool) $data;
+	}
+	
+	
 	# Function to obtain a list of tables in a database
 	# $matchingRegexp enables filtering, e.g. '/tablename([0-9]+)/' ; if there is a capture (...) within this, then that will be used for the keys
 	public function getTables ($database, $matchingRegexp = false)
 	{
 		# Get the data
 		$query = "SHOW TABLES FROM `{$database}`;";
-		$data = $this->getData ($query);
+		$data = $this->_getData ($query);
 		
 		# Rearrange
 		$tables = array ();
@@ -777,12 +1025,44 @@ class database
 	}
 	
 	
+	# Function to return whether a table (or match using %) in a specified database (NB matches not supported) exists (for which the caller has privileges)
+	public function tableExists ($database, $table)
+	{
+		# Register this as the public entry point
+		$this->errorLoggerEntryFunction = __FUNCTION__;
+		
+		# Disallow wildcards in the database specification
+		if (substr_count ($database, '%') || substr_count ($database, '_')) {
+			$this->resetErrorCode ();
+			return false;
+		}
+		
+		# Ensure the specified database exists; this is necessary to avoid SQL injection attacks in the query below
+		if (!$this->_databaseExists ($database)) {
+			$this->resetErrorCode ();
+			return false;
+		}
+		
+		# Get the data; note that this uses getData rather than getOne - getOne would return false if there was more than one match when using %; note that the caller will only be able to see those databases for which it has some kind of privilege, unless it has the global SHOW DATABASES privilege
+		$query = "SHOW TABLES FROM {$database} LIKE :table;";
+		$preparedStatementValues = array ('table' => $table);
+		$data = $this->_getData ($query, false, true, $preparedStatementValues);
+		
+		# Reset any custom error code and text
+		$this->resetErrorCode ();
+    	
+		# Return boolean result of whether there was a result (or more than one match)
+		return (bool) $data;
+	}
+	
+	
 	# Function to get the ID generated from the previous insert operation
 	#!# Rename this for consistency
 	#!# Emulate away the problem that, in the case of an insertMany, MySQL returns the *first* automatically-generated ID! - see http://dev.mysql.com/doc/refman/5.1/en/mysql-insert-id.html
 	public function getLatestId ()
 	{
 		# Return the latest ID
+		#!# Does this need exception handling?
 		return $this->connection->lastInsertId ();
 	}
 	
@@ -826,7 +1106,7 @@ class database
 		# Quote the string by calling the PDO quoting method
 		$string = $this->connection->quote ($string);
 		
-		# Undo (unwanted automatic) backlash quoting in PDO::quote, i.e replace \\ with \ in the string; see discussion at http://www.bitpapers.com/2012/03/php-escaping-quotes.html
+		# Undo (unwanted automatic) backlash quoting in PDO::quote, i.e replace \\ with \ in the string
 		$string = str_replace ('\\\\', '\\', $string);
 		
 		# Return the quoted string
@@ -835,7 +1115,7 @@ class database
 	
 	
 	# Function to construct and execute a SELECT statement
-	public function select ($database, $table, $conditions = array (), $columns = array (), $associative = true, $orderBy = false, $limit = false, $keyed = true)
+	public function select ($database, $table, $conditions = array (), $columns = array (), $associative = true, $orderBy = false, $limit = false, $keyed = true, $like = false /* or true or array of fields */)
 	{
 		# Construct the WHERE clause
 		$where = '';
@@ -857,7 +1137,9 @@ class database
 						unset ($conditions[$key]);	// Remove the original placeholder as that will never be used, and contains an array
 						$where[] = '`' . $key . '`' . ' IN(:' . implode (', :', array_keys ($conditionsThisGroup)) . ')';
 					} else {
-						$where[] = ($this->strictWhere ? 'BINARY ' : '') . '`' . $key . '`' . ' = :' . $key;
+						$useLike = ($like === true || (is_array ($like) && in_array ($key, $like)));
+						$operator = ($useLike ? 'LIKE' : '=');
+						$where[] = ($this->strictWhere ? 'BINARY ' : '') . '`' . $key . '`' . " {$operator} :" . $key;
 					}
 				}
 			} else if (is_string ($conditions)) {
@@ -901,7 +1183,7 @@ class database
 		$query = "SELECT {$what} FROM `{$database}`.`{$table}`{$where}{$orderBy}{$limit};\n";
 		
 		# Get the data
-		$data = $this->getData ($query, ($associative ? "{$database}.{$table}" : false), $keyed, $conditions);
+		$data = $this->_getData ($query, ($associative ? "{$database}.{$table}" : false), $keyed, $conditions);
 		
 		# Return the data
 		return $data;
@@ -943,11 +1225,11 @@ class database
 	
 	
 	# Function to select data and return as pairs
-	public function selectPairs ($database, $table, $conditions = array (), $columns = array (), $associative = true, $orderBy = false, $limit = false)
+	public function selectPairs ($database, $table, $conditions = array (), $columns = array (), $associative = true, $orderBy = false, $limit = false, $like = false /* or true or array of fields */)
 	{
 		# Get the data, unkeyed (so that each record contains array(0=>value,1=>2)) (which therefore requires associative=false
 		$associative = false;
-		$data = $this->select ($database, $table, $conditions, $columns, $associative, $orderBy, $limit, $keyed = false);
+		$data = $this->select ($database, $table, $conditions, $columns, $associative, $orderBy, $limit, $keyed = false, $like);
 		
 		# Convert to pairs
 		$pairs = $this->toPairs ($data);
@@ -992,7 +1274,7 @@ class database
 		}
 		
 		# Execute the query
-		$rows = $this->execute ($query, $data, $showErrors);
+		$rows = $this->_execute ($query, $data, $showErrors);
 		
 		# Determine the result
 		$result = ($rows !== false);
@@ -1056,7 +1338,9 @@ class database
 		
 		# Determine the number of fields in the data by checking against the first item in the dataset
 		require_once ('application.php');
-		if (!$fields = application::arrayFieldsConsistent ($dataSet)) {
+		if (!$fields = application::arrayFieldsConsistent ($dataSet, $failedAt)) {
+			echo "ERROR: Inconsistent array fields in insertMany, failing at:";
+			application::dumpData ($failedAt);
 			#!# This needs to set an error so that a subsequent ->error() call shows useful information
 			return false;
 		}
@@ -1105,18 +1389,19 @@ class database
 			# Prevent submission of over-long queries
 			if ($maxLength = $this->getVariable ('max_allowed_packet')) {
 				if (strlen ($query) > (int) $maxLength) {
+					echo "ERROR: Over-long query in insertMany";
 					return false;
 				}
 			}
 			
 			# In safe mode, only show the query
 			if ($safe) {
-				echo $query . "<br />";
+				echo $query . '<br />';
 				return true;
 			}
 			
 			# Execute the query
-			$rows = $this->execute ($query, $preparedStatementValues, $showErrors);
+			$rows = $this->_execute ($query, $preparedStatementValues, $showErrors);
 			
 			#!# Needs to report failure if one execution in a chunk failed; detect using $this->error () perhaps
 			// application::dumpData ($this->error ());
@@ -1206,7 +1491,7 @@ class database
 		}
 		
 		# Execute the query
-		$rows = $this->execute ($query, $dataUniqued);
+		$rows = $this->_execute ($query, $dataUniqued);
 		
 		# Determine the result
 		$result = ($rows !== false);
@@ -1305,7 +1590,7 @@ class database
 			}
 			
 			# Execute the query
-			$rows = $this->execute ($query, $preparedStatementValues, $showErrors);
+			$rows = $this->_execute ($query, $preparedStatementValues, $showErrors);
 			
 			# Determine the result
 			$result = ($rows !== false);
@@ -1342,7 +1627,8 @@ class database
 		$query = "DELETE FROM `{$database}`.`{$table}`{$where}{$limit};\n";
 		
 		# Execute the query
-		$result = $this->execute ($query, $conditions);
+		#!# Currently unable to distinguish syntax error vs nothing to delete
+		$result = $this->_execute ($query, $conditions);
 		
 		# Log the change
 		$this->logChange ($result);
@@ -1373,7 +1659,7 @@ class database
 		$query = "DELETE FROM `{$database}`.`{$table}` WHERE " . ($this->strictWhere ? 'BINARY ' : '') . "`{$field}` IN (" . implode (', ', $placeholders) . ");";
 		
 		# Execute the query
-		$rows = $this->execute ($query, $placeholderValues);
+		$rows = $this->_execute ($query, $placeholderValues);
 		
 		# Log the change
 		$this->logChange ($rows);
@@ -1409,7 +1695,7 @@ class database
 		$query = 'CREATE TABLE' . ($ifNotExists ? ' IF NOT EXISTS' : '') . " `{$database}`.`{$table}` (" . implode (', ', $fieldsSql) . ") ENGINE={$type} CHARACTER SET utf8 COLLATE utf8_unicode_ci;";
 		
 		# Create the table
-		if (false === $this->execute ($query)) {return false;}
+		if ($this->_execute ($query) === false) {return false;}
 		
 		# Signal success
 		return true;
@@ -1423,7 +1709,7 @@ class database
 		$query = "SHOW TABLE STATUS FROM `{$database}` LIKE '{$table}';";
 		
 		# Get the results
-		$data = $this->getOne ($query);
+		$data = $this->_getOne ($query);
 		
 		# If only needing certain columns, return only those
 		if ($getOnly && is_array ($getOnly)) {
@@ -1452,7 +1738,7 @@ class database
 		}
 		
 		# Run the query, capturing the rows changed
-		$rows = $this->query ($query);
+		$rows = $this->_query ($query);
 		
 		# Determine the result
 		$result = ($rows !== false);
@@ -1479,7 +1765,7 @@ class database
 		$query = "ALTER TABLE {$database}.{$table} COMMENT = '{$tableComment}';";	// Requires ALTER privilege
 		
 		# Run the query, capturing the rows changed
-		$rows = $this->query ($query);
+		$rows = $this->_query ($query);
 		
 		# Determine the result
 		$result = ($rows !== false);
@@ -1564,7 +1850,7 @@ class database
 			# Get the data
 			#!# Enable recursive lookups
 			$query = "SELECT * FROM {$targetDatabase}.{$targetTable}{$orderbySql};";
-			if (!$data = $databaseConnection->getData ($query, "{$targetDatabase}.{$targetTable}")) {
+			if (!$data = $databaseConnection->_getData ($query, "{$targetDatabase}.{$targetTable}")) {
 				return array ($fieldname, array (), $targetDatabase, $targetTableMoniker);
 			}
 			
@@ -1895,11 +2181,19 @@ class database
 	}
 	
 	
+	# Function to get the session status values; see: https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html
+	public function getSessionStatus ()
+	{
+		# Get the data and return the value
+		return $this->getPairs ('SHOW SESSION STATUS;');
+	}
+	
+	
 	# Function to get a variable
 	public function getVariable ($variable)
 	{
 		# Get the data and return the value
-		$data = $this->getOne ("SHOW VARIABLES LIKE '{$variable}';");
+		$data = $this->_getOne ("SHOW VARIABLES LIKE '{$variable}';");
 		
 		# End if none
 		if (!isSet ($data['Value'])) {return false;}
@@ -1910,13 +2204,35 @@ class database
 	
 	
 	# Function to do sort trimming of a field name, to be put in an ORDER BY clause
-	public function trimSql ($fieldname)
+	public function trimSql ($fieldname, $additionalTokens = array ())
 	{
 		# Assemble the fieldname quoted
 		$fieldname = '`' . str_replace ('.', '`.`', $fieldname) . '`';
 		
+		# Define strings to trim
+		$strings = array (
+			'the ',
+			'an ',
+			'a ',
+			'@',
+			"'",
+			'"',
+			'[',
+			'(',
+			'}',
+			'{',
+		);
+		
+		# Add additional tokens
+		if ($additionalTokens) {
+			$strings = array_merge ($strings, $additionalTokens);
+		}
+		
 		# Assemble the SQL
-		$sql = "TRIM( LEADING '{' FROM TRIM( LEADING '}' FROM TRIM( LEADING '(' FROM TRIM( LEADING '[' FROM TRIM( LEADING '\"' FROM TRIM( LEADING \"'\" FROM TRIM( LEADING '@' FROM TRIM( LEADING 'a ' FROM TRIM( LEADING 'an ' FROM TRIM( LEADING 'the ' FROM LOWER( {$fieldname} ) ) ) ) ) ) ) ) ) ) )";
+		$sql = "LOWER( {$fieldname} )";
+		foreach ($strings as $string) {
+			$sql = "TRIM( LEADING '" . str_replace ("'", "\'", $string) . "' FROM {$sql} )";
+		}
 		
 		# Return the SQL
 		return $sql;
@@ -1984,7 +2300,7 @@ class database
 		);
 		
 		# Execute the query
-		$rows = $this->execute ($query, $preparedStatementValues);
+		$rows = $this->_execute ($query, $preparedStatementValues);
 		
 		# Determine the result
 		$result = ($rows !== false);
@@ -2012,7 +2328,7 @@ class database
 		);
 		
 		# Execute the query
-		$rows = $this->execute ($query, $preparedStatementValues);
+		$rows = $this->_execute ($query, $preparedStatementValues);
 		
 		# Determine the result
 		$result = ($rows !== false);

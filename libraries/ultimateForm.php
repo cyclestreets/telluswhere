@@ -51,9 +51,9 @@
  * </code>
  * 
  * @package ultimateForm
- * @license	http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license	https://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-15, Martin Lucas-Smith, University of Cambridge
+ * @copyright Copyright  2003-17, Martin Lucas-Smith, University of Cambridge
  * @version See $version below
  */
 class form
@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.23.3';
+	var $version = '1.24.6';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -142,6 +142,7 @@ class form
 		'submitButtonPosition'				=> 'end',							# Whether the submit button appears at the end or the start/end/both of the form
 		'submitButtonText'					=> 'Submit!',						# The form submit button text
 		'submitButtonAccesskey'				=> 's',								# The form submit button accesskey
+		'submitButtonAccesskeyString'		=> false,							# Whether to show the accesskey string in the submit button
 		'submitButtonTabindex'				=> false,							# The form submit button tabindex (if any)
 		'submitButtonImage'					=> false,							# Location of an image to replace the form submit button
 		'refreshButton'						=> false,							# Whether to include a refresh button (i.e. submit form to redisplay but not process)
@@ -167,7 +168,7 @@ class form
 		'opening'							=> false,							# Optional starting datetime as an SQL string
 		'closing'							=> false,							# Optional closing datetime as an SQL string
 		'validUsers'						=> false,							# Optional valid user(s) - if this is set, a user will be required. To set, specify string/array of valid user(s), or '*' to require any user
-		'user'								=> false,							# Explicitly-supplied username (if none specified, will check for REMOTE_USER being set
+		'user'								=> false,							# Explicitly-supplied username (if none specified, will check for REMOTE_USER being set)
 		'userKey'							=> false,							# Whether to log the username, as the key
 		'loggedUserUnique'					=> false,							# Run in user-uniqueness mode, making the key of any CSV the username and checking for resubmissions
 		'timestamping'						=> false,							# Add a timestamp to any CSV entry
@@ -212,8 +213,11 @@ class form
 		'jQueryUi'							=> true,							# If using DHTML features, where to load jQueryUi from (currently only true/false are supported)
 		'scripts'							=> false,							# Where to load GitHub files from; false = use default, string = library files in this URL/path location
 		'autofocus'							=> false,							# Place HTML5 autofocus on the first widget (true/false)
-		'reorderableRows'				=> false,							# Whether to enable drag-and-drop reorderability of rows
-		'errorsCssClass'					=> 'error'							# CSS class for div of errors box
+		'reorderableRows'					=> false,							# Whether to enable drag-and-drop reorderability of rows
+		'errorsCssClass'					=> 'error',							# CSS class for div of errors box
+		'uploadThumbnailWidth'				=> 300,								# Default upload thumbnail box width
+		'uploadThumbnailHeight'				=> 300,								# Default upload thumbnail box height
+		'redirectGet'						=> false,							# On successful submission, redirect, simplifying with non-empty values as GET parameters
 	);
 	
 	
@@ -293,6 +297,10 @@ class form
 			'size'					=> $this->settings['size'],		# Visible size (optional; defaults to 30)
 			'minlength'				=> '',		# Minimum length (optional; defaults to no limit)
 			'maxlength'				=> '',		# Maximum length (optional; defaults to no limit)
+			// 'min'	 	- implemented below
+			// 'max'	 	- implemented below
+			// 'step'	 	- implemented below
+			// 'roundFloat'	- implemented below; Whether to auto-round a float to the specified number of digits after a decimal point; e.g. 3 would change 0.4567 to 0.457
 			'placeholder'			=> '',		# HTML5 placeholder text
 			'autofocus'				=> false,	# HTML5 autofocus (true/false)
 			'default'				=> '',		# Default value (optional)
@@ -315,6 +323,7 @@ class form
 			'entities'				=> true,	# Convert HTML in value (useful only for editable=false)
 			'displayedValue'		=> false,	# When using editable=false, optional text that should be displayed instead of the value; can be made into HTML using entities=false
 			'antispamWait'			=> false,	# Antispam wait in the event of any failure
+			'_cssHide--DONOTUSETHISFLAGEXTERNALLY'		=> false,	# DO NOT USE - this is present for internal use only and exists prior to refactoring
 			'_visible--DONOTUSETHISFLAGEXTERNALLY'		=> true,	# DO NOT USE - this is present for internal use only and exists prior to refactoring
 		);
 		
@@ -343,6 +352,7 @@ class form
 			$argumentDefaults['min'] = false;
 			$argumentDefaults['max'] = false;
 			$argumentDefaults['step'] = false;
+			$argumentDefaults['roundFloat'] = false;
 		}
 		
 		# If an element is expandable, if it is boolean true, convert to default string
@@ -421,6 +431,14 @@ class form
 			}
 		} else {
 			$value = (isSet ($this->form[$arguments['name']]) ? $this->form[$arguments['name']] : '');
+		}
+		
+		# Auto-round floats if required
+		#!# No support yet for expandable
+		if (isSet ($arguments['roundFloat'])) {
+			if ($value != '') {
+				$value = round ($value, 6);
+			}
 		}
 		
 		# Set the value
@@ -510,7 +528,8 @@ class form
 					$subwidgetName = $arguments['name'] . "_{$subwidget}";
 					$subwidgetElementValue = (isSet ($values[$subwidget]) ? $values[$subwidget] : '');
 					$hasAutofocus = ($arguments['autofocus'] === false ? false : (($subwidget + 1) == $arguments['autofocus']));	// $arguments['autofocus'] will be either false or numeric 1...$subwidgets
-					$subwidgetsHtml[$subwidget] = '<input' . $this->nameIdHtml ($subwidgetName) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? " step=\"{$arguments['step']}\"" : '') . ($hasAutofocus ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($subwidgetElementValue) . '"' . $widget->tabindexHtml () . ' />';
+					#!# Step formatting can end up with exponent if set to 0.00001 or lower; casting as (string) has no effect
+					$subwidgetsHtml[$subwidget] = '<input' . $this->nameIdHtml ($subwidgetName) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? ' step="' . $arguments['step'] . '"' : '') . ($hasAutofocus ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($subwidgetElementValue) . '"' . $widget->tabindexHtml () . ' />';
 					if ($hasAutofocus) {
 						$arguments['autofocus'] = false;	// Ensure only one subwidget has autofocus
 						$this->clearAnyOtherAutofocus ();
@@ -525,7 +544,7 @@ class form
 				}
 				
 			} else {
-				$widgetHtml = '<input' . $this->nameIdHtml ($arguments['name']) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? " step=\"{$arguments['step']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($this->form[$arguments['name']]) . '"' . $widget->tabindexHtml () . ' />';
+				$widgetHtml = '<input' . $this->nameIdHtml ($arguments['name']) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? ' step="' . $arguments['step'] . '"' : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($this->form[$arguments['name']]) . '"' . $widget->tabindexHtml () . ' />';
 			}
 		} else {
 			$displayedValue = ($arguments['displayedValue'] ? $arguments['displayedValue'] : $this->form[$arguments['name']]);
@@ -605,6 +624,7 @@ class form
 			'datatype' => ($arguments['datatype'] ? $arguments['datatype'] : "`{$arguments['name']}` " . 'VARCHAR(' . ($arguments['maxlength'] ? $arguments['maxlength'] : '255') . ')') . ($arguments['required'] ? ' NOT NULL' : '') . " COMMENT '" . (addslashes ($arguments['title'])) . "'",
 			'groupValidation' => ($functionName == 'password' ? 'compiled' : false),
 			'after' => $arguments['after'],
+			'_cssHide--DONOTUSETHISFLAGEXTERNALLY' => $arguments['_cssHide--DONOTUSETHISFLAGEXTERNALLY'],
 		);
 		
 		#!# Temporary hacking to add hidden widgets when using the _hidden type in dataBinding
@@ -733,6 +753,7 @@ class form
 			'cols'					=> $this->settings['cols'],		# Number of columns (optional; defaults to 30)
 			'rows'					=> $this->settings['rows'],		# Number of rows (optional; defaults to 5)
 			'wrap'					=> false,	# Value for non-standard 'wrap' attribute
+			'placeholder'			=> '',		# HTML5 placeholder text
 			'autofocus'				=> false,	# HTML5 autofocus (true/false)
 			'default'				=> '',		# Default value (optional)
 			'regexp'				=> '',		# Case-sensitive regular expression(s) against which all lines of the submission must validate
@@ -910,7 +931,7 @@ class form
 			if ($arguments['maxlength']) {
 				$widgetHtml .= '<div' . $this->nameIdHtml ($arguments['name'], false, false, false, $idOnly = true, '__info') . ' class="charactersremaininginfo"></div>';
 			}
-			$widgetHtml .= '<textarea' . $this->nameIdHtml ($arguments['name']) . " cols=\"{$arguments['cols']}\" rows=\"{$arguments['rows']}\"" . ($arguments['maxlength'] ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['wrap'] ? " wrap=\"{$arguments['wrap']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml () . '>' . htmlspecialchars ($this->form[$arguments['name']]) . '</textarea>';
+			$widgetHtml .= '<textarea' . $this->nameIdHtml ($arguments['name']) . " cols=\"{$arguments['cols']}\" rows=\"{$arguments['rows']}\"" . ($arguments['maxlength'] ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['wrap'] ? " wrap=\"{$arguments['wrap']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . $widget->tabindexHtml () . '>' . htmlspecialchars ($this->form[$arguments['name']]) . '</textarea>';
 		} else {
 			if ($arguments['displayedValue']) {
 				$widgetHtml  = ($arguments['entities'] ? htmlspecialchars ($arguments['displayedValue']) : $arguments['displayedValue']);
@@ -941,6 +962,9 @@ class form
 				case 'lines':
 					# For the raw components version, split by the newline
 					$data['rawcomponents'] = explode ("\n", $this->form[$arguments['name']]);
+					foreach ($data['rawcomponents'] as $index => $line) {
+						$data['rawcomponents'][$index] = trim ($line);
+					}
 					break;
 					
 				default:
@@ -970,8 +994,9 @@ class form
 	}
 	
 	
+	
 	/**
-	 * Create a rich text editor field based on CKEditor
+	 * Create a richtext editor field based on CKEditor
 	 * @param array $arguments Supplied arguments - see template
 	 */
 	# Note: make sure php_value file_uploads is on in the upload location!
@@ -990,6 +1015,7 @@ class form
 			'regexp'				=> '',		# Case-sensitive regular expression against which the submission must validate
 			'regexpi'				=> '',		# Case-insensitive regular expression against which the submission must validate
 			'disallow'				=> false,		# Regular expression against which the submission must not validate
+			'maxlength'				=> false,	# Maximum number of characters allowed, after HTML markup stripped
 			'current'				=> false,	# List of current values which the submitted value must not match
 			'discard'				=> false,	# Whether to process the input but then discard it in the results
 			'autofocus'				=> false,	# HTML5 autofocus (true/false)
@@ -1048,6 +1074,12 @@ class form
 		
 		# Perform uniqueness check
 		$widget->uniquenessCheck ();
+		
+		# Enable maxlength checking
+		$widget->checkMaxLength ($stripHtml = true);
+		if (is_numeric ($arguments['maxlength'])) {
+			$restrictions[] = 'Maximum ' . number_format ($arguments['maxlength']) . ' characters';
+		}
 		
 		$elementValue = $widget->getValue ();
 		
@@ -1150,6 +1182,15 @@ class form
 							['Bold','Italic'],
 							['BulletedList','NumberedList'],
 							['Link','Unlink'],
+							['About']
+						]
+					",
+					
+					# Basic, without links
+					'BasicNoLinks' => "
+						[
+							['Bold','Italic'],
+							['BulletedList','NumberedList'],
 							['About']
 						]
 					",
@@ -1397,13 +1438,16 @@ class form
 			$data['presented'] = $elementValue;
 		}
 		
+		# Set restrictions
+		if (isSet ($restrictions)) {$restrictions = implode (";\n", $restrictions);}
+		
 		# Add the widget to the master array for eventual processing
 		$this->elements[$arguments['name']] = array (
 			'type' => __FUNCTION__,
 			'html' => $arguments['prepend'] . $widgetHtml . $arguments['append'],
 			'title' => $arguments['title'],
 			'description' => $arguments['description'],
-			'restriction' => (isSet ($restriction) && $arguments['editable'] ? $restriction : false),
+			'restriction' => (isSet ($restrictions) && $arguments['editable'] ? $restrictions : false),
 			'problems' => $widget->getElementProblems (isSet ($elementProblems) ? $elementProblems : false),
 			'required' => $arguments['required'],
 			'requiredButEmpty' => $requiredButEmpty,
@@ -1476,6 +1520,10 @@ class form
 				'fix-backslash'	=> false,
 				'force-output'	=> true,
 				'bare'	=> true,	// Note: this replaces &ndash; and &mdash; hence they are cached above
+				# HTML5 support; see: http://stackoverflow.com/questions/11746455/php-tidy-removes-valid-tags
+				'new-blocklevel-tags' => 'article aside audio bdi canvas details dialog figcaption figure footer header hgroup main menu menuitem nav section source summary template track video',
+				'new-empty-tags' => 'command embed keygen source track wbr',
+				'new-inline-tags' => 'audio command datalist embed keygen mark menuitem meter output progress source time video wbr',
 			);
 			
 			# Tidy up the output; see http://www.zend.com/php5/articles/php5-tidy.php for a tutorial
@@ -1916,7 +1964,7 @@ class form
 			#!# Need to double-check that $arguments['default'] isn't being changed above this point [$arguments['default'] is deliberately used here because of the $identifier system above]
 			$presentableDefaults = array ();
 			foreach ($arguments['default'] as $argument) {
-				if (isSet ($arguments['values'][$argument])) {
+				if (array_key_exists ($argument, $arguments['values'])) {	// This is used rather than isSet ($arguments['values'][$argument]) because the visible value might be unset (hence NULL), resulting in the key not ending up in the eventual data
 					$presentableDefaults[$argument] = ($arguments['entities'] ? htmlspecialchars ($arguments['values'][$argument]) : $arguments['values'][$argument]);
 				}
 			}
@@ -2387,7 +2435,9 @@ class form
 					}
 				}
 				if ($splittableString) {
-					$arguments['default'] = explode ($arguments['separator'], $arguments['default']);
+					$separator = str_replace ("\r\n", "\n", $arguments['separator']);
+					$default   = str_replace ("\r\n", "\n", $arguments['default']);
+					$arguments['default'] = explode ($separator, $default);
 				}
 			}
 		}
@@ -2409,7 +2459,7 @@ class form
 		
 		# Check that the array of values is not empty
 		if (empty ($arguments['values'])) {
-			$this->formSetupErrors['checkboxesNoValues'] = 'No values have been set for the set of checkboxes.';
+			$this->formSetupErrors['checkboxesNoValues'] = 'No values have been set for the set of checkboxes for the <em>' . htmlspecialchars ($arguments['name']) . '</em> field.';
 			return false;
 		}
 		
@@ -2626,6 +2676,7 @@ class form
 	 * @param array $arguments Supplied arguments - see template
 	 */
 	#!# Need to add HTML5 equivalents
+	#!# Need to add support for 'current'
 	function datetime ($suppliedArguments)
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
@@ -3105,6 +3156,7 @@ class form
 			'tabindex'				=> false,	# Tabindex if required; replace with integer between 0 and 32767 to create
 			'after'					=> false,	# Placing the widget after a specific other widget
 			'progressbar'			=> false,	# Whether to enable a progress bar (assumed to be in /uploader, or in specified subdirectory)
+			'thumbnail'				=> false,	# Enable HTML5 thumbnail preview; either true (to auto-create a container div), or jQuery-style selector, specifying an existing element
 		);
 		
 		# Create a new form widget
@@ -3306,6 +3358,110 @@ class form
 			# Create the HTML
 			$widgetHtml  = '<script type="text/javascript" src="' . $arguments['progressbar'] . '/SolmetraUploader.js"></script>';
 			$widgetHtml .= $solmetraUploader->getInstance ($arguments['name']);
+		}
+		
+		# If thumbnail viewing is enabled, parse the argument and create the HTML5 code
+		if ($arguments['thumbnail']) {
+			if ($arguments['subfields'] == 1) {		// Currently only supported when single subfield due to callback problem below
+				$subfield = 0;
+				
+				# If set to boolean true, auto-create the div; otherwise the named selector will be used
+				$createDivJs = 'false';
+				$thumbnailDivId = false;
+				if ($arguments['thumbnail'] === true) {
+					$thumbnailDivId = 'thumbnailpreview';
+					$arguments['thumbnail'] = '#' . $thumbnailDivId;
+					$createDivJs = 'true';
+				}
+				
+				# Get the widget ID
+				$elementId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}_{$subfield}]" : "{$arguments['name']}_{$subfield}");
+				
+				# Enable jQuery
+				#!# Actually this is currently enabling jQuery as well as jQueryUI
+				$this->enableJqueryUi ();
+				
+				# Add the Javascript
+				#!# Need to find a way to pass $arguments['thumbnail'] into the callback in the Javascript, so that multiple subfields are possible
+				$this->jQueryCode[__FUNCTION__] = "\n" . "
+				$(document).ready(function() {
+					
+					if ({$createDivJs}) {
+						$('<div />', {id: '{$thumbnailDivId}', width: '{$this->settings['uploadThumbnailWidth']}px', height: '{$this->settings['uploadThumbnailHeight']}px'}).insertAfter( $('#{$elementId}') );
+						$('{$arguments['thumbnail']}').html( '<p class=\"comment\">(Thumbnail willl appear here.)</p>' );
+					}
+					
+					$('#{$elementId}').change(function() {
+						thumb(this.files);
+					});
+					
+					function thumb(files) {
+						
+						if (files == null || files == undefined) {
+							$('{$arguments['thumbnail']}').html( '<p><em>Unable to show a thumbnail, as this web browser is too old to support this.</em></p>' );
+							return false;
+						}
+						
+						for (var i = 0; i < files.length; i++) {
+							var file = files[i];
+							var imageType = /image.*/;
+							
+							if (!file.type.match(imageType)) {
+								continue;
+							}
+							
+							var reader = new FileReader();
+							
+							if (reader != null) {
+								reader.onload = GetThumbnail;
+								reader.readAsDataURL(file);
+							}
+						}
+					}
+					
+					function GetThumbnail(e) {
+						
+						var thumbnailCanvas = document.createElement('canvas');
+						var img = new Image();
+						img.src = e.target.result;
+						
+						img.onload = function () {
+							
+							var originalImageWidth = img.width;
+							var originalImageHeight = img.height;
+							
+							thumbnailCanvas.id = 'myTempCanvas';
+							thumbnailCanvas.width  = $('{$arguments['thumbnail']}').width();
+							thumbnailCanvas.height = $('{$arguments['thumbnail']}').height();
+							
+							// Scale the thumbnail to fit the box
+							if (originalImageWidth >= originalImageHeight) {
+								scaledWidth = Math.min(thumbnailCanvas.width, originalImageWidth);	// Ensure width is no greater than the available size
+								scaleFactor = (scaledWidth / originalImageWidth);
+								scaledHeight = Math.round(scaleFactor * originalImageHeight);	// Scale to same proportion, and round
+							} else {
+								scaledHeight = Math.min(thumbnailCanvas.height, originalImageHeight);
+								scaleFactor = (scaledHeight / originalImageHeight);
+								scaledWidth = Math.round(scaleFactor * originalImageWidth);
+							}
+							
+							if (thumbnailCanvas.getContext) {
+								var canvasContext = thumbnailCanvas.getContext('2d');
+								canvasContext.drawImage(img, 0, 0, scaledWidth, scaledHeight);
+								var dataURL = thumbnailCanvas.toDataURL();
+								
+								if (dataURL != null && dataURL != undefined) {
+									var nImg = document.createElement('img');
+									nImg.src = dataURL;
+									$('{$arguments['thumbnail']}').html(nImg);
+								} else {
+									$('{$arguments['thumbnail']}').html( '<p><em>Unable to read the image.</em></p>' );
+								}
+							}
+						}
+					}
+				});";
+			}
 		}
 		
 		# Loop through the number of fields required to perform checks
@@ -5058,6 +5214,24 @@ class form
 			$data = $groupedData;
 		}
 		
+		# If required, redirect to a URL containing only the non-empty
+		if ($this->settings['redirectGet']) {
+			if ($_POST) {	// Check avoids redirect loop scenario
+				
+				# Filter to include only those where the user has specified a value, to keep the URL as short as possible
+				$nonemptyValues = array ();
+				foreach ($data as $key => $value) {
+					if (strlen ($value)) {
+						$nonemptyValues[$key] = $value;
+					}
+				}
+				
+				# Redirect so that the search parameters can be persistent; SCRIPT_URL is used as it is the location without query string
+				$url = $_SERVER['_SITE_URL'] . $_SERVER['SCRIPT_URL'] . '?' . str_replace ('%2C', ',', http_build_query ($nonemptyValues));	// Comma-replacement is to keep the URL easier to read, as it does not need to be encoded, being a sub-delim (and the query component does not use these sub-delims); see: http://stackoverflow.com/a/2375597
+				application::sendHeader (302, $url);
+			}
+		}
+		
 		# Return the data (whether virgin or grouped)
 		return $data;
 	}
@@ -5572,6 +5746,7 @@ class form
 		if (($this->settings['display'] != 'template') && ($this->settings['requiredFieldIndicator'] === 'top')) {$html .= $requiredFieldIndicatorHtml;}
 		
 		# Add unsaved data protection HTML if required, ensuring that an ID exists for the form tag
+		#!# If there is more than one form on the page, unsavedDataProtection does not work, probably because window.onbeforeunload is being set twice
 		if ($this->settings['unsavedDataProtection']) {
 			#!# This needs to be handled more generically as this code is duplicated
 			if (!$this->settings['id']) {
@@ -5653,6 +5828,10 @@ class form
 			# Select whether to show restriction guidelines
 			$displayRestriction = ($this->settings['displayRestrictions'] && $elementAttributes['restriction']);
 			
+			# Determine whether to hide using CSS; this is intermediate code due to be refactored
+			#!# No support yet for templating
+			$cssHide = (isSet ($elementAttributes['_cssHide--DONOTUSETHISFLAGEXTERNALLY']) && $elementAttributes['_cssHide--DONOTUSETHISFLAGEXTERNALLY']);
+			
 			# Clean the ID
 			#!# Move this into the element attributes set at a per-element level, for consistency so that <label> is correct
 			$id = $this->cleanId ($name);
@@ -5665,7 +5844,7 @@ class form
 					if ($elementAttributes['type'] == 'heading') {
 						$formHtml .= "\n" . $elementAttributes['html'];
 					} else {
-						$formHtml .= "\n" . '<p class="row ' . $id . ($this->settings['classShowType'] ? " {$elementAttributes['type']}" : '') . ($elementIsRequired ? " {$this->settings['requiredFieldClass']}" : '') . '"' . '>';
+						$formHtml .= "\n" . '<p class="row ' . $id . ($this->settings['classShowType'] ? " {$elementAttributes['type']}" : '') . ($elementIsRequired ? " {$this->settings['requiredFieldClass']}" : '') . '"' . ($cssHide ? ' style="display: none;"' : '') . '>';
 						$formHtml .= "\n\t";
 						if ($this->settings['displayTitles']) {
 							$formHtml .= $elementAttributes['title'] . '<br />';
@@ -5680,7 +5859,7 @@ class form
 					
 				# Display using divs for CSS layout mode; this is different to paragraphs as the form fields are not conceptually paragraphs
 				case 'css':
-					$formHtml .= "\n" . '<div class="row ' . $id . ($this->settings['classShowType'] ? " {$elementAttributes['type']}" : '') . ($elementIsRequired ? " {$this->settings['requiredFieldClass']}" : '') . '" id="' . $id . '">';
+					$formHtml .= "\n" . '<div class="row ' . $id . ($this->settings['classShowType'] ? " {$elementAttributes['type']}" : '') . ($elementIsRequired ? " {$this->settings['requiredFieldClass']}" : '') . '" id="' . $id . '"' . ($cssHide ? ' style="display: none;"' : '') . '>';
 					if ($elementAttributes['type'] == 'heading') {
 						$formHtml .= "\n\t<span class=\"title\">" . $elementAttributes['html'] . '</span>';
 					} else {
@@ -5698,16 +5877,18 @@ class form
 						$formHtml .= "\n\t<span class=\"data\">" . $elementAttributes['html'] . '</span>';
 						if ($displayDescriptions) {if ($elementAttributes['description']) {$formHtml .= "\n\t<span class=\"description\">" . $elementAttributes['description'] . '</span>';}}
 					}
-						$formHtml .= "\n</div>";
+					$formHtml .= "\n</div>";
 					break;
 					
 				# Templating - perform each replacement on a per-element basis
 				case 'template':
 					$standardScalarElementReplacement = (isSet ($this->displayTemplateElementReplacements[$name]['widget']));
 					if ($standardScalarElementReplacement) {
+						if ($cssHide) {$elementAttributes['html'] = '<span style="display: none;">'  . $elementAttributes['html'] . '</span>';}
 						$this->displayTemplateContents = str_replace ($this->displayTemplateElementReplacements[$name] /* i.e. array(widget=>..,label=>...) */, array ($elementAttributes['html'], $elementAttributes['title']), $this->displayTemplateContents);
 					} else {
 						foreach ($this->displayTemplateElementReplacements[$name] as $subelement => $replacements) {
+							if ($cssHide) {$elementAttributes['subelementsWidgetHtml'][$subelement] = '<span style="display: none;">'  . $elementAttributes['subelementsWidgetHtml'][$subelement] . '</span>';}
 							$this->displayTemplateContents = str_replace ($replacements['widget'], $elementAttributes['subelementsWidgetHtml'][$subelement], $this->displayTemplateContents);
 						}
 					}
@@ -5717,7 +5898,7 @@ class form
 				# Tables
 				case 'tables':
 				default:
-					$formHtml .= "\n\t" . '<tr class="' . $id . ($this->settings['classShowType'] ? " {$elementAttributes['type']}" : '') . ($elementIsRequired ? " {$this->settings['requiredFieldClass']}" : '') . '">';
+					$formHtml .= "\n\t" . '<tr class="' . $id . ($this->settings['classShowType'] ? " {$elementAttributes['type']}" : '') . ($elementIsRequired ? " {$this->settings['requiredFieldClass']}" : '') . '"' . ($cssHide ? ' style="display: none;"' : '') . '>';
 					if ($elementAttributes['type'] == 'heading') {
 						# Start by determining the number of columns which will be needed for headings involving a colspan
 						$colspan = 1 + ($this->settings['displayTitles']) + ($displayDescriptions);
@@ -5744,8 +5925,9 @@ class form
 		
 		# Add the form button, either at the start or end as required
 		#!# submit_x and submit_y should be treated as a reserved word when using submitButtonAccesskey (i.e. generating type="image")
+		#!# Accesskey string needs to detect the user's platform and browser type, as Shift+Alt is not always correct, and on a Mac does not exist
 		if (!$this->formDisabled) {
-			$submitButtonText = $this->settings['submitButtonText'] . (!empty ($this->settings['submitButtonAccesskey']) ? '&nbsp; &nbsp;[Shift+Alt+' . $this->settings['submitButtonAccesskey'] . ']' : '');
+			$submitButtonText = $this->settings['submitButtonText'] . ((!empty ($this->settings['submitButtonAccesskey']) && $this->settings['submitButtonAccesskeyString']) ? '&nbsp; &nbsp;[Shift+Alt+' . $this->settings['submitButtonAccesskey'] . ']' : '');
 			$formButtonHtml = '<input type="' . (!$this->settings['submitButtonImage'] ? 'submit' : "image\" src=\"{$this->settings['submitButtonImage']}\" name=\"submit\" alt=\"{$submitButtonText}") . '" value="' . $submitButtonText . '"' . (!empty ($this->settings['submitButtonAccesskey']) ? " accesskey=\"{$this->settings['submitButtonAccesskey']}\""  : '') . (is_numeric ($this->settings['submitButtonTabindex']) ? " tabindex=\"{$this->settings['submitButtonTabindex']}\"" : '') . ' class="button' . (isSet ($this->multipleSubmitReturnHandlerClass) ? " {$this->multipleSubmitReturnHandlerClass}" : '') . '" />';
 			if ($this->settings['refreshButton']) {
 				$refreshButtonText = $this->settings['refreshButtonText'] . (!empty ($this->settings['refreshButtonAccesskey']) ? '&nbsp; &nbsp;[Shift+Alt+' . $this->settings['refreshButtonAccesskey'] . ']' : '');
@@ -6422,6 +6604,7 @@ class form
 		);
 		
 		# Copy types to avoid re-stating them
+		#!# This is weak code as it is liable to become inconsistent
 		$copyInputTypes = array ('url', 'tel', 'search', 'number', 'number', 'range', 'color');
 		foreach ($copyInputTypes as $copyInputType) {
 			$presentationDefaults[$copyInputType] = $presentationDefaults['input'];
@@ -7226,6 +7409,7 @@ class form
 			'enumRadiobuttonsInitialNullText' => array (),	// Whether an initial empty radiobutton should have a label, specified as an array of fieldname=>value
 			'int1ToCheckbox' => false,	// Whether an INT/TINYINT/etc(1) field will be converted to a checkbox
 			'textAsVarchar' => false,	// Force a TEXT type to be a VARCHAR(255) instead
+			'inputAsSearch' => false,	// Set input widgets to be search boxes instead; this is recommended for a multisearch-style interface
 			'lookupFunction' => false,
 			'simpleJoin' => false,	// Overrides lookupFunction, uses targetId as a join to <database>.target; lookupFunctionParameters can still be used
 			'lookupFunctionParameters' => array (),
@@ -7240,7 +7424,7 @@ class form
 			'floatChopTrailingZeros' => true,	// Whether to replace trailing zeros at the end of a value where there is a decimal point
 			'valuesNamesAutomatic'	=> false,	// For select/radiobuttons/checkboxes, whether to create automatic value names based on the value itself (e.g. 'option1' would become 'Option 1')
 			'autocomplete' => false,	// An autocomplete data endpoint URL; if %field is specified, it will be replaced with the fieldname
-			'autocompleteOptions' => false,	// Array of options that will be converted to a javascript array - see http://docs.jquery.com/UI/Autocomplete#options (this is the new plugin)
+			'autocompleteOptions' => false,	// Array of options that will be converted to a javascript array - see http://api.jqueryui.com/autocomplete/#options (this is the new plugin)
 			'editingUniquenessUniChecking' => true,	// Whether uniqueness checking for editing of a record when a UNI field is found in the database (should be set to false when doing a record clone)
 			'notNullFields' => array (),	// Array of elements (or single element as string) that should be treated as NOT NULL, even if the database structure says they are nullable
 			'notNullExceptFields' => array (),	// Assume all elements are treated as NOT NULL (even if the database structure says they are nullable), except for these specified elements (or single element as string)
@@ -7289,6 +7473,14 @@ class form
 			'database'	=> $database,
 			'table'		=> $table,
 		);
+		
+		# If using redirection to simplified GET on success, check for a GET collection and use that in preference
+		#!# Currently only fields generated by dataBinding will be captured by redirectGet, not directly-generated fields
+		if ($this->settings['redirectGet']) {
+			if (!$_POST) {
+				$data = $_GET;
+			}
+		}
 		
 		# If simple join mode is enabled, proxy in the values for lookupFunction
 		if ($simpleJoin) {
@@ -7434,6 +7626,9 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 			# Assuming non-forcing of widget type
 			$forceType = false;
 			
+			# Assume no support for auto-rounding of floats
+			$roundFloat = false;
+			
 			# Add intelligence rules if required
 			#!# Bug: $int1ToCheckbox should avoid modifications but currently an int like mailToAdmin INT(1) is wrongly getting converted
 			if ($intelligence) {
@@ -7530,6 +7725,19 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 						$this->validation ('details', array ($fieldName, $detailsField));
 					}
 				}
+				
+/* Work-in-progress map integration code:
+				# Create a map if both latitude and longitude present
+				$mapFields = array ('latitude', 'longitude');
+				if (in_array ($fieldName, $mapFields) && (!array_diff ($mapFields, array_keys ($fields)))) {
+					$standardAttributes['enforceNumeric'] = true;
+					$standardAttributes['max'] = ($fieldName == 'latitude' ?  90 :  180);
+					$standardAttributes['min'] = ($fieldName == 'latitude' ? -90 : -180);
+					$roundFloat = true;
+					$standardAttributes['_cssHide--DONOTUSETHISFLAGEXTERNALLY'] = true;
+					// NB $floatAttributes below will force the decimal places to be correct, e.g. FLOAT(10,6) will give 6 decimal places, i.e. 10cm resolution; maxlength will also be set automatically
+				}
+*/
 			}
 			
 			# Add per-widget overloading if attributes supplied by the calling application
@@ -7591,6 +7799,11 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 				$skipWidgetCreation = true;
 			}
 			
+			# If the inputAsSearch option is on, convert standard text input field to search
+			if ($inputAsSearch && !$forceType && (strtolower ($fieldAttributes['Type']) == 'text')) {
+				$forceType = 'search';
+			}
+			
 			# If the textAsVarchar option is on, convert the type to VARCHAR(255)
 			if ($textAsVarchar && (strtolower ($fieldAttributes['Type']) == 'text')) {$fieldAttributes['Type'] = 'VARCHAR(255)';}
 			
@@ -7622,9 +7835,9 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 					));
 					break;
 				
-				# FLOAT/DOUBLE (numeric with decimal point) field
-				case (preg_match ('/(float|double|double precision)\(([0-9]+),([0-9]+)\)/i', $type, $matches)):
-				case (preg_match ('/(float|double|double precision)$/i', $type, $matches)):
+				# FLOAT/DOUBLE (numeric with decimal point) / DECIMAL fields
+				case (preg_match ('/(float|decimal|double|double precision)\(([0-9]+),([0-9]+)\)/i', $type, $matches)):
+				case (preg_match ('/(float|decimal|double|double precision)$/i', $type, $matches)):
 					if ($floatChopTrailingZeros) {
 						if (substr_count ($standardAttributes['default'], '.')) {
 							$standardAttributes['default'] = preg_replace ('/0+$/', '', $standardAttributes['default']);
@@ -7636,12 +7849,16 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 							'maxlength' => ((int) $matches[2] + 2),	// FLOAT(M,D) means "up to M digits in total, of which D digits may be after the decimal point", so maxlength is M + 1 (for the decimal point) + 1 (for a negative sign)
 							'regexp' => '^(-?)([0-9]{0,' . ($matches[2] - $matches[3]) . '})((\.)([0-9]{0,' . $matches[3] . '})$|$)',
 						);
+						if ($roundFloat) {
+							$floatAttributes['roundFloat'] = $matches[3];
+						}
 					} else {	// e.g. FLOAT or DOUBLE without any size specification
 						$floatAttributes = array (
 							'regexp' => '^(-?)([0-9]+)((\.)([0-9]+)$|$)',
 						);
 					}
-					$this->input ($standardAttributes + $floatAttributes);
+					$floatAttributes['step'] = 'any';
+					$this->number ($standardAttributes + $floatAttributes);
 					break;
 				
 				# CHAR/VARCHAR (character) field
@@ -7756,6 +7973,7 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 			}
 			
 			# If the field is unique, add a constraint
+			#!# Convert to prepared statements
 			if (strtolower ($fieldAttributes['Key']) == 'uni') {
 				if ($unfinalisedData = $this->getUnfinalisedData ()) {
 					if ($unfinalisedData[$fieldName]) {
@@ -7775,6 +7993,7 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 	
 	
 	# Function to return a list of countries
+	#!# Add option to obtain as moniker => name
 	public static function getCountries ($additionalStart = array ())
 	{
 		# Define the main list
@@ -8095,6 +8314,7 @@ class formWidget
 		if (!$this->settings['autofocus']) {return false;}
 		
 		# End if this current widget is not editable, as that will never have autofocus
+		#!# Undefined index: editable
 		if (!$this->arguments['editable']) {return false;}
 		
 		# End if there is an editable, non-heading widget already defined
@@ -8194,12 +8414,21 @@ class formWidget
 	
 	
 	# Function to check the maximum length of what is submitted
-	function checkMaxLength ()
+	function checkMaxLength ($stripHtml = false)
 	{
+		# Obtain the value, and strip HTML first if required
+		$value = $this->value;
+		if ($stripHtml) {
+			$value = strip_tags ($value);
+		}
+		
+		# Determine the string length
+		$length = strlen ($value);
+		
 		#!# Move the is_numeric check into the argument cleaning stage
 		if (is_numeric ($this->arguments['maxlength'])) {
-			if (strlen ($this->value) > $this->arguments['maxlength']) {
-				$this->elementProblems['exceedsMaximum'] = 'You submitted more characters (<strong>' . strlen ($this->value) . '</strong>) than are allowed (<strong>' . $this->arguments['maxlength'] . '</strong>).';
+			if ($length > $this->arguments['maxlength']) {
+				$this->elementProblems['exceedsMaximum'] = 'You submitted more characters (<strong>' . $length . '</strong>) than are allowed (<strong>' . $this->arguments['maxlength'] . '</strong>).';
 			}
 		}
 	}
@@ -8553,9 +8782,9 @@ class formWidget
 		
 		# Find clashes
 		if ($caseSensitiveComparison) {
-			$clash = in_array ($this->value, $this->arguments['current']);
+			$clash = (strlen ($this->value) && in_array ($this->value, $this->arguments['current']));
 		} else {
-			$clash = application::iin_array ($this->value, $this->arguments['current']);
+			$clash = (strlen ($this->value) && application::iin_array ($this->value, $this->arguments['current']));
 		}
 		
 		# Throw user error if any clashes

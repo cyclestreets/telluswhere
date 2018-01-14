@@ -2,7 +2,7 @@
 
 # Class containing a variety of date/time processing functions
 # http://download.geog.cam.ac.uk/projects/timedate/
-# Version: 1.2.6
+# Version: 1.2.8
 
 class timedate
 {
@@ -294,6 +294,35 @@ class timedate
 			(isSet ($timeParts['seconds']) ? $timeParts['seconds'] : '00');
 		
 		# Return the assembled and validated string
+		return $time;
+	}
+	
+	
+	# Function to simplify a time string for display; e.g. '14:30:00' would become '2.30pm'; seconds are discarded in the results
+	#!# Replace with a strtotime -based method
+	public static function simplifyTime ($sqlTime)
+	{
+		# Ensure valid format or return as-is
+		if (!preg_match ('/^([0-2][0-9]):([0-9][0-9]):[0-9][0-9]$/', $sqlTime, $matches)) {
+			return $sqlTime;
+		}
+		
+		# Obtain the hours and minutes; seconds are discarded in the results
+		$hours = (int) $matches[1];
+		$minutes = (int) $matches[2];
+		
+		# Set the suffix
+		$suffix = ($hours >= 12 ? 'pm' : 'am');
+		
+		# If the hours are greater than 12, substract
+		if ($hours > 12) {
+			$hours -= 12;
+		}
+		
+		# Compile the string
+		$time = $hours . ($minutes ? '.' . $minutes : '') . $suffix;
+		
+		# Return the new time
 		return $time;
 	}
 	
@@ -614,6 +643,41 @@ class timedate
 			'2015-12-25',
 			'2015-12-28',
 			
+			'2016-01-01',
+			'2016-03-25',
+			'2016-03-28',
+			'2016-05-02',
+			'2016-05-30',
+			'2016-08-29',
+			'2016-12-26',
+			'2016-12-27',
+			
+			'2017-01-02',
+			'2017-04-14',
+			'2017-04-17',
+			'2017-05-01',
+			'2017-05-29',
+			'2017-08-28',
+			'2017-12-25',
+			'2017-12-26',
+			
+			'2018-01-01',
+			'2018-03-30',
+			'2018-04-02',
+			'2018-05-07',
+			'2018-05-28',
+			'2018-08-27',
+			'2018-12-25',
+			'2018-12-26',
+			
+			'2019-01-01',
+			'2019-04-19',
+			'2019-04-22',
+			'2019-05-06',
+			'2019-05-27',
+			'2019-08-26',
+			'2019-12-25',
+			'2019-12-26',
 			// Add to this list each year when new dates are confirmed
 		);
 		

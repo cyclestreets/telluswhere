@@ -222,7 +222,7 @@ class directories
 		<ul class="filelistnotes">' . "
 			<li>To <strong>open</strong> a file or directory, left-click (PC) or click (Mac) on its name.</li>
 			<li>To <strong>save</strong> a file, right-click (PC) or control-click (Mac) on its name and select 'Save Target As...'.</li>
-			<li>For docx/xlsx/pptx documents, you may need the free <a href=\"http://www.google.com/search?q=Microsoft+Office+Compatibility+Pack\" target=\"_blank\">Office Compatibility Pack</a> if you have an older version of MS Office</li>
+			<li>For docx/xlsx/pptx documents, you may need the free <a href=\"https://www.google.com/search?q=Microsoft+Office+Compatibility+Pack\" target=\"_blank\">Office Compatibility Pack</a> if you have an older version of MS Office</li>
 		</ul>";
 		
 		# Show photo thumbnails if required
@@ -276,6 +276,8 @@ class directories
 					if ($skipUnreadableFiles) {
 						#!# Fails if directory has no trailing slash
 						if (!is_readable ($directory . $file)) {
+							#!# Need to have a reporting option
+							// echo $directory . $file . "\n";
 							continue;
 						}
 					}

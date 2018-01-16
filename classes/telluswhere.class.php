@@ -1434,6 +1434,7 @@ class telluswhere
 			$form->input (array (
 				'name'			=> 'name',
 				'title'			=> 'Your name',
+				'placeholder'	=> 'Your name',
 				'required'		=> true,
 				'default'		=> (isSet ($data['name']) ? $data['name'] : false),
 			));
@@ -1441,6 +1442,7 @@ class telluswhere
 		$form->email (array (
 			'name'			=> 'email',
 			'title'			=> 'Your e-mail address',
+			'placeholder'	=> 'Your e-mail address',
 			'required'		=> true,
 			'default'		=> (isSet ($data['email']) ? $data['email'] : false),
 		));

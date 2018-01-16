@@ -720,8 +720,8 @@ class telluswhere
 		
 		# Define the embeddable map types
 		$types = array (
-			'suggest' => 'Suggested cycle parking',
-			'current' => 'Current cycle parking',
+			'suggest' => 'Suggested %categoryLabel',
+			'current' => 'Current %categoryLabel',
 		);
 		
 		# Determine the type selected, if any, throwing a 404 if invalid
@@ -737,11 +737,16 @@ class telluswhere
 		
 		# Show listing if no type selected
 		if (!$type) {
-			$list = array ();
-			foreach ($types as $type => $label) {
-				$list[] = "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a>";
+			$linkGroups = array ();
+			foreach ($this->categories as $category) {
+				$list = array ();
+				foreach ($types as $type => $label) {
+					$label = str_replace ('%categoryLabel', $this->categoryLabels[$category], $label);
+					$list[] = "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a>";
+				}
+				$linkGroups[] = "\n<p>" . implode ('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', $list) . '</p>';
 			}
-			$this->template['links'] = "\n<p>" . implode ('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', $list) . '</p>';
+			$this->template['links'] = implode ("\n<br /><br />", $linkGroups);
 			return true;
 		}
 		

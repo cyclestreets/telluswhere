@@ -721,8 +721,8 @@ class telluswhere
 		
 		# Define the embeddable map types
 		$types = array (
-			'suggest' => 'Suggested cycle parking',
-			'current' => 'Current cycle parking',
+			'suggest' => 'Suggested %categoryLabel',
+			'current' => 'Current %categoryLabel',
 		);
 		
 		# Determine the type selected, if any, throwing a 404 if invalid
@@ -738,11 +738,17 @@ class telluswhere
 		
 		# Show listing if no type selected
 		if (!$type) {
-			$list = array ();
-			foreach ($types as $type => $label) {
-				$list[] = "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a>";
+			$tableHtml  = "\n<table class=\"buttons\">";
+			foreach ($this->categories as $category) {
+				$tableHtml .= "\n\t<tr>";
+				foreach ($types as $type => $label) {
+					$label = str_replace ('%categoryLabel', $this->categoryLabels[$category], $label);
+					$tableHtml .= "\n\t\t<td style=\"padding: 20px;\">" . "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a></td>";
+				}
+				$tableHtml .= "\n\t</tr>";
 			}
-			$this->template['links'] = "\n<p>" . implode ('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', $list) . '</p>';
+			$tableHtml .= "\n</table>";
+			$this->template['links'] = $tableHtml;
 			return true;
 		}
 		
@@ -2319,6 +2325,25 @@ class telluswhere
 	{
 		# Start the HTML
 		$html = '';
+		
+		# Define the embeddable map types
+		$types = array (
+			'suggest' => 'Suggested %categoryLabel &mdash; CSV export',
+			'current' => 'Current %categoryLabel &mdash; CSV export',
+		);
+		
+		# Create listing
+		$tableHtml  = "\n<table class=\"buttons\">";
+		foreach ($this->categories as $category) {
+			$tableHtml .= "\n\t<tr>";
+			foreach ($types as $type => $label) {
+				$label = str_replace ('%categoryLabel', $this->categoryLabels[$category], $label);
+				$tableHtml .= "\n\t\t<td style=\"padding: 20px;\">" . "<a class=\"button color huge circle\" href=\"/data/{$type}.csv\">{$label}</a></td>";
+			}
+			$tableHtml .= "\n\t</tr>";
+		}
+		$tableHtml .= "\n</table>";
+		$this->template['links'] = $tableHtml;
 		
 		# Return the HTML
 		return $html;

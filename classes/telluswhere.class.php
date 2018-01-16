@@ -2363,12 +2363,16 @@ class telluswhere
 		}
 		$dataset = $_GET['dataset'];
 		
+		# Get the category
+		#!# Does not yet support multiple categories
+		$category = $this->categories[0];
+		
 		# Define the parameters for the API call
 		$parameters = array (
-			'category'		=> 'cycleparking',
+			'category'		=> $category,
 			'metacategory'	=> $this->actions[$dataset]['metacategory'],
 			'bbox'			=> $this->settings['bbox'],
-			'since'		=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
+			'since'			=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',

@@ -1469,7 +1469,7 @@ class telluswhere
 		$form->checkboxes (array (
 			'name'			=> 'terms',
 			'required'		=> true,
-			'values'		=> array ('Yes' => "I accept the <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>."),
+			'values'		=> array ('Yes' => "I accept the <a target=\"_blank\" href=\"{$this->baseUrl}/terms/{$this->iframeSuffix}\">terms &amp; conditions</a>."),
 			'entities'		=> false,
 			'default'		=> 'Yes',
 			'discard'		=> true,

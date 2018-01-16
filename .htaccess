@@ -19,7 +19,7 @@ RewriteEngine On
 RewriteRule ^$ index.html?action=home [L,QSA]
 RewriteRule ^(suggest|current|embed|news|about|programme|terms|contacts|data|settings|batch|login|logout)/$ index.html?action=$1 [L,QSA]
 RewriteRule ^(suggest|current|embed|news|about|programme|terms|contacts|data|settings|login|batch|logout)$ /$1/ [L,R=301]
-RewriteRule ^(suggest|current)/iframe.html$ index.html?action=$1&iframe=1 [L,QSA]
+RewriteRule ^(suggest|current|terms)/iframe.html$ index.html?action=$1&iframe=1 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)/$ index.html?action=$1&id=$2 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)/iframe.html$ index.html?action=$1&id=$2&iframe=1 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)$ /$1/$2/ [L,R=301]

@@ -94,11 +94,8 @@
 	</fieldset>
 	           
 	<fieldset>
-		<label><span>* </span>Do you accept our <a href="/terms/" target="_blank">terms &amp; conditions</a>?</label>
 		<!-- {$terms} -->
-		<select name="terms" required="required">
-			<option value="yes">Yes</option>
-		</select>
+		<input type="checkbox" name="terms" id="form_terms_Yes" value="true" checked="checked" required="required" /><label for="form_terms_Yes"> <span>* </span> I accept the <a target="_blank" href="/terms/">terms &amp; conditions</a>.</label>
 		<!-- /{$terms} -->
 	</fieldset>
 	

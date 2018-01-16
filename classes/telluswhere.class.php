@@ -43,7 +43,7 @@ class telluswhere
 			'current' => array (
 				'description' => 'Current %categoryLabel',
 				'url' => '/current/',
-				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,likes,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,likes,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40&fields=id,latitude,longitude,name,nodeId,osmTags',
 				'metacategory' => 'other',
 				'additionalMetadata' => 'landtype,type,capacity',
@@ -718,8 +718,14 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# Set the category
+		// #!# Multiple category support not yet in place - see code in suggest which is probably repurposable
+		$category = $this->categories[0];
+		
+		# Finalise the API URL
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
+		
 		# Show the submission page
-		$category = $this->categories[0];	// #!# Multiple category support not yet in place
 		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
 		
 		# Register the HTML
@@ -2499,7 +2505,7 @@ class telluswhere
 			'password'	=> $password,
 		);
 		
-		# Post to the API
+		# Post to the user authentication API
 		$apiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . '?key=' . $this->settings['apiKey'];
 		$resultJson = application::file_post_contents ($apiUrl, $postData, $error);
 		if ($error) {

@@ -34,16 +34,14 @@ class telluswhere
 				'url' => '/',
 			),
 			'suggest' => array (
-				'description' => 'Suggested cycle parking location',
-				'descriptionMultiple' => 'Suggested cycle parking locations',
+				'description' => 'Suggested %categoryLabel',
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => 'landtype,capacity',
 			),
 			'current' => array (
-				'description' => 'Current cycle parking location',
-				'descriptionMultiple' => 'Current cycle parking locations',
+				'description' => 'Current %categoryLabel',
 				'url' => '/current/',
 				'apiUrl' => '/v2/photomap.locations?category=cycleparking&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,likes,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40&fields=id,latitude,longitude,name,nodeId,osmTags',
@@ -145,8 +143,8 @@ class telluswhere
 			'singular'			=> 'Bikeshare location',
 		),
 		'obstructions'		=> array (
-			'plural'			=> 'Obstruction locations',
-			'singular'			=> 'Obstruction location',
+			'plural'			=> 'Obstructions',
+			'singular'			=> 'Obstruction',
 		),
 		'cycleways'		=> array (
 			'plural'			=> 'Cycleways',
@@ -980,8 +978,11 @@ class telluswhere
 			$editlink = "\n<p id=\"editlink\"><a href=\"{$this->baseUrl}/location/{$id}/edit/\"><img src=\"{$this->baseUrl}/images/icons/pencil.png\" alt=\"\" width=\"16\" height=\"16\" border=\"0\" /> Edit</a></p>";
 		}
 		
+		# Determine the category
+		$category = $data['categoryId'];
+		
 		# Register HTML components
-		$this->template['id'] = $this->actions[$action]['description'] . ' &mdash; #' . $id;
+		$this->template['id'] = str_replace ('%categoryLabel', $this->categoryLabels[$category]['singular'], $this->actions[$action]['description']) . ' &mdash; #' . $id;
 		$this->template['message'] = $flashMessage . $userEditMessage;
 		$this->template['editlink'] = $editlink;
 		$this->template['map'] = $this->locationsMap ($action, $data, false);
@@ -1848,7 +1849,8 @@ class telluswhere
 		# Confirm success
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$html .= "\n<p>{$unicodeTick} The data has been imported. Many thanks.</p>";
-		$html .= "\n<p>You can view these on the <a href=\"{$this->baseUrl}/{$action}/\">" . lcfirst ($this->actions[$action]['descriptionMultiple']) . "</a> page.</p>";
+		$category = $this->categories[0];	// #!# Multiple category support not yet in place
+		$html .= "\n<p>You can view these on the <a href=\"{$this->baseUrl}/{$action}/\">" . lcfirst (str_replace ('%categoryLabel', $this->categoryLabels[$category]['plural'], $this->actions[$action]['description'])) . "</a> page.</p>";
 		
 		# Find the bounding box containing all the points
 		$locationsCentrepoint = $this->locationsCentrepoint ($data);
@@ -1938,9 +1940,10 @@ class telluswhere
 		$requiredLocationFieldsHtml = implode (' OR ', $requiredLocationFieldsHtml);
 		
 		# Define the metacategory labels
+		$category = $this->categories[0];	// #!# Multiple category support not yet in place
 		$metacategories = array ();
 		foreach ($this->metacategories as $metacategory => $action) {
-			$metacategories[$metacategory] = $this->actions[$action]['descriptionMultiple'];
+			$metacategories[$metacategory] = str_replace ('%categoryLabel', $this->categoryLabels[$category]['singular'], $this->actions[$action]['description']);
 		}
 		
 		#!# Fix styles in london
@@ -2064,7 +2067,7 @@ class telluswhere
 		# Add in a caption where not present
 		$metacategory = $result['metacategory'];
 		$action = $this->metacategories[$metacategory];
-		$defaultCaption = $this->actions[$action]['description'];
+		$defaultCaption = str_replace ('%categoryLabel', $this->categoryLabels[$category]['singular'], $this->actions[$action]['description']);
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
 			$data[$index]['metacategory'] = $metacategory;

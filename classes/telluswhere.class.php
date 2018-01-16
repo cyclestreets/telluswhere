@@ -982,7 +982,7 @@ class telluswhere
 		$category = $data['categoryId'];
 		
 		# Register HTML components
-		$this->template['id'] = str_replace ('%categoryLabel', $this->categoryLabels[$category]['singular'], $this->actions[$action]['description']) . ' &mdash; #' . $id;
+		$this->template['id'] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']) . ' &mdash; #' . $id;
 		$this->template['message'] = $flashMessage . $userEditMessage;
 		$this->template['editlink'] = $editlink;
 		$this->template['map'] = $this->locationsMap ($action, $data, false);
@@ -1943,7 +1943,7 @@ class telluswhere
 		$category = $this->categories[0];	// #!# Multiple category support not yet in place
 		$metacategories = array ();
 		foreach ($this->metacategories as $metacategory => $action) {
-			$metacategories[$metacategory] = str_replace ('%categoryLabel', $this->categoryLabels[$category]['singular'], $this->actions[$action]['description']);
+			$metacategories[$metacategory] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
 		}
 		
 		#!# Fix styles in london
@@ -2067,7 +2067,7 @@ class telluswhere
 		# Add in a caption where not present
 		$metacategory = $result['metacategory'];
 		$action = $this->metacategories[$metacategory];
-		$defaultCaption = str_replace ('%categoryLabel', $this->categoryLabels[$category]['singular'], $this->actions[$action]['description']);
+		$defaultCaption = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
 			$data[$index]['metacategory'] = $metacategory;

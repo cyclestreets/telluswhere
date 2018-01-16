@@ -228,7 +228,7 @@ class form
 	 * @param array $arguments Settings
 	 */
 	#!# Change this to the PHP5 __construct syntax
-	function form ($suppliedArguments = array ())
+	function __construct ($suppliedArguments = array ())
 	{
 		# Load the application support library which itself requires the pureContent framework file, pureContent.php; this will clean up $_SERVER
 		require_once ('application.php');

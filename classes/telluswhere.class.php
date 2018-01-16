@@ -1453,16 +1453,14 @@ class telluswhere
 				'default'		=> 'Yes',
 			));
 		}
-		if (in_array ('mailinglist', $formFieldsInTemplate)) {
-			$form->select (array (
-				'name'			=> 'terms',
-				'title'			=> "Do you accept our <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>?",
-				'required'		=> true,
-				'values'		=> array ('Yes'),
-				'default'		=> 'Yes',
-				'discard'		=> true,
-			));
-		}
+		$form->select (array (
+			'name'			=> 'terms',
+			'title'			=> "Do you accept our <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>?",
+			'required'		=> true,
+			'values'		=> array ('Yes'),
+			'default'		=> 'Yes',
+			'discard'		=> true,
+		));
 		
 		# Location (hidden)
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS

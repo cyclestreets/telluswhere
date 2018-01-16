@@ -1059,7 +1059,7 @@ class telluswhere
 		
 		# If the message is empty, add a generic message as the API sets caption as a required field
 		if (empty ($rawdata['caption'])) {
-			$rawdata['caption'] = 'Cycle parking ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
+			$rawdata['caption'] = $this->categoryLabels[$category] . ' ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
 		}
 		
 		# Map the fields to the API

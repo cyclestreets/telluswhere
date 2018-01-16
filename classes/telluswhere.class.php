@@ -771,7 +771,7 @@ class telluswhere
 			
 			# Construct the introduction HTML
 			$html .= "\n<p>Here, you can create a map widget to embed on your own website.</p>";
-			$html .= "\n<p>The map widget will show <strong>" . lcfirst ($types[$type]) . "</strong> [<a href=\"{$this->baseUrl}/embed/\">change?</a>].</p>";
+			$html .= "\n<p>The map widget will show <strong>" . lcfirst (str_replace ('%categoryLabel', $this->categoryLabels[$this->categories[0]], $types[$type])) . "</strong> [<a href=\"{$this->baseUrl}/embed/\">change?</a>].</p>";
 			$html .= "\n<p>To add it to your website:</p>";
 			$html .= "\n<style type=\"text/css\">
 				div.code {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: auto;}

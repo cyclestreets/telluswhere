@@ -136,11 +136,26 @@ class telluswhere
 	
 	# Labels for known categories
 	private $categoryLabels = array (
-		'cycleparking'		=> 'Cycle parking',
-		'bikeshare'		=> 'Bikeshare locations',
-		'obstructions'		=> 'Obstruction locations',
-		'cycleways'		=> 'Cycleways',
-		'dutchcycleways'	=> 'Dutch-style cycleways',
+		'cycleparking'		=> array (
+			'plural'			=> 'Cycle parking',
+			'singular'			=> 'Cycle parking',
+		),
+		'bikeshare'		=> array (
+			'plural'			=> 'Bikeshare locations',
+			'singular'			=> 'Bikeshare location',
+		),
+		'obstructions'		=> array (
+			'plural'			=> 'Obstruction locations',
+			'singular'			=> 'Obstruction location',
+		),
+		'cycleways'		=> array (
+			'plural'			=> 'Cycleways',
+			'singular'			=> 'Cycleway',
+		),
+		'dutchcycleways'	=> array (
+			'plural'			=> 'Dutch-style cycleways',
+			'singular'			=> 'Dutch-style cycleway',
+		),
 	);
 	
 	# Labels for metadata fields
@@ -687,7 +702,7 @@ class telluswhere
 		# Create the list
 		$list = array ();
 		foreach ($this->categories as $category) {
-			$list[$category] = "<a href=\"{$this->baseUrl}/suggest/{$category}/\">" . htmlspecialchars ($this->categoryLabels[$category]) . '</a>';
+			$list[$category] = "<a href=\"{$this->baseUrl}/suggest/{$category}/\">" . htmlspecialchars ($this->categoryLabels['plural'][$category]) . '</a>';
 		}
 		
 		# Compile the HTML
@@ -743,7 +758,7 @@ class telluswhere
 			foreach ($this->categories as $category) {
 				$tableHtml .= "\n\t<tr>";
 				foreach ($types as $type => $label) {
-					$label = str_replace ('%categoryLabel', $this->categoryLabels[$category], $label);
+					$label = str_replace ('%categoryLabel', $this->categoryLabels[$category]['plural'], $label);
 					$tableHtml .= "\n\t\t<td style=\"padding: 20px;\">" . "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a></td>";
 				}
 				$tableHtml .= "\n\t</tr>";
@@ -771,7 +786,7 @@ class telluswhere
 			
 			# Construct the introduction HTML
 			$html .= "\n<p>Here, you can create a map widget to embed on your own website.</p>";
-			$html .= "\n<p>The map widget will show <strong>" . lcfirst (str_replace ('%categoryLabel', $this->categoryLabels[$this->categories[0]], $types[$type])) . "</strong> [<a href=\"{$this->baseUrl}/embed/\">change?</a>].</p>";
+			$html .= "\n<p>The map widget will show <strong>" . lcfirst (str_replace ('%categoryLabel', $this->categoryLabels[$this->categories[0]['plural']], $types[$type])) . "</strong> [<a href=\"{$this->baseUrl}/embed/\">change?</a>].</p>";
 			$html .= "\n<p>To add it to your website:</p>";
 			$html .= "\n<style type=\"text/css\">
 				div.code {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: auto;}
@@ -1059,7 +1074,7 @@ class telluswhere
 		
 		# If the message is empty, add a generic message as the API sets caption as a required field
 		if (empty ($rawdata['caption'])) {
-			$rawdata['caption'] = $this->categoryLabels[$category] . ' ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
+			$rawdata['caption'] = $this->categoryLabels[$category]['singular'] . ' ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
 		}
 		
 		# Map the fields to the API
@@ -2338,7 +2353,7 @@ class telluswhere
 		foreach ($this->categories as $category) {
 			$tableHtml .= "\n\t<tr>";
 			foreach ($types as $type => $label) {
-				$label = str_replace ('%categoryLabel', $this->categoryLabels[$category], $label);
+				$label = str_replace ('%categoryLabel', $this->categoryLabels[$category]['plural'], $label);
 				$tableHtml .= "\n\t\t<td style=\"padding: 20px;\">" . "<a class=\"button color huge circle\" href=\"/data/{$type}.csv\">{$label}</a></td>";
 			}
 			$tableHtml .= "\n\t</tr>";

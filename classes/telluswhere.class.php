@@ -489,6 +489,13 @@ class telluswhere
 		# Do not attempt to fetch a template if no URL specified
 		if (!$this->actions[$action]['url']) {return false;}
 		
+		# Add iframe versions of suggest/current; these have the full GUI, rather than just the map (as per embed)
+		if (isSet ($_GET['iframe']) && $_GET['iframe'] == '1') {
+			if (is_readable ($_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $this->actions[$action]['url'] . 'iframe.html')) {
+				$this->actions[$action]['url'] .= 'iframe.html';
+			}
+		}
+		
 		# Determine the location of the template
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
 		

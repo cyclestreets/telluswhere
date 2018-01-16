@@ -737,16 +737,17 @@ class telluswhere
 		
 		# Show listing if no type selected
 		if (!$type) {
-			$linkGroups = array ();
+			$tableHtml  = "\n<table class=\"buttons\">";
 			foreach ($this->categories as $category) {
-				$list = array ();
+				$tableHtml .= "\n\t<tr>";
 				foreach ($types as $type => $label) {
 					$label = str_replace ('%categoryLabel', $this->categoryLabels[$category], $label);
-					$list[] = "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a>";
+					$tableHtml .= "\n\t\t<td style=\"padding: 20px;\">" . "<a class=\"button color huge circle\" href=\"/{$type}/embed/\">{$label}</a></td>";
 				}
-				$linkGroups[] = "\n<p>" . implode ('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', $list) . '</p>';
+				$tableHtml .= "\n\t</tr>";
 			}
-			$this->template['links'] = implode ("\n<br /><br />", $linkGroups);
+			$tableHtml .= "\n</table>";
+			$this->template['links'] = $tableHtml;
 			return true;
 		}
 		

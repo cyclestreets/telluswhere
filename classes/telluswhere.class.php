@@ -376,6 +376,7 @@ class telluswhere
 			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
 			  `categories` TEXT NOT NULL,					-- Categories
 			  `showOthers` INT(1) NULL,					-- Show submissions by others?
+			  `privateSubmissions` INT(1) NULL,					-- Make submissions private?
 			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
 			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
 			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
@@ -830,6 +831,11 @@ class telluswhere
 		#!# /v2/photomap.location metacategoryId,categoryId are inconsistent with metacategory,category in photomap.add/photomap.update
 		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.location' . '?key=' . $this->settings['apiKey'] . '&id=' . $id . '&format=flat' . '&fields=id,metacategoryId,categoryId,caption,latitude,longitude,zoom,basemap,credit,additionalMetadata,hasPhoto,thumbnailUrl,likes' . '&thumbnailsize=400';
 		
+		# Enable private submissions if required
+		if ($this->settings['privateSubmissions']) {
+			$apiUrl .= '&private=1';
+		}
+		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
 		
@@ -1098,6 +1104,11 @@ class telluswhere
 		# If editing an existing location, include the ID
 		if ($existingData) {
 			$data['id'] = $existingData['id'];
+		}
+		
+		# Enable private submissions if required
+		if ($this->settings['privateSubmissions']) {
+			$data['private'] = '1';
 		}
 		
 		# Post the data

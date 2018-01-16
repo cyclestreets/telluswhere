@@ -15,4 +15,5 @@ db/*
 tmp/*
 !tmp/.gitignore
 
-
+# Ignore deployment-related files
+.well-known

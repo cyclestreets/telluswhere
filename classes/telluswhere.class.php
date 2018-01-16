@@ -1453,11 +1453,11 @@ class telluswhere
 				'default'		=> 'Yes',
 			));
 		}
-		$form->select (array (
+		$form->checkboxes (array (
 			'name'			=> 'terms',
-			'title'			=> "Do you accept our <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>?",
 			'required'		=> true,
-			'values'		=> array ('Yes'),
+			'values'		=> array ('Yes' => "I accept the <a target=\"_blank\" href=\"{$this->baseUrl}/terms/\">terms &amp; conditions</a>."),
+			'entities'		=> false,
 			'default'		=> 'Yes',
 			'discard'		=> true,
 		));

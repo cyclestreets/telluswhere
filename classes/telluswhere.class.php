@@ -289,6 +289,9 @@ class telluswhere
 		# Determine if the action is an export type, in which files are served rather than a page generated
 		$isExportAction = (isSet ($this->actions[$this->action]['export']) && $this->actions[$this->action]['export']);
 		
+		# Assume not in frame mode, unless overridden
+		$this->iframeSuffix = false;
+		
 		# Load the template; if not present, fallback to 404 page; export type pages do not have a template
 		if (!$isExportAction) {
 			if (!$this->templateHtml = $this->getTemplateHtml ($this->action)) {
@@ -492,7 +495,8 @@ class telluswhere
 		# Add iframe versions of suggest/current; these have the full GUI, rather than just the map (as per embed)
 		if (isSet ($_GET['iframe']) && $_GET['iframe'] == '1') {
 			if (is_readable ($_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $this->actions[$action]['url'] . 'iframe.html')) {
-				$this->actions[$action]['url'] .= 'iframe.html';
+				$this->iframeSuffix = 'iframe.html';
+				$this->actions[$action]['url'] .= $this->iframeSuffix;
 			}
 		}
 		
@@ -988,7 +992,7 @@ class telluswhere
 		# Add an edit link
 		$editlink = false;
 		if ($userCanEdit) {
-			$editlink = "\n<p id=\"editlink\"><a href=\"{$this->baseUrl}/location/{$id}/edit/\"><img src=\"{$this->baseUrl}/images/icons/pencil.png\" alt=\"\" width=\"16\" height=\"16\" border=\"0\" /> Edit</a></p>";
+			$editlink = "\n<p id=\"editlink\"><a href=\"{$this->baseUrl}/location/{$id}/edit/" . $this->iframeSuffix . "\"><img src=\"{$this->baseUrl}/images/icons/pencil.png\" alt=\"\" width=\"16\" height=\"16\" border=\"0\" /> Edit</a></p>";
 		}
 		
 		# Determine the category
@@ -1051,7 +1055,7 @@ class telluswhere
 		}
 		
 		# Determine the redirection target, namely the location page
-		$redirectToPath = $this->baseUrl . "/location/{$result['id']}/";
+		$redirectToPath = $this->baseUrl . "/location/{$result['id']}/" . $this->iframeSuffix;
 		
 		# Thank the user, resetting the HTML
 		$html  = $this->confirmationMessage ($result['id'], $existingData, $action);
@@ -1074,7 +1078,7 @@ class telluswhere
 	{
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$html  = "\n<p>{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number {$id}.") . '</p>';
-		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}\">Add another?</a></p>";
+		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}{$this->iframeSuffix}\">Add another?</a></p>";
 		return $html;
 	}
 	

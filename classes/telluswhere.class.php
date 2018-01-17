@@ -38,7 +38,9 @@ class telluswhere
 				'url' => '/suggest/',
 				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
 				'metacategory' => 'bad',
-				'additionalMetadata' => 'landtype,capacity',
+				'additionalMetadata' => array (
+					'cycleparking' => 'landtype,capacity',
+				),
 			),
 			'current' => array (
 				'description' => 'Current %categoryLabel',
@@ -46,7 +48,9 @@ class telluswhere
 				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,likes,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40&fields=id,latitude,longitude,name,nodeId,osmTags',
 				'metacategory' => 'other',
-				'additionalMetadata' => 'landtype,type,capacity',
+				'additionalMetadata' => array (
+					'cycleparking' => 'landtype,type,capacity',
+				),
 			),
 			'embed' => array (
 				'description' => false,
@@ -958,11 +962,14 @@ class telluswhere
 			$metadataHtml .= "\n<p><img src=\"{$data['thumbnailUrl']}\" alt=\"\" border=\"0\"></p>";
 		}
 		
+		# Determine the category
+		$category = $data['categoryId'];
+		
 		# Show additional metadata table
 		if ($data['additionalMetadata']) {
 			
 			# Filter to supported fields for this action
-			$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
+			$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata'][$category]);
 			$table = application::arrayFields ($data['additionalMetadata'], $additionalMetadataFields);
 			
 			# Substitute internal names in table
@@ -994,9 +1001,6 @@ class telluswhere
 		if ($userCanEdit) {
 			$editlink = "\n<p id=\"editlink\"><a href=\"{$this->baseUrl}/location/{$id}/edit/" . $this->iframeSuffix . "\"><img src=\"{$this->baseUrl}/images/icons/pencil.png\" alt=\"\" width=\"16\" height=\"16\" border=\"0\" /> Edit</a></p>";
 		}
-		
-		# Determine the category
-		$category = $data['categoryId'];
 		
 		# Register HTML components
 		$this->template['id'] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']) . ' &mdash; #' . $id;
@@ -1112,7 +1116,7 @@ class telluswhere
 		);
 		
 		# If additional metadata is present (templates can choose to include/omit it optionally), assemble and add it
-		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata']);
+		$additionalMetadataFields = explode (',', $this->actions[$action]['additionalMetadata'][$category]);
 		$additionalMetadata = application::arrayFields ($rawdata, $additionalMetadataFields);
 		if ($additionalMetadata) {
 			$data['additionalMetadata'] = json_encode ($additionalMetadata);

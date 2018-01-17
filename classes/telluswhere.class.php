@@ -2435,6 +2435,11 @@ class telluswhere
 		# Assemble the API call URL
 		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.locations' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
 		
+		# Enable private submissions if required
+		if ($this->settings['privateSubmissions']) {
+			$apiUrl .= '&private=1';
+		}
+		
 		# Obtain the data
 		$csv = file_get_contents ($apiUrl);
 		

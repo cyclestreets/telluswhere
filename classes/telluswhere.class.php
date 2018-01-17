@@ -40,6 +40,7 @@ class telluswhere
 				'metacategory' => 'bad',
 				'additionalMetadata' => array (
 					'cycleparking' => 'landtype,capacity',
+					'bikeshare' => 'schemes',
 				),
 			),
 			'current' => array (
@@ -50,6 +51,7 @@ class telluswhere
 				'metacategory' => 'other',
 				'additionalMetadata' => array (
 					'cycleparking' => 'landtype,type,capacity',
+					'bikeshare' => 'schemes',
 				),
 			),
 			'embed' => array (
@@ -166,6 +168,7 @@ class telluswhere
 		'capacity'	=> 'How many cycles can be parked?',
 		'landtype'	=> 'Land type',
 		'caption'	=> 'Additional info / comments',
+		'schemes'	=> 'Which scheme(s), if any, have you used, and how did you find them?',
 	);
 	
 	# Cycle parking type presets
@@ -1445,6 +1448,16 @@ class telluswhere
 			'cols'			=> 20,
 			'default'		=> (isSet ($data['caption']) ? $data['caption'] : false),
 		));
+		if (in_array ('schemes', $formFieldsInTemplate)) {
+			$form->textarea (array (
+				'name'			=> 'schemes',
+				'title'			=> $this->metadataFieldLabels['schemes'],
+				'required'		=> false,
+				'rows'			=> 2,
+				'cols'			=> 20,
+				'default'		=> (isSet ($data['schemes']) ? $data['schemes'] : false),
+			));
+		}
 		if (in_array ('name', $formFieldsInTemplate)) {		// Templates can choose to require only e-mail
 			$form->input (array (
 				'name'			=> 'name',
@@ -2415,7 +2428,7 @@ class telluswhere
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',
-			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata']}],datetime,hasPhoto,shortlink,license" . ($dataset == 'suggest' ? ',likes' : ''),
+			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata'][$category]}],datetime,hasPhoto,shortlink,license" . ($dataset == 'suggest' ? ',likes' : ''),
 			'datetime'		=> 'sqldatetime',
 		);
 		

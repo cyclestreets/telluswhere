@@ -2428,7 +2428,7 @@ class telluswhere
 			'thumbnailsize'	=> '640',
 			'limit'			=> '0',
 			'format'		=> 'csv',
-			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata'][$category]}],datetime,hasPhoto,shortlink,license" . ($dataset == 'suggest' ? ',likes' : ''),
+			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata'][$category]}],datetime,hasPhoto,url,license" . ($dataset == 'suggest' ? ',likes' : ''),
 			'datetime'		=> 'sqldatetime',
 		);
 		
@@ -2445,7 +2445,7 @@ class telluswhere
 		
 		# Replace cycle.st links with internal links
 		#!# Bit of a dirty way to do this - should have an API parameter, e.g. shortlink=https://{$_SERVER['SERVER_NAME']}/location/%s/
-		$csv = preg_replace ('|,https://cycle.st/p([0-9]+),|', ",http://{$_SERVER['SERVER_NAME']}/location/\$1/,", $csv);
+		$csv = preg_replace ('|,https://www.cyclestreets.net/location/([0-9]+)/,|', ",https://{$_SERVER['SERVER_NAME']}/location/\$1/,", $csv);
 		
 		# Serve the file
 		$filenameBase = $dataset . '_savedAt' . date ('Ymd-His');

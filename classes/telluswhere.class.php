@@ -2433,6 +2433,7 @@ class telluswhere
 			'format'		=> 'csv',
 			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata'][$category]}],datetime,hasPhoto,url,license" . ($dataset == 'suggest' ? ',likes' : ''),
 			'datetime'		=> 'sqldatetime',
+			'domain'		=> "https://{$_SERVER['SERVER_NAME']}",
 		);
 		
 		# Assemble the API call URL

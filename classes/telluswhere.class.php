@@ -718,7 +718,7 @@ class telluswhere
 		# Create the list
 		$list = array ();
 		foreach ($this->categories as $category) {
-			$list[$category] = "<a href=\"{$this->baseUrl}/suggest/{$category}/\">" . htmlspecialchars ($this->categoryLabels['plural'][$category]) . '</a>';
+			$list[$category] = "<a href=\"{$this->baseUrl}/suggest/{$category}/\">" . htmlspecialchars ($this->categoryLabels[$category]['plural']) . '</a>';
 		}
 		
 		# Compile the HTML

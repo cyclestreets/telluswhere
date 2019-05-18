@@ -1366,7 +1366,20 @@ class telluswhere
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?16\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
-			var map = telluswhere.createMap('{$this->baseUrl}', {$mapLocation['latitude']}, {$mapLocation['longitude']}, {$mapLocation['zoom']}, {$browsingApiUrlJs}, '{$showLayer}', {$setMarkerInitiallyJs}, {$markerSetInitiallyIsDraggableJs}, {$selectedIdJs}, {$browsingApiUrl2}, {$viewOnlyModeJs}, {$disableGeolocationJs});
+			var map = telluswhere.createMap ({
+				baseUrl: '{$this->baseUrl}',
+				initialLatitude: {$mapLocation['latitude']},
+				initialLongitude: {$mapLocation['longitude']},
+				initialZoom: {$mapLocation['zoom']},
+				browsingApiUrl: {$browsingApiUrlJs},
+				useIcon: '{$showLayer}',
+				setMarkerInitially: {$setMarkerInitiallyJs},
+				markerSetInitiallyIsDraggable: {$markerSetInitiallyIsDraggableJs},
+				selectedId: {$selectedIdJs},
+				browsingApiUrl2: {$browsingApiUrl2},
+				viewOnlyMode: {$viewOnlyModeJs},
+				disableGeolocation: {$disableGeolocationJs}
+			});
 		</script>
 		";
 		

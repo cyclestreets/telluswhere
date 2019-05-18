@@ -44,19 +44,20 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function (baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2, viewOnlyMode, disableGeolocation)
+		createMap: function (settings)
 		{
 			// Set class properties
-			_baseUrl = baseUrl;
-			_initialLatitude = initialLatitude;
-			_initialLongitude = initialLongitude;
-			_initialZoom = initialZoom;
-			_browsingApiUrl = browsingApiUrl;
-			_browsingApiUrl2 = browsingApiUrl2;
-			_useIcon = useIcon;
-			_setMarkerInitially = setMarkerInitially;
-			_selectedId = selectedId;	// ID of selected item
-			_viewOnlyMode = viewOnlyMode;
+			_baseUrl = settings.baseUrl;
+			_initialLatitude = settings.initialLatitude;
+			_initialLongitude = settings.initialLongitude;
+			_initialZoom = settings.initialZoom;
+			_browsingApiUrl = settings.browsingApiUrl;
+			_browsingApiUrl2 = settings.browsingApiUrl2;
+			_useIcon = settings.useIcon;
+			_setMarkerInitially = settings.setMarkerInitially;
+			_selectedId = settings.selectedId;	// ID of selected item
+			_viewOnlyMode = settings.viewOnlyMode;
+			var disableGeolocation = settings.disableGeolocation;
 			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);

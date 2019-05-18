@@ -907,7 +907,7 @@ class telluswhere
 		# Write into the template
 		$this->template['title'] = "{$this->settings['applicationName']} - embedded map of " . lcfirst ($types[$type]) . ' locations';
 		$this->template['map'] = $mapHtml;
-		$this->template['about'] = "Powered by <a href=\"http://{$_SERVER['SERVER_NAME']}/{$type}/\" target=\"_top\">{$this->settings['applicationName']}</a> - contribute your knowledge";
+		$this->template['about'] = "Powered by <a href=\"https://{$_SERVER['SERVER_NAME']}/{$type}/\" target=\"_top\">{$this->settings['applicationName']}</a> - contribute your knowledge";
 	}
 	
 	
@@ -1311,7 +1311,7 @@ class telluswhere
 			.bubble p {margin: 0 0 5px;}
 			.bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}
 			.bubble p.id a {color: #bbb;}
-			.bubble p.caption:before {color: #900; content: "\201C"; /* http://monc.se/kitchen/129/rendering-quotes-with-css */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
+			.bubble p.caption:before {color: #900; content: "\201C"; /* https://monc.se/kitchen/129/rendering-quotes-with-css/ */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
 			p.problem {text-align: right; margin: 4px 0 0; padding: 0; font-size: 0.92em;}
 			p.problem a {color: #898989;}
 			.leaflet-popup-content form#problem p {margin-bottom: 5px; padding-bottom: 0;}
@@ -2197,7 +2197,7 @@ class telluswhere
 			<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@0.7.2/dist/leaflet.css\" />
 			<script src=\"https://unpkg.com/leaflet@0.7.2/dist/leaflet.js\"></script>
 			<script type=\"text/javascript\">
-				var osmLayer = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+				var osmLayer = 'https://{s}.tile.osm.org/{z}/{x}/{y}.png';
 				var osmAttribution = '&copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors'
 			</script>
 		";
@@ -2720,7 +2720,7 @@ class telluswhere
 			$html .= "\n<p>You have been successfully logged out.</p>";
 			$html .= "\n<p>You can <a href=\"" . htmlspecialchars ($loginLocation) . '">log in again</a> if you wish.</p>';
 		} else {
-			header ('Location: http://' . $_SERVER['SERVER_NAME'] . $this->baseUrl . $loginLocation);
+			header ('Location: https://' . $_SERVER['SERVER_NAME'] . $this->baseUrl . $loginLocation);
 			$html .= "\n<p>You are not logged in.</p>";
 			$html .= "\n<p><a href=\"" . htmlspecialchars ($loginLocation) . '">Please click here to continue.</a></p>';
 		}

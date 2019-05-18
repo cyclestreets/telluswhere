@@ -1298,8 +1298,8 @@ class telluswhere
 		
 		# Create the map application HTML
 		$html .= '
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.2/dist/leaflet.css" />
-		<script src="https://unpkg.com/leaflet@0.7.2/dist/leaflet.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+		<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
 		<style type="text/css">
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}
@@ -2194,8 +2194,8 @@ class telluswhere
 		
 		# Define standard map JS
 		$html .= "
-			<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@0.7.2/dist/leaflet.css\" />
-			<script src=\"https://unpkg.com/leaflet@0.7.2/dist/leaflet.js\"></script>
+			<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.5.1/dist/leaflet.css\" />
+			<script src=\"https://unpkg.com/leaflet@1.5.1/dist/leaflet.js\"></script>
 			<script type=\"text/javascript\">
 				var osmLayer = 'https://{s}.tile.osm.org/{z}/{x}/{y}.png';
 				var osmAttribution = '&copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors'

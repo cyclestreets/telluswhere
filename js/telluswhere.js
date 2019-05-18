@@ -19,6 +19,9 @@ var telluswhere = (function ($) {
 	// baseUrl of application
 	var _baseUrl;
 	
+	// GUI action
+	var _action;
+	
 	// Initial map location
 	var _initialLatitude;
 	var _initialLongitude;
@@ -48,6 +51,7 @@ var telluswhere = (function ($) {
 		{
 			// Set class properties
 			_baseUrl = settings.baseUrl;
+			_action = settings.action;
 			_initialLatitude = settings.initialLatitude;
 			_initialLongitude = settings.initialLongitude;
 			_initialZoom = settings.initialZoom;
@@ -390,6 +394,63 @@ var telluswhere = (function ($) {
 		
 		// Define HTML to be used in the popup
 		popupHtml: function (properties)
+		{
+			if (_action == 'audit') {
+				return telluswhere.popupHtmlAudit (properties);
+			} else {
+				return telluswhere.popupHtmlFixed (properties);
+			}
+		},
+		
+		
+		// Popup for audit section
+		popupHtmlAudit: function (properties)
+		{
+			// Create a simple key/value pair HTML table dynamically
+			// Code based on Leaflet.LayerViewer.js
+			var html = '<table>';
+			var fieldLabel;
+			$.each (properties, function (key, value) {
+				
+				// Skip if value is an array/object
+				if ($.type (value) === 'array')  {return; /* i.e. continue */}
+				if ($.type (value) === 'object') {return; /* i.e. continue */}
+				
+				// Key
+				fieldLabel = key;
+				
+				// Value
+				if (value === null) {
+					value = '[null]';
+				}
+				if (typeof value == 'string') {
+					value = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+				}
+				
+				// Link to ID
+				if (key == 'id') {
+					value = '<a href="' + _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/">' + telluswhere.htmlspecialchars (value) + '</a>';
+				}
+				
+				// Compile the HTML
+				html += '<tr><td>' + fieldLabel + ':</td><td><strong>' + value + '</strong></td></tr>';
+			});
+			html += '</table>';
+			
+			// Add images if enabled
+			if (properties.images) {
+				$.each (properties.images, function (index, imageUrl) {
+					html += '<a href="' + imageUrl + '" target="_blank"><img src="' + imageUrl + '" width="140" /> ';
+				});
+			}
+			
+			// Return HTML
+			return html;
+		},
+		
+		
+		// Popup with fixed fields
+		popupHtmlFixed: function (properties)
 		{
 			// Determine whether to show the Like facility
 			var enableLike = (properties.metacategoryId == 'bad');
@@ -734,6 +795,14 @@ var telluswhere = (function ($) {
 		        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
 		    }
 		    return null;
+		},
+		
+		
+		// Function to make data entity-safe
+		htmlspecialchars: function (string)
+		{
+			if (typeof string !== 'string') {return string;}
+			return string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 		}
 	};
 	

@@ -1368,6 +1368,7 @@ class telluswhere
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
 			var map = telluswhere.createMap ({
 				baseUrl: '{$this->baseUrl}',
+				action: '{$this->action}',
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
 				initialZoom: {$mapLocation['zoom']},

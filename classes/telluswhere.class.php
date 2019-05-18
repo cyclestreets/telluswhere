@@ -58,7 +58,7 @@ class telluswhere
 			'audit' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/',
-				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%category',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%category&limit=400',
 			),
 			'embed' => array (
 				'description' => false,
@@ -1287,7 +1287,7 @@ class telluswhere
 		
 		# Determine the URL for the browsing API; if a selected ID is requested, request that this always be included in the returned data
 		#!# Improve way key is added here
-		$browsingApiUrl = (($this->settings['showOthers'] || $this->userIsAdministrator) ? $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') : false);
+		$browsingApiUrl = (($this->settings['showOthers'] || $this->userIsAdministrator || $this->action == 'audit') ? $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') : false);
 		if ($this->settings['privateSubmissions']) {
 			$browsingApiUrl .= '&private=1';
 		}

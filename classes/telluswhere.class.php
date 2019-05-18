@@ -18,6 +18,7 @@ class telluswhere
 			'flashMessageName'		=> 'confirmation',
 			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
 			'trackingCode'			=> false,
+			'dataset'			=> false,	// For audit
 		);
 		
 		# Return the defaults
@@ -53,6 +54,11 @@ class telluswhere
 					'cycleparking' => 'landtype,type,capacity',
 					'bikeshare' => 'schemes',
 				),
+			),
+			'audit' => array (
+				'description' => 'Audit %categoryLabel',
+				'url' => '/audit/',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%category',
 			),
 			'embed' => array (
 				'description' => false,
@@ -424,7 +430,8 @@ class telluswhere
 			  `earliestDate` DATE,							-- Earliest date to appear in export
 			  `bbox` VARCHAR(225) NOT NULL,					-- Bounding box for export
 			  `trackingCode` TEXT NULL,						-- Analytics tracking code
-			  `areas` TEXT									-- Area names
+			  `areas` TEXT,									-- Area names
+			  `auditDataset` VARCHAR(255)					-- Audit dataset
 			);
 		";
 		$this->databaseConnection->query ($query);
@@ -729,7 +736,7 @@ class telluswhere
 		# Create the list
 		$list = array ();
 		foreach ($this->categories as $category) {
-			$list[$category] = "<a href=\"{$this->baseUrl}/suggest/{$category}/\">" . htmlspecialchars ($this->categoryLabels[$category]['plural']) . '</a>';
+			$list[$category] = "<a href=\"{$this->baseUrl}{$this->actions[$this->action]['url']}{$category}/\">" . htmlspecialchars ($this->categoryLabels[$category]['plural']) . '</a>';
 		}
 		
 		# Compile the HTML
@@ -752,6 +759,49 @@ class telluswhere
 		$category = $this->categories[0];
 		
 		# Finalise the API URL
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
+		
+		# Show the submission page
+		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
+		
+		# Register the HTML
+		$this->template['form'] = $html;
+	}
+	
+	
+	# Page for auditing
+	private function audit ($existingData = array ())
+	{
+		# End if not enabled
+		if (!$this->settings['auditDataset']) {return false;}
+		
+		# Start the HTML
+		$html = '';
+		
+		# Set the category
+		// #!# Multiple category support not yet in place - see code in suggest which is probably repurposable
+		$category = $this->categories[0];
+		if (count ($this->categories) > 1) {
+			
+			# Force selection if not specified
+			if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
+				$this->template['form'] = $this->categorySelection ();
+				return true;
+			}
+			
+			# End if not valid
+			if (!in_array ($_GET['category'], $this->categories)) {
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+			
+			# Register the category
+			$category = $_GET['category'];
+		}
+		
+		# Finalise the API URL
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Show the submission page
@@ -1826,6 +1876,7 @@ class telluswhere
 				'trackingCode'		=> array ('heading' => array (3 => 'Analytics'), 'rows' => 11, ),
 				'password'			=> array ('type' => 'input', 'confirmation' => false, 'editable' => true, ),	// Override intelligence=true for field named 'password'
 				'areas'				=> array ('heading' => array (3 => 'Areas'), 'rows' => 12, ),
+				'auditDataset'		=> array ('heading' => array (3 => 'Auditing'), ),
 			),
 		));
 		if (!$result = $form->process ($html)) {

@@ -1,11 +1,11 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.1.3
+# Version 1.2.0
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
-# More info: http://download.geog.cam.ac.uk/projects/directories/
+# More info: https://download.geog.cam.ac.uk/projects/directories/
 
 
 #!# These functions need a good tidy-up - there is a lot of duplication of similar functions each with different quirks, some of which work recursively and others not; these should be all combined into a single super-function with options
@@ -136,14 +136,19 @@ class directories
 		# Sort the list alphabetically
 		if ($files) {
 			switch ($sortByKey) {
+				
 				case 'name':
-					$comparisonFunction = "return strcasecmp (\$a['{$sortByKey}'], \$b['{$sortByKey}']);";
+					uasort ($files, function ($a, $b) {
+						return strcasecmp ($a['name'], $b['name']);
+					});
 					break;
+				
 				case 'time':
-					$comparisonFunction = "return (\$a['{$sortByKey}'] < \$b['{$sortByKey}']);";
+					uasort ($files, function ($a, $b) {
+						return ($a['time'] < $b['time']);
+					});
 					break;
 			}
-			uasort ($files, create_function ('$a, $b', $comparisonFunction));
 		}
 		
 		# Return the list
@@ -462,7 +467,7 @@ class directories
 	
 	# Wrapper function to create a formatted listing
 	#!# Need to add inheritableExtensions support e.g. .html.old
-	public static function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false)
+	public static function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false, $trailingSlashVisible = true)
 	{
 		# Get the contents of the title file
 		$titleFile = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'] . $titleFile;
@@ -476,7 +481,7 @@ class directories
 		$html .= "\n\n" . '<p><a href="../"><em>&lt; Go back</em></a></p>';
 		
 		# Show the directory listing
-		$html .= self::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly, $includeGallery);
+		$html .= self::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $trailingSlashVisible, true, false, array (), 'name', $directoriesOnly, $includeGallery);
 		
 		# Return the HTML
 		return $html;

@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.24.6';
+	var $version = '1.25.0';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -227,7 +227,6 @@ class form
 	 * Constructor
 	 * @param array $arguments Settings
 	 */
-	#!# Change this to the PHP5 __construct syntax
 	function __construct ($suppliedArguments = array ())
 	{
 		# Load the application support library which itself requires the pureContent framework file, pureContent.php; this will clean up $_SERVER
@@ -1441,6 +1440,11 @@ class form
 		# Set restrictions
 		if (isSet ($restrictions)) {$restrictions = implode (";\n", $restrictions);}
 		
+		# Send header to avoid ERR_BLOCKED_BY_XSS_AUDITOR warnings / blank screens; requires output buffering
+		if (ini_get ('output_buffering')) {
+			header ('X-XSS-Protection: 0');
+		}
+		
 		# Add the widget to the master array for eventual processing
 		$this->elements[$arguments['name']] = array (
 			'type' => __FUNCTION__,
@@ -1671,6 +1675,7 @@ class form
 		$arguments = $widget->getArguments ();
 		
 		# If pre-splitting is required, split
+		#!# Needs to normalise spaces between items, e.g. "|a|b |c|d" doesn't get cleaned up
 		if ($arguments['defaultPresplit']) {
 			if (is_string ($arguments['default']) && strlen ($arguments['default'])) {
 				$splittableString = true;
@@ -2000,6 +2005,7 @@ class form
 			}
 			
 			# Loop through each defined element name
+			#!# Needs to normalise spaces between items, e.g. "|a|b |c|d" doesn't get cleaned up
 			$chosenValues = array ();
 			$chosenVisible = array ();
 			foreach ($arguments['values'] as $value => $visible) {
@@ -2520,7 +2526,7 @@ class form
 					$elementValue[$value] = '';
 				}
 				
-//				# Construct the element ID, which must be unique	
+//				# Construct the element ID, which must be unique
 				$elementId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}_{$value}]" : "{$arguments['name']}_{$value}");
 				
 				# Determine whether to disable this checkbox
@@ -3847,7 +3853,6 @@ class form
 		
 		# Compile the options; they are listed at https://raw.github.com/chadisfaction/jQuery-Tokenizing-Autocomplete-Plugin/master/src/jquery.tokeninput.js ; note that the final item in a list must not have a comma at the end
 		$functionOptions = array ();
-		$functionOptions[] = "searchingText: 'Searching &hellip;'";
 		if ($singleLine) {
 			$functionOptions[] = 'classes: {
 						tokenList: "token-input-list-facebook",
@@ -7683,6 +7688,11 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 					//$standardAttributes['directory'] = './uploads/';
 				}
 				
+				# Enable thumbnails for photographs
+				if (preg_match ('/(photograph)/i', $fieldName)) {
+					$standardAttributes['thumbnail'] = true;
+				}
+				
 				# Make an auto_increment field not appear
 				if ($fieldAttributes['Extra'] == 'auto_increment') {
 					if (!$value) {
@@ -7879,7 +7889,9 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 					if ($int1ToCheckbox && $matches[2] == '1') {
 						if (!$value) {	// i.e. 0 or '0' (or NULL)
 							$value = NULL;
-							$standardAttributes['default'] = NULL;	// Normalise 0 to NULL
+							if (!$standardAttributes['default']) {
+								$standardAttributes['default'] = NULL;	// Normalise 0 to NULL
+							}
 						}
 						$label = (is_string ($int1ToCheckbox) ? $int1ToCheckbox : '');	// Empty unless the 'int1ToCheckbox' value is a string
 						$this->checkboxes ($standardAttributes + array (
@@ -7888,9 +7900,10 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 							'output' => array ('processing' => 'special-setdatatype'),
 						));
 					} else {
+						#!# Should be set to be a native numeric input type
 						$this->input ($standardAttributes + array (
 							'enforceNumeric' => true,
-							'regexp' => ($unsigned ? '^([0-9]*)$' : '^([-0-9]*)$'),
+							'regexp' => ($unsigned ? '^([0-9]+)$' : '^(-*[0-9]+)$'),	// e.g. '57' or '-2' but not '-'
 							#!# Make these recognise types without the numeric value after
 							'maxlength' => $matches[2],
 							'size' => $matches[2] + 1,
@@ -8314,7 +8327,7 @@ class formWidget
 		if (!$this->settings['autofocus']) {return false;}
 		
 		# End if this current widget is not editable, as that will never have autofocus
-		#!# Undefined index: editable
+		#!# Undefined index: editable generated from __timestamp
 		if (!$this->arguments['editable']) {return false;}
 		
 		# End if there is an editable, non-heading widget already defined

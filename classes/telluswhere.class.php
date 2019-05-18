@@ -138,7 +138,7 @@ class telluswhere
 	private $userIsBatchUploader = false;
 	private $userIsNewsEditor = false;
 	
-	# Labels for known categories
+	# Labels for known categories; these can also be supplied in the settings as three columns, tab-separated
 	private $categoryLabels = array (
 		'cycleparking'		=> array (
 			'plural'			=> 'Cycle parking',
@@ -316,8 +316,19 @@ class telluswhere
 			}
 		}
 		
-		# Determine the supported categories
-		$this->categories = ($this->settings['categories'] ? preg_split ("/\s+/", trim ($this->settings['categories'])) : array ());	// The ternary exists because first run will have none
+		# Determine the supported categories, supplied in the settings form as either as three columns (tab-separated) for ID,plural,singular, or a simple list of IDs
+		if (substr_count ($this->settings['categories'], "\t")) {
+			$categories = explode ("\n", $this->settings['categories']);
+			$this->categories = array ();
+			$this->categoryLabels = array ();
+			foreach ($categories as $categoryLine) {
+				list ($id, $plural, $singular) = explode ("\t", trim ($categoryLine));
+				$this->categories[] = $id;
+				$this->categoryLabels[$id] = array ('plural' => $plural, 'singular' => $singular);
+			}
+		} else {
+			$this->categories = ($this->settings['categories'] ? preg_split ("/\s+/", trim ($this->settings['categories'])) : array ());	// The ternary exists because first run will have none
+		}
 		
 		# Perform the action, which will write into the page template array
 		#!# Need to handle 404s properly by using return value for each action

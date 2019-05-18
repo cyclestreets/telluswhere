@@ -44,8 +44,8 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function(baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2, viewOnlyMode, disableGeolocation) {
-			
+		createMap: function (baseUrl, initialLatitude, initialLongitude, initialZoom, browsingApiUrl, useIcon, setMarkerInitially, markerSetInitiallyIsDraggable, selectedId, browsingApiUrl2, viewOnlyMode, disableGeolocation)
+		{
 			// Set class properties
 			_baseUrl = baseUrl;
 			_initialLatitude = initialLatitude;
@@ -175,8 +175,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Icon definition
-		getIcons: function() {
-			
+		getIcons: function ()
+		{
 			// Define basic large and small icons
 			var largeIcon = L.Icon.extend({
 				options: {
@@ -212,15 +212,15 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to geolocate the user
-		geolocateUser: function()
+		geolocateUser: function ()
 		{
 			map.locate({setView: true, maxZoom: 18});
 		},
 		
 		
 		// Create marker and popup when clicking on the map
-		onMapClick: function(e) {
-			
+		onMapClick: function (e)
+		{
 			// Show the help text
 			$('#helptext').addClass('display');
 			
@@ -252,7 +252,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Wrapper function to set the marker by supplying raw latitude and longitude markers
-		setMarkerLatitudeLongitude: function(latitude, longitude) {
+		setMarkerLatitudeLongitude: function (latitude, longitude)
+		{
 			var latlng = L.latLng(latitude, longitude);
 			map.setView(latlng, _maxZoom);
 			telluswhere.setMarker(latlng, _useIcon, true);
@@ -260,8 +261,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to set the marker
-		setMarker: function(latlng, useIcon, markerIsDraggable) {
-			
+		setMarker: function (latlng, useIcon, markerIsDraggable)
+		{
 			// In view-only mode, disable marker setting functionality
 			if (_viewOnlyMode) {return;}
 			
@@ -285,14 +286,16 @@ var telluswhere = (function ($) {
 		
 		
 		// After dragging, transmit the value to the form, and reopen the popup
-		markerDrag: function(e) {
+		markerDrag: function (e)
+		{
 			telluswhere.setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom());
 			_marker.openPopup();
 		},
 		
 		
 		// Function to transmit the location values to the form
-		setFormValues: function(lat, lng, zoom) {
+		setFormValues: function (lat, lng, zoom)
+		{
 			if ($('#form_latitude').length > 0) {
 				$('#form_latitude').val(lat);
 				$('#form_longitude').val(lng);
@@ -302,7 +305,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to transmit the current location to IDs for external use
-		transmitCurrentLocation: function() {
+		transmitCurrentLocation: function ()
+		{
 			if ($('#currentMapLocationUrl').length > 0) {
 				
 				// Determine the map location parameters
@@ -325,7 +329,8 @@ var telluswhere = (function ($) {
 		/* EXIF image marker setting functions */
 		
 		// Register function for adding to map
-		exifCallback: function(exifObject) {
+		exifCallback: function (exifObject)
+		{
 			if(_marker){
 				map.removeLayer(_marker);
 			}
@@ -340,8 +345,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to convert the complex EXIF geolocation data structure into standard lat,lon,bearing; see: https://confluence.videoplaza.org/display/BLOG/2012/07/22/Geolocation+data+from+Images
-		extractGeolocationData: function(exifObject) {
-			
+		extractGeolocationData: function (exifObject)
+		{
 			// End if no data
 			var aLat = exifObject.GPSLatitude;
 			var aLon = exifObject.GPSLongitude;
@@ -368,21 +373,23 @@ var telluswhere = (function ($) {
 		
 		
 		// Newline-to-breaks helper function
-		nl2br: function(str, is_xhtml) {
+		nl2br: function (str, is_xhtml)
+		{
 			var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
 			return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
 		},
 		
 		
 		// String truncate function to avoid over-long caption texts causing large bubbles
-		truncateString: function(str, length) {
+		truncateString: function (str, length)
+		{
 			return (str.length > length ? str.substring(0, length - 3) + '...' : str);
 		},
 		
 		
 		// Define HTML to be used in the popup
-		popupHtml: function(properties) {
-			
+		popupHtml: function (properties)
+		{
 			// Determine whether to show the Like facility
 			var enableLike = (properties.metacategoryId == 'bad');
 			
@@ -454,8 +461,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to determine whether a location is liked
-		isLiked: function(id) {
-			
+		isLiked: function (id)
+		{
 			// Read the cookie
 			var cookieValue = telluswhere.readCookie('photomap-like');
 			if (cookieValue) {
@@ -483,11 +490,11 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to set the marker and attach a popup
-		setIcon: function(feature,latlng) {
-			
+		setIcon: function (feature,latlng)
+		{
 			// Create a marker and bind the popup to it
 			var marker = L.marker(latlng, {icon: _icons['already']});
-			marker.bindPopup(telluswhere.popupHtml(feature.properties));
+			marker.bindPopup (telluswhere.popupHtml (feature.properties));
 			
 			// Return the marker
 			return marker;
@@ -495,8 +502,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Filter to control visibility of items set with setIcon
-		setIconFilter: function(feature,layer) {
-		
+		setIconFilter: function (feature,layer)
+		{
 			// If an item is selected, skip, as this will already be on the map
 			if (_selectedId) {
 				var id = parseInt(feature.properties.id, 10);	// base 10
@@ -511,20 +518,22 @@ var telluswhere = (function ($) {
 		
 		
 		// Show data layer (wrapper to implementation function)
-		showCurrentData: function(ajaxResponse) {
+		showCurrentData: function (ajaxResponse)
+		{
 			telluswhere.showCurrentDataLayer (ajaxResponse, _currentDataLayer);
 		},
 		
 		
 		// Show second data layer (wrapper to implementation function)
-		showCurrentData2: function(ajaxResponse) {
+		showCurrentData2: function (ajaxResponse)
+		{
 			telluswhere.showCurrentDataLayer (ajaxResponse, _currentDataLayer2);
 		},
 		
 		
 		// Inner function to fetch current marker data
-		showCurrentDataLayer: function(ajaxResponse, selectedLayer) {
-			
+		showCurrentDataLayer: function (ajaxResponse, selectedLayer)
+		{
 			// Remove all markers except those with open popups
 			selectedLayer.eachLayer (function (layer) {if (!layer._popup._isOpen) {selectedLayer.removeLayer (layer);}});
 
@@ -538,8 +547,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: https://stackoverflow.com/a/19562445/180733
-		useJsonpTransport: function() {
-			
+		useJsonpTransport: function ()
+		{
 			// Determine details of the current browser
 			var Browser = {
 				IsIe: function () {
@@ -564,8 +573,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Wrapper function to fetch current marker data layer/layers
-		getData: function() {
-			
+		getData: function ()
+		{
 			// Get data layer (pass to implementation function)
 			if(_browsingApiUrl) {
 				telluswhere.getDataLayer(_browsingApiUrl, telluswhere.showCurrentData);
@@ -579,7 +588,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Inner function to fetch current marker data
-		getDataLayer: function (browsingApiUrl, successFunction) {
+		getDataLayer: function (browsingApiUrl, successFunction)
+		{
 			var data='bbox=' + map.getBounds().toBBoxString();
 			$.ajax({
 				url: browsingApiUrl,
@@ -592,8 +602,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Define mapmove action
-		whenMapMoves: function(e) {
-			
+		whenMapMoves: function (e)
+		{
 			// Transmit current location
 			telluswhere.transmitCurrentLocation();
 			
@@ -603,8 +613,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function run when clicking on the problem link to provide a mini correction updates form
-		problemForm: function () {
-			
+		problemForm: function ()
+		{
 			// If the link is clicked, replace the popup content
 			$('p.problem a').click(function(e){
 				
@@ -656,8 +666,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to check the form is complete; based on: http://toddmotto.com/progressively-enhancing-html5-forms-creating-a-required-attribute-fallback-with-jquery/
-		formOk: function (formId, e){
-			
+		formOk: function (formId, e)
+		{
 			// Do feature detection of 'required' support
 			var supportsRequired = 'required' in document.createElement('input');
 			
@@ -713,7 +723,8 @@ var telluswhere = (function ($) {
 		
 		
 		// Cookie reading function; see: https://www.quirksmode.org/js/cookies.html
-		readCookie: function(name) {
+		readCookie: function (name)
+		{
 		    var nameEQ = name + "=";
 		    var ca = document.cookie.split(';');
 		    for(var i=0;i < ca.length;i++) {

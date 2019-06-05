@@ -833,11 +833,39 @@ class telluswhere
 		$id = $_GET['id'];
 		
 		# Finalise the API URL
-		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
-		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%id', $id, $this->actions[__FUNCTION__]['apiUrl']);
+		$apiUrl = $this->settings['apiBase'] . $this->actions[__FUNCTION__]['apiUrl'];
+		$apiUrl = str_replace ('%dataset', $this->settings['auditDataset'], $apiUrl);
+		$apiUrl = str_replace ('%id', $id, $apiUrl);
+		$apiUrl .= '&key=' . $this->settings['apiKey'];
+		
+		# Obtain the data
+		$data = file_get_contents ($apiUrl);
+		
+		# Decode to JSON
+		$data = json_decode ($data, true);
+		
+		# End if no such ID
+		if (isSet ($data['error'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Obtain the schema, firstly extracting the category (type)
+		$category = $data['features'][0]['properties']['_type'];
+		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.schema?key=' . $this->settings['apiKey'] . '&dataset=' . $this->settings['auditDataset'] . '&type=' . $category;
+		$schema = file_get_contents ($schemaUrl);
+		$schema = json_decode ($schema, true);
+		
+		# End if no schema (which should never happen if the data in the API is consistent)
+		if (isSet ($schema['error'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
 		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
+		$html = $this->submissionPage (__FUNCTION__, $category, $data, $schema);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -1119,7 +1147,7 @@ class telluswhere
 	
 	
 	# Submission page logic
-	private function submissionPage ($action, $category, $existingData = array ())
+	private function submissionPage ($action, $category, $existingData = array (), $schema = array ())
 	{
 		# Start the HTML
 		$html = '';

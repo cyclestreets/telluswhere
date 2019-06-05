@@ -785,7 +785,7 @@ class telluswhere
 			
 			# Force selection if not specified
 			if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
-				$this->template['form'] = $this->categorySelection ();
+				$this->template['map'] = $this->categorySelection ();
 				return true;
 			}
 			
@@ -804,11 +804,12 @@ class telluswhere
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
 		
-		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
+		# Create the map HTML
+		$html  = "\n<p>Please zoom in and select a location to audit.</p>";
+		$html .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, $initialLocation = array (), $disableGeolocation = true);
 		
 		# Register the HTML
-		$this->template['form'] = $html;
+		$this->template['map'] = $html;
 	}
 	
 	

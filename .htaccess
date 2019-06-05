@@ -27,6 +27,8 @@ RewriteRule ^(location)/([1-9][0-9]*)/(edit|like)/$ index.html?action=$1&id=$2&m
 RewriteRule ^(location)/([1-9][0-9]*)/(edit)/iframe.html$ index.html?action=$1&id=$2&mode=$3&iframe=1 [L,QSA]
 RewriteRule ^(location)/([1-9][0-9]*)/(edit|like)$ /$1/$2/$3/ [L,R=301]
 RewriteRule ^(location)/([1-9][0-9]*)/problem/$ index.html?action=problem&id=$2 [L,QSA]
+RewriteRule ^audit/location/([^/]+)/$ index.html?action=auditlocation&id=$1 [L,QSA]
+RewriteRule ^(audit)/(location)/([^/]+)$ /$1/$2/$3/ [L,R=301]
 RewriteRule ^(suggest|current|audit)/embed/$ index.html?action=embed&type=$1 [L,QSA]
 RewriteRule ^(suggest|current|audit)/embed$ /$1/embed/ [L,R=301]
 RewriteRule ^(suggest|audit)/([^/]+)/$ index.html?action=$1&category=$2 [L,QSA]

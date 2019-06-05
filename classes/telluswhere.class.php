@@ -60,6 +60,11 @@ class telluswhere
 				'url' => '/audit/',
 				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%category&limit=400',
 			),
+			'auditlocation' => array (
+				'description' => 'Audit location',
+				'url' => '/audit/location/',	// Will be /audit/location/<id>/
+				'apiUrl' => '/v2/infrastructure.location&dataset=%dataset&id=%id',
+			),
 			'embed' => array (
 				'description' => false,
 				'url' => '/embed/',	// E.g. /current/embed/
@@ -810,6 +815,32 @@ class telluswhere
 		
 		# Register the HTML
 		$this->template['map'] = $html;
+	}
+	
+	
+	# Page for auditing a location
+	private function auditlocation ()
+	{
+		# End if not enabled
+		if (!$this->settings['auditDataset']) {return false;}
+		
+		# Ensure there is an ID
+		if (!isSet ($_GET['id']) || !strlen ($_GET['id'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		$id = $_GET['id'];
+		
+		# Finalise the API URL
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%id', $id, $this->actions[__FUNCTION__]['apiUrl']);
+		
+		# Show the submission page
+		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
+		
+		# Register the HTML
+		$this->template['form'] = $html;
 	}
 	
 	

@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.0';
+	var $version = '1.25.1';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -7404,6 +7404,7 @@ class form
 		$argumentDefaults = array (
 			'database' => NULL,
 			'table' => NULL,
+			'schema' => array (),		// Directly supply the schema, rather than using the database/table or callback method
 			'callback' => array (),		// array (object, dataBindingCallbackMethod), with object containing function dataBindingCallback () returning $fields;
 			'attributes' => array (),
 			'data' => array (),
@@ -7435,8 +7436,8 @@ class form
 			'notNullExceptFields' => array (),	// Assume all elements are treated as NOT NULL (even if the database structure says they are nullable), except for these specified elements (or single element as string)
 		);
 		
-		# If a callback is supplied, set database and table to be optional
-		if (isSet ($suppliedArguments['callback']) && ($suppliedArguments['callback'])) {
+		# If a direct schema or callback is supplied, set database and table to be optional
+		if ((isSet ($suppliedArguments['schema']) && ($suppliedArguments['schema'])) || (isSet ($suppliedArguments['callback']) && ($suppliedArguments['callback']))) {
 			$argumentDefaults['database']	= false;
 			$argumentDefaults['table']		= false;
 		}
@@ -7465,7 +7466,7 @@ class form
 		
 		# Ensure there is a database connection or exit here (errors will already have been thrown)
 		if (!$this->databaseConnection) {
-			if (!$callback) {	// Unless using callback
+			if (!$schema && !$callback) {	// Unless using schema/callback
 				if ($this->databaseConnection === NULL) {	// rather than === NULL, which means no connection requested
 					$this->formSetupErrors['dataBindingNoDatabaseConnection'] = 'Data binding has been requested, but no valid database connection has been set up in the main settings.';
 				}
@@ -7524,7 +7525,9 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 		$notNullExceptFields	= application::ensureArray ($notNullExceptFields);
 		
 		# Get the database fields
-		if ($callback) {
+		if ($schema) {
+			$fields = $schema;	// Copy directly
+		} else if ($callback) {
 			$fields = $callbackObject->{$callbackMethod} ();
 		} else {
 			$fields = $this->databaseConnection->getFields ($database, $table);

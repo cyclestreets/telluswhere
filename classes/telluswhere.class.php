@@ -864,11 +864,42 @@ class telluswhere
 			return false;
 		}
 		
+		# Convert the schema to dataBinding schema format
+		$schemaDatabinding = array ();
+		foreach ($schema as $fieldname => $field) {
+			#!# Also need to be supplying $field['description']
+			$schemaDatabinding[$fieldname] = $this->sqlFieldnameToStructure ($field['datatype'], $field['field']);
+		}
+		//application::dumpData ($schemaDatabinding);
+		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $category, $data, $schema);
+		$html = $this->submissionPage (__FUNCTION__, $category, $data, $schemaDatabinding);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
+	}
+	
+	
+	# Function to convert an SQL-style fieldname definition to a MySQL-style data structure
+	private function sqlFieldnameToStructure ($sqlFieldname, $comment)
+	{
+		# Extract values
+		preg_match ('/^(varchar|integer|enum)\((.+)\)$/', strtolower ($sqlFieldname), $matches);
+		
+		# Assemble the field
+		$field = array (
+			'Type' => $sqlFieldname,
+			'Null' => true,
+			'Key' => false,
+			'Default' => NULL,
+			'Extra' => false,
+			'Comment' => $comment,
+//			'_values' => ($matches[1] == 'ENUM' ? str_getcsv ($matches[2], ',', "'"): NULL),
+			'_values' => NULL,
+		);
+		
+		# Return the field data
+		return $field;
 	}
 	
 	
@@ -1153,7 +1184,7 @@ class telluswhere
 		$html = '';
 		
 		# Create the form and process the data
-		if (!$data = $this->locationSubmissionForm ($action, $existingData, $html)) {		// &html written into by reference
+		if (!$data = $this->locationSubmissionForm ($action, $existingData, $schema, $html)) {		// &html written into by reference
 			return $html;
 		}
 		
@@ -1494,7 +1525,7 @@ class telluswhere
 	
 	
 	# Location submission form
-	private function locationSubmissionForm ($action, $existingData, &$html = '')
+	private function locationSubmissionForm ($action, $existingData, $schema = array (), &$html = '')
 	{
 		# Start the HTML
 		$html = '';
@@ -1552,58 +1583,73 @@ class telluswhere
 				'flatten'			=> true,
 			));
 		}
-		if ($action == 'current') {
-			$form->select (array (
-				'name'			=> 'type',
-				'title'			=> $this->metadataFieldLabels['type'],
-				'required'		=> true,
-				'values'		=> $this->parkingTypes,
-				'default'		=> (isSet ($data['type']) ? $data['type'] : false),
+		
+		# If a schema is supplied, generate the form from the schema
+		if ($schema) {
+			
+			# Databind the form
+			$form->dataBinding (array (
+				'schema' => $schema,
+				'intelligence' => true,
+				'int1ToCheckbox' => true,
+				'data' => $data,
 			));
-		}
-		if (in_array ('capacity', $formFieldsInTemplate)) {
-			$form->number (array (
-				'name'			=> 'capacity',
-				'title'			=> $this->metadataFieldLabels['capacity'],
-				'required'		=> true,
-				'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
-			));
-		}
-		if (in_array ('landtype', $formFieldsInTemplate)) {
-			$form->select (array (
-				'name'			=> 'landtype',
-				'title'			=> $this->metadataFieldLabels['landtype'],
-				'required'		=> true,
-				'values'		=> $this->landTypes,
-				'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
-			));
-		}
-		$form->textarea (array (
-			'name'			=> 'caption',
-			'title'			=> $this->metadataFieldLabels['caption'],
-			'required'		=> false,
-			'rows'			=> 2,
-			'cols'			=> 20,
-			'default'		=> (isSet ($data['caption']) ? $data['caption'] : false),
-		));
-		if (in_array ('schemes', $formFieldsInTemplate)) {
+		} else {
+			
+			# Otherwise, generate manually
+			if ($action == 'current') {
+				$form->select (array (
+					'name'			=> 'type',
+					'title'			=> $this->metadataFieldLabels['type'],
+					'required'		=> true,
+					'values'		=> $this->parkingTypes,
+					'default'		=> (isSet ($data['type']) ? $data['type'] : false),
+				));
+			}
+			if (in_array ('capacity', $formFieldsInTemplate)) {
+				$form->number (array (
+					'name'			=> 'capacity',
+					'title'			=> $this->metadataFieldLabels['capacity'],
+					'required'		=> true,
+					'default'		=> (isSet ($data['capacity']) ? $data['capacity'] : false),
+				));
+			}
+			if (in_array ('landtype', $formFieldsInTemplate)) {
+				$form->select (array (
+					'name'			=> 'landtype',
+					'title'			=> $this->metadataFieldLabels['landtype'],
+					'required'		=> true,
+					'values'		=> $this->landTypes,
+					'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
+				));
+			}
 			$form->textarea (array (
-				'name'			=> 'schemes',
-				'title'			=> $this->metadataFieldLabels['schemes'],
+				'name'			=> 'caption',
+				'title'			=> $this->metadataFieldLabels['caption'],
 				'required'		=> false,
 				'rows'			=> 2,
 				'cols'			=> 20,
-				'default'		=> (isSet ($data['schemes']) ? $data['schemes'] : false),
+				'default'		=> (isSet ($data['caption']) ? $data['caption'] : false),
 			));
-		}
-		if (in_array ('name', $formFieldsInTemplate)) {		// Templates can choose to require only e-mail
-			$form->input (array (
-				'name'			=> 'name',
-				'title'			=> 'Your name',
-				'placeholder'	=> 'Your name',
-				'required'		=> true,
-				'default'		=> (isSet ($data['name']) ? $data['name'] : false),
-			));
+			if (in_array ('schemes', $formFieldsInTemplate)) {
+				$form->textarea (array (
+					'name'			=> 'schemes',
+					'title'			=> $this->metadataFieldLabels['schemes'],
+					'required'		=> false,
+					'rows'			=> 2,
+					'cols'			=> 20,
+					'default'		=> (isSet ($data['schemes']) ? $data['schemes'] : false),
+				));
+			}
+			if (in_array ('name', $formFieldsInTemplate)) {		// Templates can choose to require only e-mail
+				$form->input (array (
+					'name'			=> 'name',
+					'title'			=> 'Your name',
+					'placeholder'	=> 'Your name',
+					'required'		=> true,
+					'default'		=> (isSet ($data['name']) ? $data['name'] : false),
+				));
+			}
 		}
 		$form->email (array (
 			'name'			=> 'email',

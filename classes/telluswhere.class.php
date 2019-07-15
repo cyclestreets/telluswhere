@@ -891,6 +891,41 @@ class telluswhere
 		$mapHtml  = "\n<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>";
 		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $disableGeolocation = true, $enableDrawing = true);
 		$this->template['map'] = $mapHtml;
+		
+		# Handle posted data
+		$this->template['result'] = '';
+		if (isSet ($_POST['loc_json'])) {
+			
+			# Construct the GeoJSON geometry structure
+			$geometry = array (
+				'type' => 'Polygon',
+				'coordinates' => array (
+					json_decode ($_POST['loc_json'], true)	// Single feature only
+				),
+			);
+			
+			# Assemble the data to be submitted to the API; see: https://www.cyclestreets.net/api/v2/infrastructure.priorityareas.add/
+			$data = array (
+				'dataset' => $this->settings['auditDataset'],
+				'geometry' => json_encode ($geometry),
+				'name' => (isSet ($_POST['name']) ? $_POST['name'] : NULL),
+			);
+			
+			# Post the data
+			$url = $this->settings['apiBase'] . '/v2/infrastructure.priorityareas.add' . '?key=' . $this->settings['apiKey'];
+			$result = application::file_post_contents ($url, $data);
+			$result = json_decode ($result, true);
+			
+			# State if error
+			if ($result['error']) {
+				$this->template['result'] = "<p>Sorry, a problem occured when trying to set the priority area. Please try again later.</p>";
+				return;
+			}
+			
+			# Refresh the page, which will show the added location
+			application::sendHeader ('refresh');
+			return;
+		}
 	}
 	
 	

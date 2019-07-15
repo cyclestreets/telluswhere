@@ -152,15 +152,13 @@ class templating
 			
 			# Directory-traversal URLs - chop prefix for each, i.e. ../contacts/ => /prefix/../contacts/ => /contacts/
 			if ($paths[$i] == '..') {$paths[$i] = '../';}	// Normalise
-			if (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
-				$newPrefix = $prefix;
-				while (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
-					if (strlen ($newPrefix)) {	// Never traverse higher than / - if HTML of ../../ should have been ../ then treat it as such
-						$newPrefix = str_replace ('\\', '/', dirname ($newPrefix));	// Chop last component
-					}
-					$paths[$i] = $newPrefix . $matches[1];
+			while (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
+				if (strlen ($prefix)) {	// Never traverse higher than / - if HTML of ../../ should have been ../ then treat it as such
+					$prefix = str_replace ('\\', '/', dirname ($prefix));	// Chop last component from prefix
+					$paths[$i] = $matches[1];	// Chop first component from path
+				} else {
+					break;
 				}
-				continue;
 			}
 			
 			# Prefix remainder, which are "from here" paths, e.g. "path/to" becomes "/prefix/path/to"

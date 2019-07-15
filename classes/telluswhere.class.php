@@ -65,6 +65,10 @@ class telluswhere
 				'url' => '/audit/location/',	// Will be /audit/location/<id>/
 				'apiUrl' => '/v2/infrastructure.location&dataset=%dataset&id=%id',
 			),
+			'priorityareas' => array (
+				'description' => 'Priority areas',
+				'url' => '/audit/priorityareas/',
+			),
 			'embed' => array (
 				'description' => false,
 				'url' => '/embed/',	// E.g. /current/embed/
@@ -877,6 +881,13 @@ class telluswhere
 		
 		# Register the HTML
 		$this->template['form'] = $html;
+	}
+	
+	
+	# Page to set priority areas
+	private function priorityareas ()
+	{
+		$this->template['map'] = '<p>Map will go here.</p>';
 	}
 	
 	

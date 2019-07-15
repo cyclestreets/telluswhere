@@ -76,6 +76,9 @@ var telluswhere = (function ($) {
 				maxZoom: _maxZoom
 			}).addTo(map);
 			
+			// Add hash
+			new L.Hash (map);
+			
 			// Add geolocation control
 			map.addControl(L.control.locate({
 				icon: 'fa fa-location-arrow',

@@ -1445,8 +1445,11 @@ class telluswhere
 		$html .= "\n\n" . '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
 		$html .= "\n" . '<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>';
 		
+		# Load leaflet-hash
+		$html .= "\n\n" . '<script src="/js/lib/leaflet-hash/leaflet-hash.js"></script>';
+		
 		# Load Geolocation control; see: https://github.com/domoritz/leaflet-locatecontrol
-		$html .= "\n\n" . '<script src="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>';
+		$html .= "\n\n" . '<script src="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" href="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />';
 		$html .= "\n" . '<link rel="stylesheet" href="/js/lib/font-awesome/4.7.0/css/font-awesome.min.css" />';
 		

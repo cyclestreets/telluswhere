@@ -154,6 +154,9 @@ class telluswhere
 	private $userIsDownloader = false;
 	private $userIsBatchUploader = false;
 	private $userIsNewsEditor = false;
+	private $popupLabels = array ();
+	private $popupLabelSubsetField = false;
+	
 	
 	# Labels for known categories; these can also be supplied in the settings as three columns, tab-separated
 	private $categoryLabels = array (
@@ -785,6 +788,28 @@ class telluswhere
 	{
 		# End if not enabled
 		if (!$this->settings['auditDataset']) {return false;}
+		
+		# Obtain the schema
+		if (!$schema = $this->getAuditSchema ($category)) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Flatten the schema
+		#!# Temporary workaround - creates clashing names
+		$schemaFlattened = array ();
+		foreach ($schema as $type => $fields) {
+			foreach ($fields as $fieldname => $field) {
+				$schemaFlattened[$fieldname] = $field['field'];
+			}
+		}
+		$this->popupLabels = $schemaFlattened;
+		#!# Not yet working
+		$this->popupLabelSubsetField = false;
+		
+		# Flatten the schema
+		
 		
 		# Start the HTML
 		$html = '';
@@ -1542,6 +1567,8 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$enableDrawingJs = ($enableDrawing ? 'true' : 'false');
+		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
+		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?17\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
@@ -1558,7 +1585,9 @@ class telluswhere
 				selectedId: {$selectedIdJs},
 				browsingApiUrl2: {$browsingApiUrl2},
 				viewOnlyMode: {$viewOnlyModeJs},
-				enableDrawing: {$enableDrawingJs}
+				enableDrawing: {$enableDrawingJs},
+				popupLabels: {$popupLabelsJs},
+				popupLabelSubsetField: {$popupLabelSubsetFieldJs}
 			});
 		</script>
 		";

@@ -39,6 +39,10 @@ var telluswhere = (function ($) {
 	// Selected ID, if any, and whether it is moveable
 	var _selectedId;
 	
+	// Popup labelling
+	var _popupLabels = {};
+	var _popupLabelSubsetField;
+	
 	
 	
 	return {
@@ -63,6 +67,8 @@ var telluswhere = (function ($) {
 			_selectedId = settings.selectedId;	// ID of selected item
 			_viewOnlyMode = settings.viewOnlyMode;
 			_enableDrawing = settings.enableDrawing;
+			_popupLabels = settings.popupLabels;
+			_popupLabelSubsetField = settings.popupLabelSubsetField;
 			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
@@ -427,6 +433,12 @@ var telluswhere = (function ($) {
 				
 				// Key
 				fieldLabel = key;
+				if (_popupLabels) {
+					if (_popupLabels[key]) {
+						fieldLabel = _popupLabels[key];
+					}
+				}
+				fieldLabel = telluswhere.htmlspecialchars (fieldLabel);
 				
 				// Value
 				if (value === null) {

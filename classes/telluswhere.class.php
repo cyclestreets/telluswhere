@@ -887,7 +887,10 @@ class telluswhere
 	# Page to set priority areas
 	private function priorityareas ()
 	{
-		$this->template['map'] = '<p>Map will go here.</p>';
+		# Create the map, in drawing mode
+		$mapHtml  = "\n<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>";
+		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $disableGeolocation = true, $enableDrawing = true);
+		$this->template['map'] = $mapHtml;
 	}
 	
 	
@@ -1335,7 +1338,7 @@ class telluswhere
 	
 	
 	# Map of locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $disableGeolocation = false)
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $disableGeolocation = false, $enableDrawing = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -1398,10 +1401,20 @@ class telluswhere
 		# Define a second browsing layer if required
 		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
 		
-		# Create the map application HTML
+		# Load Leaflet.js
 		$html .= '
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
 		<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+		';
+		
+		# Drawing mode
+		if ($enableDrawing) {
+			$html .= "\n<script type=\"text/javascript\" src=\"/js/Leaflet.draw-0.4.14/dist/leaflet.draw.js\"></script>";
+			$html .= "\n<link rel=\"stylesheet\" href=\"/js/Leaflet.draw-0.4.14/dist/leaflet.draw.css\" rel=\"stylesheet\" />";
+		}
+		
+		# Create the map application HTML
+		$html .= '
 		<style type="text/css">
 			#helptext {margin: 0;}
 			#helptext.display {background-color: yellow;}
@@ -1466,6 +1479,7 @@ class telluswhere
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
+		$enableDrawingJs = ($enableDrawing ? 'true' : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?16\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
@@ -1482,7 +1496,8 @@ class telluswhere
 				selectedId: {$selectedIdJs},
 				browsingApiUrl2: {$browsingApiUrl2},
 				viewOnlyMode: {$viewOnlyModeJs},
-				disableGeolocation: {$disableGeolocationJs}
+				disableGeolocation: {$disableGeolocationJs},
+				enableDrawing: {$enableDrawingJs}
 			});
 		</script>
 		";

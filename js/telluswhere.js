@@ -15,6 +15,7 @@ var telluswhere = (function ($) {
 	var _geolocationData;
 	var _maxZoom;
 	var _viewOnlyMode;
+	var _enableDrawing;
 	
 	// baseUrl of application
 	var _baseUrl;
@@ -61,6 +62,7 @@ var telluswhere = (function ($) {
 			_setMarkerInitially = settings.setMarkerInitially;
 			_selectedId = settings.selectedId;	// ID of selected item
 			_viewOnlyMode = settings.viewOnlyMode;
+			_enableDrawing = settings.enableDrawing;
 			var disableGeolocation = settings.disableGeolocation;
 			
 			// Set map centre location
@@ -93,6 +95,11 @@ var telluswhere = (function ($) {
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
 				telluswhere.setMarker(latlng, _useIcon, markerSetInitiallyIsDraggable);
 				map.setView(latlng,_initialZoom);
+			}
+			
+			// Add drawing support if enabled
+			if (_enableDrawing) {
+				telluswhere.drawing ('#geometry', true, '');
 			}
 			
 			// Register click handler
@@ -236,6 +243,11 @@ var telluswhere = (function ($) {
 			
 			// Define minimum zoom level to set
 			var minZoomLevelToSet = 18;
+			
+			// If drawing is enabled, reduce the zoom level
+			if (_enableDrawing) {
+				minZoomLevelToSet = 14;
+			}
 			
 			// Zoom if too far out and end
 			if(map.getZoom() < minZoomLevelToSet){
@@ -795,6 +807,116 @@ var telluswhere = (function ($) {
 		        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
 		    }
 		    return null;
+		},
+		
+		
+		// Drawing functionality, wrapping Leaflet.draw
+		drawing: function (targetField, fragmentOnly, defaultValueString)
+		{
+			// Options for polygon drawing
+			var polygon_options = {
+				showArea: false,
+				shapeOptions: {
+					stroke: true,
+					color: 'blue',
+					weight: 4,
+					opacity: 0.5,
+					fill: true,
+					fillColor: null, //same as color by default
+					fillOpacity: 0.2,
+					clickable: true
+				}
+			};
+			
+			// Create a map drawing layer
+			var drawnItems = new L.FeatureGroup();
+			
+			// Add default value if supplied; currently only polygon type supplied
+			if (defaultValueString) {
+				
+				// Convert the string to an array of L.latLng(lat,lon) values
+				var polygonPoints = JSON.parse(defaultValueString);
+				var defaultPolygon = [];
+				if (polygonPoints) {
+					var i;
+					var point;
+					for (i = 0; i < polygonPoints.length; i++) {
+						point = polygonPoints[i];
+						defaultPolygon.push (L.latLng(point[1], point[0]));
+					}
+				}
+				
+				// Create the polygon and style it
+				var defaultPolygonFeature = L.polygon(defaultPolygon, polygon_options.shapeOptions);
+				
+				// Create the layer and add the polygon to the layer
+				var defaultLayer = new L.layerGroup();
+				defaultLayer.addLayer(defaultPolygonFeature);
+				
+				// Add the layer to the drawing canvas
+				drawnItems.addLayer(defaultLayer);
+			}
+			
+			// Add the drawing layer to the map
+			map.addLayer(drawnItems);
+			
+			// Enable the polygon drawing when the button is clicked
+			var drawControl = new L.Draw.Polygon(map, polygon_options);
+			$('.draw.area').click(function() {
+				drawControl.enable();
+				
+				// Allow only a single polygon at present
+				// #!# Remove this when the server-side allows multiple polygons
+				drawnItems.clearLayers();
+			});
+			
+			// Handle created polygons
+			map.on('draw:created', function (e) {
+				var layer = e.layer;
+				drawnItems.addLayer(layer);
+				
+				// Convert to GeoJSON value
+				var geojsonValue = drawnItems.toGeoJSON();
+				
+				// Reduce coordinate accuracy to 6dp (c. 1m) to avoid over-long URLs
+				// #!# Ideally this would be native within Leaflet.draw: https://github.com/Leaflet/Leaflet.draw/issues/581
+				var coordinates = geojsonValue.features[0].geometry.coordinates[0];
+				var accuracy = 6;	// Decimal points; gives 0.1m accuracy; see: https://en.wikipedia.org/wiki/Decimal_degrees
+				var i;
+				var j;
+				for (i = 0; i < coordinates.length; i++) {
+					for (j = 0; j < coordinates[i].length; j++) {
+						coordinates[i][j] = +coordinates[i][j].toFixed(accuracy);
+					}
+				}
+				geojsonValue.features[0].geometry.coordinates[0] = coordinates;
+				
+				// If required, send only the coordinates fragment
+				if (fragmentOnly) {
+					geojsonValue = coordinates;
+				}
+				
+				// Send to receiving input form
+				$(targetField).val(JSON.stringify(geojsonValue));
+				
+				// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
+				// #!# Note that this fires twice for some reason - see notes to the answer in the above URL
+				$(targetField).trigger('change');
+			});
+			
+			// Cancel button clears drawn polygon and clears the form value
+			$('.edit-clear').click(function() {
+				drawnItems.clearLayers();
+				$(targetField).val('');
+			
+				// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
+				$(targetField).trigger('change');
+			});
+			
+			// Undo button
+			$('.edit-undo').click(function() {
+				drawnItems.revertLayers();
+			});
 		},
 		
 		

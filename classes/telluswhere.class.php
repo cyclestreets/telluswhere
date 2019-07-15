@@ -59,6 +59,7 @@ class telluswhere
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/',
 				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%category&limit=400',
+				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
 			'auditlocation' => array (
 				'description' => 'Audit location',
@@ -812,6 +813,7 @@ class telluswhere
 		
 		# Finalise the API URL
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
+		$this->actions[__FUNCTION__]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl2']);
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map HTML

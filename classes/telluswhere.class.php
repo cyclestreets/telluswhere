@@ -1453,8 +1453,8 @@ class telluswhere
 		
 		# Drawing mode
 		if ($enableDrawing) {
-			$html .= "\n\n" . '<script type="text/javascript" src="/js/Leaflet.draw-0.4.14/dist/leaflet.draw.js"></script>';
-			$html .= "\n" . '<link rel="stylesheet" href="/js/Leaflet.draw-0.4.14/dist/leaflet.draw.css" rel="stylesheet" />';
+			$html .= "\n\n" . '<script type="text/javascript" src="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.js"></script>';
+			$html .= "\n" . '<link rel="stylesheet" href="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.css" rel="stylesheet" />';
 		}
 		
 		# Create the map application HTML
@@ -1515,7 +1515,7 @@ class telluswhere
 		$html .= "\n" . '<div id="map"></div>';
 		
 		# Load EXIF Filereader support
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/jquery.exif.js\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/lib/jquery.exif.js\"></script>";
 		
 		# Load the map application Javascript and run it
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
@@ -2035,7 +2035,7 @@ class telluswhere
 			'formCompleteText'			=> false,
 			'reappear'					=> true,
 			'databaseConnection'		=> $this->databaseConnection,
-			'richtextEditorBasePath'	=> $this->baseUrl . '/js/ckeditor/',
+			'richtextEditorBasePath'	=> $this->baseUrl . '/js/lib/ckeditor/',
 			'richtextEditorToolbarSet'	=> 'BasicLongerFormat',
 			'richtextEditorAreaCSS'		=> $this->settings['cssFileLocation'],
 			'richtextWidth'				=> 500,

@@ -10,8 +10,7 @@ var telluswhere = (function ($) {
 	var _marker;
 	var _icons;
 	var _useJsonpTransport;
-	var _currentDataLayer;
-	var _currentDataLayer2;
+	var _currentDataLayers = {};
 	var _geolocationData;
 	var _maxZoom;
 	var _viewOnlyMode;
@@ -28,9 +27,8 @@ var telluswhere = (function ($) {
 	var _initialLongitude;
 	var _initialZoom;
 	
-	// The API endpoint to use for browsing
-	var _browsingApiUrl;
-	var _browsingApiUrl2;
+	// The API endpoint(s) to use for browsing
+	var _browsingApiUrls = {};
 	
 	// The icon to use
 	var _useIcon;
@@ -56,8 +54,10 @@ var telluswhere = (function ($) {
 			_initialLatitude = settings.initialLatitude;
 			_initialLongitude = settings.initialLongitude;
 			_initialZoom = settings.initialZoom;
-			_browsingApiUrl = settings.browsingApiUrl;
-			_browsingApiUrl2 = settings.browsingApiUrl2;
+			_browsingApiUrls[0] = settings.browsingApiUrl;
+			if (settings.browsingApiUrl2) {
+				_browsingApiUrls[1] = settings.browsingApiUrl2;
+			}
 			_useIcon = settings.useIcon;
 			_setMarkerInitially = settings.setMarkerInitially;
 			_selectedId = settings.selectedId;	// ID of selected item
@@ -105,9 +105,9 @@ var telluswhere = (function ($) {
 			// Register click handler
 			map.on('click', telluswhere.onMapClick);
 			
-			// Add the data layer to the map, if enabled
-			if(_browsingApiUrl) {
-				_currentDataLayer = L.geoJson(null, {
+			// Add each data layer to the map, if enabled
+			$.each (_browsingApiUrls, function (index, url) {
+				_currentDataLayers[index] = L.geoJson (null, {
 					pointToLayer: telluswhere.setIcon,
 					filter: telluswhere.setIconFilter,
 					onEachFeature: function (feature, layer) {
@@ -120,16 +120,8 @@ var telluswhere = (function ($) {
 						}
 					}
 				});
-				_currentDataLayer.addTo(map);
-			}
-			
-			// Add second data layer to the map if defined
-			if(_browsingApiUrl2) {
-				_currentDataLayer2 = L.geoJson(null, {
-					pointToLayer: telluswhere.setIcon,
-				});
-				_currentDataLayer2.addTo(map);
-			}
+				_currentDataLayers[index].addTo(map);
+			});
 			
 			// Add support for Like clicks
 			$('body').on('click','#likes a', function(event){	// https://stackoverflow.com/a/19133666/180733
@@ -600,32 +592,26 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Show data layer (wrapper to implementation function)
-		showCurrentData: function (ajaxResponse)
-		{
-			telluswhere.showCurrentDataLayer (ajaxResponse, _currentDataLayer);
-		},
-		
-		
-		// Show second data layer (wrapper to implementation function)
-		showCurrentData2: function (ajaxResponse)
-		{
-			telluswhere.showCurrentDataLayer (ajaxResponse, _currentDataLayer2);
-		},
-		
-		
 		// Inner function to fetch current marker data
-		showCurrentDataLayer: function (ajaxResponse, selectedLayer)
+		showCurrentDataLayer: function (ajaxResponse, layerIndex)
 		{
-			// Remove all markers except those with open popups
-			selectedLayer.eachLayer (function (layer) {if (!layer._popup._isOpen) {selectedLayer.removeLayer (layer);}});
+			// Remove all markers, except those with open popups
+			_currentDataLayers[layerIndex].eachLayer (function (layer) {
+				if (!layer._popup._isOpen) {
+					_currentDataLayers[layerIndex].removeLayer (layer);
+				}
+			});
 
 			// Add the data
-			selectedLayer.addData (ajaxResponse);
+			_currentDataLayers[layerIndex].addData (ajaxResponse);
 
 			// Markers with opened popups remain - this brings the old ones back on top
-			// Note: the previous markers are still there underneath - put are probably benign.
-			selectedLayer.eachLayer (function (layer) {if (layer._popup._isOpen) { selectedLayer.bringToFront (layer);}});
+			// Note: the previous markers are still there underneath - put are probably benign
+			_currentDataLayers[layerIndex].eachLayer (function (layer) {
+				if (layer._popup._isOpen) {
+					_currentDataLayers[layerIndex].bringToFront (layer);
+				}
+			});
 		},
 		
 		
@@ -658,28 +644,25 @@ var telluswhere = (function ($) {
 		// Wrapper function to fetch current marker data layer/layers
 		getData: function ()
 		{
-			// Get data layer (pass to implementation function)
-			if(_browsingApiUrl) {
-				telluswhere.getDataLayer(_browsingApiUrl, telluswhere.showCurrentData);
-			}
-			
-			// Get second data layer if defined
-			if(_browsingApiUrl2) {
-				telluswhere.getDataLayer(_browsingApiUrl2, telluswhere.showCurrentData2);
-			}
+			// Get each data layer
+			$.each (_browsingApiUrls, function (index, url) {
+				telluswhere.getDataLayer (url, index);
+			});
 		},
 		
 		
 		// Inner function to fetch current marker data
-		getDataLayer: function (browsingApiUrl, successFunction)
+		getDataLayer: function (url, layerIndex)
 		{
-			var data='bbox=' + map.getBounds().toBBoxString();
-			$.ajax({
-				url: browsingApiUrl,
+			var data = 'bbox=' + map.getBounds().toBBoxString();
+			$.ajax ({
+				url: url,
 				dataType: (_useJsonpTransport ? 'jsonp' : 'json'),
 				crossDomain: true,	// Needed for IE<=9; see: https://stackoverflow.com/a/12644252/180733
 				data: data,
-				success: successFunction
+				success: function (ajaxResponse) {
+					telluswhere.showCurrentDataLayer (ajaxResponse, layerIndex);
+				}
 			});
 		},
 		

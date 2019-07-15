@@ -109,7 +109,16 @@ var telluswhere = (function ($) {
 			if(_browsingApiUrl) {
 				_currentDataLayer = L.geoJson(null, {
 					pointToLayer: telluswhere.setIcon,
-					filter: telluswhere.setIconFilter
+					filter: telluswhere.setIconFilter,
+					onEachFeature: function (feature, layer) {
+						if (_enableDrawing) {
+							if (feature.properties.name) {
+								var data = feature.properties;
+								delete data.id;
+								layer.bindPopup (telluswhere.popupHtmlDynamic (data));
+							}
+						}
+					}
 				});
 				_currentDataLayer.addTo(map);
 			}
@@ -408,15 +417,15 @@ var telluswhere = (function ($) {
 		popupHtml: function (properties)
 		{
 			if (_action == 'audit') {
-				return telluswhere.popupHtmlAudit (properties);
+				return telluswhere.popupHtmlDynamic (properties);
 			} else {
 				return telluswhere.popupHtmlFixed (properties);
 			}
 		},
 		
 		
-		// Popup for audit section
-		popupHtmlAudit: function (properties)
+		// Popup which creates a table with images (and images) dynamically
+		popupHtmlDynamic: function (properties)
 		{
 			// Create a simple key/value pair HTML table dynamically
 			// Code based on Leaflet.LayerViewer.js

@@ -859,12 +859,7 @@ class telluswhere
 		
 		# Obtain the schema, firstly extracting the category (type)
 		$category = $data['features'][0]['properties']['_type'];
-		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.schema?key=' . $this->settings['apiKey'] . '&dataset=' . $this->settings['auditDataset'] . '&type=' . $category;
-		$schema = file_get_contents ($schemaUrl);
-		$schema = json_decode ($schema, true);
-		
-		# End if no schema (which should never happen if the data in the API is consistent)
-		if (isSet ($schema['error'])) {
+		if (!$schema = $this->getAuditSchema ($category)) {
 			$html = $this->page404 ();
 			echo $html;
 			return false;
@@ -884,6 +879,28 @@ class telluswhere
 		# Register the HTML
 		$this->template['form'] = $html;
 	}
+	
+	
+	# Helper function to get the schema for auditing
+	private function getAuditSchema ($category = false)
+	{
+		# Obtain the schema
+		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.schema?key=' . $this->settings['apiKey'] . '&dataset=' . $this->settings['auditDataset'];
+		if ($category) {
+			$schemaUrl .= '&type=' . $category;
+		}
+		$schema = file_get_contents ($schemaUrl);
+		$schema = json_decode ($schema, true);
+		
+		# End if no schema (which should never happen if the data in the API is consistent)
+		if (isSet ($schema['error'])) {
+			return false;
+		}
+		
+		# Return the schema
+		return $schema;
+	}
+
 	
 	
 	# Page to set priority areas

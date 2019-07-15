@@ -59,6 +59,7 @@ RewriteCond %{REQUEST_FILENAME} !/js/ckfinder
 RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$
 RewriteCond %{REQUEST_FILENAME} !/js/autocomplete.\js$
 RewriteCond %{REQUEST_FILENAME} !/js/telluswhere.\js$
+RewriteCond %{REQUEST_FILENAME} !/js/Leaflet.draw
 RewriteCond %{REQUEST_FILENAME} !/tmp/batch-[0-9a-f]+/.+.jpg$
 RewriteRule ^(.*)$ index.html?file=/$1 [L]
 

@@ -107,17 +107,19 @@ var telluswhere = (function ($) {
 			
 			// Add each data layer to the map, if enabled
 			$.each (_browsingApiUrls, function (index, url) {
-				_currentDataLayers[index] = L.geoJson (null, {
-					pointToLayer: telluswhere.setIcon,
+				_currentDataLayers[index] = L.geoJson (null /* added later instead, using .addData */ , {
+					
+					// Filter, to skip existing selected
 					filter: telluswhere.setIconFilter,
+					
+					// Style points - create a marker
+					pointToLayer: function (feature,latlng) {
+						return L.marker (latlng, {icon: _icons['already']});
+					},
+					
+					// Add popups
 					onEachFeature: function (feature, layer) {
-						if (_enableDrawing) {
-							if (feature.properties.name) {
-								var data = feature.properties;
-								delete data.id;
-								layer.bindPopup (telluswhere.popupHtmlDynamic (data));
-							}
-						}
+						layer.bindPopup (telluswhere.popupHtml (feature.properties));
 					}
 				});
 				_currentDataLayers[index].addTo(map);
@@ -408,7 +410,7 @@ var telluswhere = (function ($) {
 		// Define HTML to be used in the popup
 		popupHtml: function (properties)
 		{
-			if (_action == 'audit') {
+			if (_action == 'audit' || _action == 'priorityareas') {
 				return telluswhere.popupHtmlDynamic (properties);
 			} else {
 				return telluswhere.popupHtmlFixed (properties);
@@ -564,20 +566,8 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to set the marker and attach a popup
-		setIcon: function (feature,latlng)
-		{
-			// Create a marker and bind the popup to it
-			var marker = L.marker(latlng, {icon: _icons['already']});
-			marker.bindPopup (telluswhere.popupHtml (feature.properties));
-			
-			// Return the marker
-			return marker;
-		},
-		
-		
 		// Filter to control visibility of items set with setIcon
-		setIconFilter: function (feature,layer)
+		setIconFilter: function (feature, layer)
 		{
 			// If an item is selected, skip, as this will already be on the map
 			if (_selectedId) {

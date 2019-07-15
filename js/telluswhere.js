@@ -77,6 +77,12 @@ var telluswhere = (function ($) {
 				maxZoom: _maxZoom
 			}).addTo(map);
 			
+			// Add geolocation control
+			map.addControl(L.control.locate({
+				icon: 'fa fa-location-arrow',
+				locateOptions: {maxZoom: 17}
+			}));
+			
 			// Transmit current location
 			telluswhere.transmitCurrentLocation();
 			

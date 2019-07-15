@@ -56,6 +56,7 @@ RewriteCond %{REQUEST_FILENAME} !/images/categories
 RewriteCond %{REQUEST_FILENAME} !/images/general
 RewriteCond %{REQUEST_FILENAME} !/images/icons
 RewriteCond %{REQUEST_FILENAME} !/images/news
+RewriteCond %{REQUEST_FILENAME} !/js/lib/
 RewriteCond %{REQUEST_FILENAME} !/js/ckeditor
 RewriteCond %{REQUEST_FILENAME} !/js/ckfinder
 RewriteCond %{REQUEST_FILENAME} !/js/jquery\.exif.\js$

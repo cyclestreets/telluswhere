@@ -817,7 +817,7 @@ class telluswhere
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map HTML
-		$html .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, $initialLocation = array (), $disableGeolocation = true);
+		$html .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
 		$this->template['map'] = $html;
@@ -893,8 +893,8 @@ class telluswhere
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map, in drawing mode
-		$mapHtml  = "\n<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>";
-		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $disableGeolocation = true, $enableDrawing = true);
+		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
+		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = true);
 		$this->template['map'] = $mapHtml;
 		
 		# Handle posted data
@@ -1378,7 +1378,7 @@ class telluswhere
 	
 	
 	# Map of locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $disableGeolocation = false, $enableDrawing = false)
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -1521,9 +1521,8 @@ class telluswhere
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
-		$disableGeolocationJs = ($disableGeolocation ? 'true' : 'false');
 		$enableDrawingJs = ($enableDrawing ? 'true' : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?16\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?17\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
 			var map = telluswhere.createMap ({
@@ -1539,7 +1538,6 @@ class telluswhere
 				selectedId: {$selectedIdJs},
 				browsingApiUrl2: {$browsingApiUrl2},
 				viewOnlyMode: {$viewOnlyModeJs},
-				disableGeolocation: {$disableGeolocationJs},
 				enableDrawing: {$enableDrawingJs}
 			});
 		</script>
@@ -2145,7 +2143,7 @@ class telluswhere
 		$locationsCentrepoint = $this->locationsCentrepoint ($data);
 		
 		# Create the map HTML
-		$html .= $this->locationsMap ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint, $disableGeolocation = true);
+		$html .= $this->locationsMap ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
 		
 		# Register the HTML
 		$this->template['contents'] = $html;

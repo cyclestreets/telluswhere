@@ -63,7 +63,6 @@ var telluswhere = (function ($) {
 			_selectedId = settings.selectedId;	// ID of selected item
 			_viewOnlyMode = settings.viewOnlyMode;
 			_enableDrawing = settings.enableDrawing;
-			var disableGeolocation = settings.disableGeolocation;
 			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
@@ -88,13 +87,6 @@ var telluswhere = (function ($) {
 			
 			// Define the icon set; see: http://leafletjs.com/examples/custom-icons.html
 			_icons = telluswhere.getIcons();
-			
-			// Geolocate the user on first run
-			if(!_setMarkerInitially){
-				if (!disableGeolocation) {
-					telluswhere.geolocateUser();
-				}
-			}
 			
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
@@ -229,13 +221,6 @@ var telluswhere = (function ($) {
 			
 			// Return the icons
 			return icons;
-		},
-		
-		
-		// Function to geolocate the user
-		geolocateUser: function ()
-		{
-			map.locate({setView: true, maxZoom: 18});
 		},
 		
 		

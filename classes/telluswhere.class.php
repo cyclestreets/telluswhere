@@ -68,6 +68,7 @@ class telluswhere
 			'priorityareas' => array (
 				'description' => 'Priority areas',
 				'url' => '/audit/priorityareas/',
+				'apiUrl' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
 			'embed' => array (
 				'description' => false,
@@ -887,6 +888,9 @@ class telluswhere
 	# Page to set priority areas
 	private function priorityareas ()
 	{
+		# Finalise the API URL
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
+		
 		# Create the map, in drawing mode
 		$mapHtml  = "\n<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>";
 		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $disableGeolocation = true, $enableDrawing = true);
@@ -1427,7 +1431,7 @@ class telluswhere
 		
 		# Determine the URL for the browsing API; if a selected ID is requested, request that this always be included in the returned data
 		#!# Improve way key is added here
-		$browsingApiUrl = (($this->settings['showOthers'] || $this->userIsAdministrator || $this->action == 'audit') ? $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') : false);
+		$browsingApiUrl = (($this->settings['showOthers'] || $this->userIsAdministrator || $this->action == 'audit' || $this->action['priorityareas']) ? $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') : false);
 		if ($this->settings['privateSubmissions']) {
 			$browsingApiUrl .= '&private=1';
 		}

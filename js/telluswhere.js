@@ -252,6 +252,12 @@ var telluswhere = (function ($) {
 				minZoomLevelToSet = 14;
 			}
 			
+			// For the audit layer, require a close zoom before loading due to the volume of data
+			// #!# Needs turning into a database setting if future datasets
+			if (_action == 'audit') {
+				minZoomLevelToSet = 16;
+			}
+			
 			// Zoom if too far out and end
 			if(map.getZoom() < minZoomLevelToSet){
 				telluswhere.setFormValues (null, null, null);	// Clear any saved values
@@ -640,6 +646,14 @@ var telluswhere = (function ($) {
 		// Wrapper function to fetch current marker data layer/layers
 		getData: function ()
 		{
+			// For the audit layer, require a close zoom before loading due to the volume of data
+			// #!# Needs turning into a database setting if future datasets
+			if (_action == 'audit') {
+				if (map.getZoom() < 16) {
+					return;
+				}
+			}
+			
 			// Get each data layer
 			$.each (_browsingApiUrls, function (index, url) {
 				telluswhere.getDataLayer (url, index);

@@ -906,11 +906,24 @@ class telluswhere
 		$mapHtml .= $this->locationsMap (__FUNCTION__, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData);
 		$this->template['map'] = $mapHtml;
 		
-		# Show the submission page
-//		$html = $this->submissionPage (__FUNCTION__, $category, $data, $schemaDatabinding);
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'		=> false,
+			'requiredFieldIndicator'	=> false,
+			'submitButtonAccesskey'		=> false,
+		));
+		$form->dataBinding (array (
+			'schema' => $schemaDatabinding,
+			'intelligence' => true,
+			'int1ToCheckbox' => true,
+			'data' => $data['features'][0]['properties'],
+		));
+		$formHtml = '';
+		$result = $form->process ($formHtml);
+		$this->template['form'] = $formHtml;
 		
-		# Register the HTML
-		$this->template['form'] = $html;
+		
 	}
 	
 	

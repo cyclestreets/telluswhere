@@ -1564,7 +1564,7 @@ class telluswhere
 		# Load the map application Javascript and run it
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
-		$selectedIdJs = ($selectedIdData ? $selectedIdData['id'] : 'false');
+		$selectedIdJs = ($selectedIdData ? (ctype_digit ($selectedIdData['id']) ? $selectedIdData['id'] : "'{$selectedIdData['id']}'") : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$enableDrawingJs = ($enableDrawing ? 'true' : 'false');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');

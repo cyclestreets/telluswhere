@@ -100,7 +100,7 @@ var telluswhere = (function ($) {
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
-				telluswhere.setMarker(latlng, _useIcon, settings.markerSetInitiallyIsDraggable);
+				telluswhere.setMarker(latlng, _useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
 				map.setView(latlng,_initialZoom);
 			}
 			
@@ -288,7 +288,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to set the marker
-		setMarker: function (latlng, useIcon, markerIsDraggable)
+		setMarker: function (latlng, useIcon, markerIsDraggable, data)
 		{
 			// In view-only mode, disable marker setting functionality
 			if (_viewOnlyMode) {return;}
@@ -302,7 +302,12 @@ var telluswhere = (function ($) {
 			_marker = new L.Marker(latlng, {icon: _icons[useIcon], draggable: markerIsDraggable, zIndexOffset: 1000});
 			map.addLayer(_marker);
 			// #!# Need to show the category name
-			_marker.bindPopup((useIcon == 'suggest' ? 'Needed' : 'Present') + ' here').openPopup();
+			if (data) {
+				var markerHtml = telluswhere.popupHtmlDynamic (data);
+			} else {
+				var markerHtml = (useIcon == 'suggest' ? 'Needed' : 'Present') + ' here';
+			}
+			_marker.bindPopup(markerHtml).openPopup();
 			
 			// Register dragend processing function
 			_marker.on('dragend', telluswhere.markerDrag);

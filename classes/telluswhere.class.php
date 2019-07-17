@@ -895,6 +895,9 @@ class telluswhere
 		}
 		//application::dumpData ($schemaDatabinding);
 		
+		# Extract the properties for dataBinding and the map popup
+		$locationData = $data['features'][0]['properties'];
+		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
 		$selectedIdData = array (
@@ -903,7 +906,7 @@ class telluswhere
 			'longitude' => $data['features'][0]['geometry']['coordinates'][0],
 			'zoom' => 16,
 		);
-		$mapHtml .= $this->locationsMap (__FUNCTION__, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData);
+		$mapHtml .= $this->locationsMap (__FUNCTION__, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationData);
 		$this->template['map'] = $mapHtml;
 		
 		# Create a new form
@@ -917,7 +920,7 @@ class telluswhere
 			'schema' => $schemaDatabinding,
 			'intelligence' => true,
 			'int1ToCheckbox' => true,
-			'data' => $data['features'][0]['properties'],
+			'data' => $locationData,
 		));
 		$formHtml = '';
 		$result = $form->process ($formHtml);
@@ -1441,7 +1444,7 @@ class telluswhere
 	
 	
 	# Map of locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false)
+	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
 	{
 		# Start the HTML
 		$html = '';
@@ -1590,6 +1593,7 @@ class telluswhere
 		$enableDrawingJs = ($enableDrawing ? 'true' : 'false');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
+		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?17\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
@@ -1608,7 +1612,8 @@ class telluswhere
 				viewOnlyMode: {$viewOnlyModeJs},
 				enableDrawing: {$enableDrawingJs},
 				popupLabels: {$popupLabelsJs},
-				popupLabelSubsetField: {$popupLabelSubsetFieldJs}
+				popupLabelSubsetField: {$popupLabelSubsetFieldJs},
+				markerData: {$markerDataJs}
 			});
 		</script>
 		";

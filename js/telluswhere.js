@@ -100,7 +100,7 @@ var telluswhere = (function ($) {
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
-				telluswhere.setMarker(latlng, _useIcon, markerSetInitiallyIsDraggable);
+				telluswhere.setMarker(latlng, _useIcon, settings.markerSetInitiallyIsDraggable);
 				map.setView(latlng,_initialZoom);
 			}
 			

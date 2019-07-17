@@ -864,15 +864,12 @@ class telluswhere
 		$id = $_GET['id'];
 		
 		# Finalise the API URL
-		$apiUrl = $this->settings['apiBase'] . $this->actions[__FUNCTION__]['apiUrl'];
-		$apiUrl = str_replace ('%dataset', $this->settings['auditDataset'], $apiUrl);
-		$apiUrl = str_replace ('%id', $id, $apiUrl);
-		$apiUrl .= '&key=' . $this->settings['apiKey'];
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
+		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%id', $id, $this->actions[__FUNCTION__]['apiUrl']);
+		$apiUrl = $this->settings['apiBase'] . $this->actions[__FUNCTION__]['apiUrl'] . '&key=' . $this->settings['apiKey'];
 		
 		# Obtain the data
 		$data = file_get_contents ($apiUrl);
-		
-		# Decode to JSON
 		$data = json_decode ($data, true);
 		
 		# End if no such ID
@@ -898,8 +895,19 @@ class telluswhere
 		}
 		//application::dumpData ($schemaDatabinding);
 		
+		# Create the map HTML
+		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
+		$selectedIdData = array (
+			'id' => $id,
+			'latitude' => $data['features'][0]['geometry']['coordinates'][1],
+			'longitude' => $data['features'][0]['geometry']['coordinates'][0],
+			'zoom' => 16,
+		);
+		$mapHtml .= $this->locationsMap (__FUNCTION__, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData);
+		$this->template['map'] = $mapHtml;
+		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $category, $data, $schemaDatabinding);
+//		$html = $this->submissionPage (__FUNCTION__, $category, $data, $schemaDatabinding);
 		
 		# Register the HTML
 		$this->template['form'] = $html;

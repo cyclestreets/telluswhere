@@ -58,7 +58,13 @@ class telluswhere
 			'audit' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/',
-				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%category&limit=400',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400',
+				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
+			),
+			'auditadd' => array (
+				'description' => 'Audit %categoryLabel',
+				'url' => '/audit/add/',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400',
 				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
 			'auditlocation' => array (
@@ -783,7 +789,7 @@ class telluswhere
 	}
 	
 	
-	# Page for auditing
+	# Page for audit map page browsing
 	private function audit ($existingData = array ())
 	{
 		# End if not enabled
@@ -846,6 +852,13 @@ class telluswhere
 		
 		# Register the HTML
 		$this->template['map'] = $html;
+	}
+	
+	
+	# Page for adding a location
+	private function auditadd ()
+	{
+		$this->audit ();
 	}
 	
 	

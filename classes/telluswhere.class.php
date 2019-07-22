@@ -827,31 +827,6 @@ class telluswhere
 		# Flatten the schema
 		
 		
-		# Start the HTML
-		$html = '';
-		
-		# Set the category
-		// #!# Multiple category support not yet in place - see code in suggest which is probably repurposable
-		$category = $this->categories[0];
-		if (count ($this->categories) > 1) {
-			
-			# Force selection if not specified
-			if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
-				$this->template['map'] = $this->categorySelection ();
-				return true;
-			}
-			
-			# End if not valid
-			if (!in_array ($_GET['category'], $this->categories)) {
-				$html = $this->page404 ();
-				echo $html;
-				return false;
-			}
-			
-			# Register the category
-			$category = $_GET['category'];
-		}
-		
 		# Finalise the API URL
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);

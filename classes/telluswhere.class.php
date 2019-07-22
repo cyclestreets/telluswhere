@@ -908,8 +908,11 @@ class telluswhere
 			return false;
 		}
 		
+		# Extract the single feature
+		$data = $data['features'][0];
+		
 		# Extract the category (type)
-		$category = $data['features'][0]['properties']['_type'];
+		$category = $data['properties']['_type'];
 		
 		# Obtain the schema
 		if (!$schema = $this->getAuditSchema ($category)) {
@@ -919,12 +922,12 @@ class telluswhere
 		}
 		
 		# Create the audit form
-		$this->auditForm ($schema, $data, $id);
+		$this->auditForm ($schema, $data);
 	}
 	
 	
 	# Function to create the audit form
-	private function auditForm ($schema, $data, $id)
+	private function auditForm ($schema, $data = array () /* or GeoJSON feature */)
 	{
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
@@ -935,16 +938,21 @@ class telluswhere
 		//application::dumpData ($schemaDatabinding);
 		
 		# Extract the properties for dataBinding and the map popup
-		$locationData = $data['features'][0]['properties'];
+		$locationData = ($data ? $data['properties'] : array ());
+		
+		# Assemble selected ID data
+		$selectedIdData = array ();
+		if ($data) {
+			$selectedIdData = array (
+				'id' => $data['properties']['id'],
+				'latitude' => $data['geometry']['coordinates'][1],
+				'longitude' => $data['geometry']['coordinates'][0],
+				'zoom' => 16,
+			);
+		}
 		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
-		$selectedIdData = array (
-			'id' => $id,
-			'latitude' => $data['features'][0]['geometry']['coordinates'][1],
-			'longitude' => $data['features'][0]['geometry']['coordinates'][0],
-			'zoom' => 16,
-		);
 		$mapHtml .= $this->locationsMap (__FUNCTION__, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationData);
 		$this->template['map'] = $mapHtml;
 		

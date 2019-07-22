@@ -146,6 +146,14 @@ class telluswhere
 				'description' => false,
 				'url' => '/logout/',
 			),
+			'register' => array (
+				'description' => false,
+				'url' => '/register/',
+			),
+			'profile' => array (
+				'description' => false,
+				'url' => '/profile/',
+			),
 		);
 		
 		# Return the actions
@@ -3127,6 +3135,20 @@ class telluswhere
 			$params = session_get_cookie_params ();
 			setcookie (session_name (), '', time () - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 		}
+	}
+	
+	
+	# Registration page
+	private function register ()
+	{
+		#!# TODO
+	}
+	
+	
+	# Profile page
+	private function profile ()
+	{
+		#!# TODO
 	}
 }
 

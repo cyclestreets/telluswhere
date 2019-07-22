@@ -929,6 +929,9 @@ class telluswhere
 			return false;
 		}
 		
+		# Set the (now-validated) ID for the template
+		$this->template['id'] = $id;
+		
 		# Extract the single feature
 		$data = $data['features'][0];
 		

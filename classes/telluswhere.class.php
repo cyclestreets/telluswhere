@@ -685,6 +685,8 @@ class telluswhere
 				return 'text/css';
 			case 'js':
 				return 'application/javascript';
+			case 'svg':
+				return 'image/svg+xml';
 		}
 		
 		# Get the MIME type

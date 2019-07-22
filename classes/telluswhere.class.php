@@ -159,6 +159,26 @@ class telluswhere
 				'description' => false,
 				'url' => '/profile/',
 			),
+			'adminreview' => array (
+				'description' => 'Review submissions',
+				'url' => '/admin/review/',
+				'administrator' => true,
+			),
+			'adminsearch' => array (
+				'description' => 'Search locations',
+				'url' => '/admin/search/',
+				'administrator' => true,
+			),
+			'adminusers' => array (
+				'description' => 'Manage users',
+				'url' => '/admin/users/',
+				'administrator' => true,
+			),
+			'adminboroughs' => array (
+				'description' => 'Progress by borough',
+				'url' => '/admin/boroughs/',
+				'administrator' => true,
+			),
 		);
 		
 		# Return the actions
@@ -3159,6 +3179,34 @@ class telluswhere
 	
 	# Profile page
 	private function profile ()
+	{
+		#!# TODO
+	}
+	
+	
+	# Admin review submissions page
+	private function adminreview ()
+	{
+		#!# TODO
+	}
+	
+	
+	# Admin search locations page
+	private function adminsearch ()
+	{
+		#!# TODO
+	}
+	
+	
+	# Admin manage users page
+	private function adminusers ()
+	{
+		#!# TODO
+	}
+	
+	
+	# Admin progress by borough
+	private function adminboroughs ()
 	{
 		#!# TODO
 	}

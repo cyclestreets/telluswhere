@@ -255,7 +255,7 @@ var telluswhere = (function ($) {
 			
 			// For the audit layer, require a close zoom before loading due to the volume of data
 			// #!# Needs turning into a database setting if future datasets
-			if (_action == 'audit' || _action == 'auditadd') {
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
 				minZoomLevelToSet = 16;
 			}
 			
@@ -422,7 +422,7 @@ var telluswhere = (function ($) {
 		// Define HTML to be used in the popup
 		popupHtml: function (properties)
 		{
-			if (_action == 'audit' || _action == 'auditadd' || _action == 'priorityareas') {
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation' || _action == 'priorityareas') {
 				return telluswhere.popupHtmlDynamic (properties);
 			} else {
 				return telluswhere.popupHtmlFixed (properties);
@@ -654,7 +654,7 @@ var telluswhere = (function ($) {
 		{
 			// For the audit layer, require a close zoom before loading due to the volume of data
 			// #!# Needs turning into a database setting if future datasets
-			if (_action == 'audit' || _action == 'auditadd') {
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
 				if (map.getZoom() < 16) {
 					return;
 				}

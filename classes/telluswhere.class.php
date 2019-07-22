@@ -67,6 +67,12 @@ class telluswhere
 				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400',
 				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
+			'auditaddlocation' => array (
+				'description' => 'Audit %categoryLabel',
+				'url' => '/audit/add/location/',	// Template location; URL will be /audit/add/%category/
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%type&limit=400',
+				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
+			),
 			'auditlocation' => array (
 				'description' => 'Audit location',
 				'url' => '/audit/location/',	// Will be /audit/location/<id>/
@@ -824,13 +830,9 @@ class telluswhere
 		#!# Not yet working
 		$this->popupLabelSubsetField = false;
 		
-		# Flatten the schema
-		
-		
 		# Finalise the API URL
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
-		$this->actions[$this->action]['apiUrl'] = str_replace ('%category', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Create the map HTML
 		$html  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
@@ -841,15 +843,11 @@ class telluswhere
 	}
 	
 	
-	# Page for adding a location
+	# Page for adding a location, as stage 1 to select the type
 	private function auditadd ()
 	{
 		# End if not enabled
 		if (!$this->settings['auditDataset']) {return false;}
-		
-		# Finalise the API URL
-		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
-		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		
 		# Obtain the schema
 		if (!$schema = $this->getAuditSchema ()) {
@@ -858,9 +856,27 @@ class telluswhere
 			return false;
 		}
 		
-		# If no type, show the audit map
+		# Show the audit map
+		$this->auditMap ($schema);
+	}
+	
+	
+	# Page for adding a location, as stage 2 to add the location
+	private function auditaddlocation ()
+	{
+		# End if not enabled
+		if (!$this->settings['auditDataset']) {return false;}
+		
+		# Obtain the schema
+		if (!$schema = $this->getAuditSchema ()) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Get the category (type) or end
 		if (!isSet ($_GET['type'])) {
-			$this->auditMap ($schema);
+			$html = $this->page404 ();
 			return;
 		}
 		
@@ -873,8 +889,13 @@ class telluswhere
 			return false;
 		}
 		
-		# Create the audit form
-		$this->auditForm ($schema);
+		# Finalise the API URL
+		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
+		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
+		$this->actions[$this->action]['apiUrl'] = str_replace ('%type', $category, $this->actions[$this->action]['apiUrl']);
+		
+		# Create the audit form (with map)
+		$this->auditForm ($schema[$category], $category, array ());
 	}
 	
 	
@@ -921,13 +942,13 @@ class telluswhere
 			return false;
 		}
 		
-		# Create the audit form
-		$this->auditForm ($schema, $data);
+		# Create the audit form (with map)
+		$this->auditForm ($schema, $category, $data);
 	}
 	
 	
-	# Function to create the audit form
-	private function auditForm ($schema, $data = array () /* or GeoJSON feature */)
+	# Function to create the audit form, which includes the map
+	private function auditForm ($schema /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
 	{
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
@@ -953,7 +974,7 @@ class telluswhere
 		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
-		$mapHtml .= $this->locationsMap (__FUNCTION__, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationData);
+		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationData);
 		$this->template['map'] = $mapHtml;
 		
 		# Create a new form

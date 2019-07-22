@@ -844,7 +844,37 @@ class telluswhere
 	# Page for adding a location
 	private function auditadd ()
 	{
-		$this->audit ();
+		# End if not enabled
+		if (!$this->settings['auditDataset']) {return false;}
+		
+		# Finalise the API URL
+		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
+		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
+		
+		# Obtain the schema
+		if (!$schema = $this->getAuditSchema ()) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# If no type, show the audit map
+		if (!isSet ($_GET['type'])) {
+			$this->auditMap ($schema);
+			return;
+		}
+		
+		# Obtain the category (type), or end
+		$category = (isSet ($_GET['type']) ? $_GET['type'] : false);
+		if (!isSet ($schema[$category])) {
+			#!# Rest of GUI is still showing
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		
+		# Create the audit form
+		$this->auditForm ($schema);
 	}
 	
 	

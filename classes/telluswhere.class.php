@@ -797,6 +797,14 @@ class telluswhere
 		# End if not enabled
 		if (!$this->settings['auditDataset']) {return false;}
 		
+		# Show the audit map
+		$this->auditMap ();
+	}
+	
+	
+	# Audit map for browsing
+	private function auditMap ()
+	{
 		# Obtain the schema
 		if (!$schema = $this->getAuditSchema ($category)) {
 			$html = $this->page404 ();
@@ -845,12 +853,12 @@ class telluswhere
 		}
 		
 		# Finalise the API URL
-		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
-		$this->actions[__FUNCTION__]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl2']);
-		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
+		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
+		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
+		$this->actions[$this->action]['apiUrl'] = str_replace ('%category', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Create the map HTML
-		$html .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true);
+		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
 		$this->template['map'] = $html;

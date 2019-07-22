@@ -1483,7 +1483,7 @@ class telluswhere
 	
 	
 	# Map of locations
-	private function locationsMap ($showLayer, $selectedIdData = false, $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
+	private function locationsMap ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
 	{
 		# Start the HTML
 		$html = '';

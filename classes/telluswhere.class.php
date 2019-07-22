@@ -889,6 +889,10 @@ class telluswhere
 			return false;
 		}
 		
+		# Set the category for the template
+		#!# Needs to be category name
+		$this->template['category'] = $category;
+		
 		# Finalise the API URL
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);

@@ -116,6 +116,11 @@ class telluswhere
 				'description' => false,
 				'url' => '/contacts/',
 			),
+			'admin' => array (
+				'description' => 'Admin area',
+				'url' => '/admin/',
+				'administrator' => true,
+			),
 			'data' => array (
 				'description' => false,
 				'url' => '/data/',
@@ -2149,6 +2154,13 @@ class telluswhere
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Admin area
+	private function admin ()
+	{
+		#!# TODO
 	}
 	
 	

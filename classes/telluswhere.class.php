@@ -848,7 +848,7 @@ class telluswhere
 	}
 	
 	
-	# Page for auditing a location
+	# Page for auditing an existing location
 	private function auditlocation ()
 	{
 		# End if not enabled
@@ -878,14 +878,24 @@ class telluswhere
 			return false;
 		}
 		
-		# Obtain the schema, firstly extracting the category (type)
+		# Extract the category (type)
 		$category = $data['features'][0]['properties']['_type'];
+		
+		# Obtain the schema
 		if (!$schema = $this->getAuditSchema ($category)) {
 			$html = $this->page404 ();
 			echo $html;
 			return false;
 		}
 		
+		# Create the audit form
+		$this->auditForm ($schema, $data, $id);
+	}
+	
+	
+	# Function to create the audit form
+	private function auditForm ($schema, $data, $id)
+	{
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
 		foreach ($schema as $fieldname => $field) {

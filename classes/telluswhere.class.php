@@ -797,14 +797,6 @@ class telluswhere
 		# End if not enabled
 		if (!$this->settings['auditDataset']) {return false;}
 		
-		# Show the audit map
-		$this->auditMap ();
-	}
-	
-	
-	# Audit map for browsing
-	private function auditMap ()
-	{
 		# Obtain the schema
 		if (!$schema = $this->getAuditSchema ($category)) {
 			$html = $this->page404 ();
@@ -812,6 +804,14 @@ class telluswhere
 			return false;
 		}
 		
+		# Show the audit map
+		$this->auditMap ($schema);
+	}
+	
+	
+	# Audit map for browsing
+	private function auditMap ($schema)
+	{
 		# Flatten the schema
 		#!# Temporary workaround - creates clashing names
 		$schemaFlattened = array ();

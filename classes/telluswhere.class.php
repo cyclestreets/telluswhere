@@ -833,6 +833,7 @@ class telluswhere
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%category', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Create the map HTML
+		$html  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
 		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML

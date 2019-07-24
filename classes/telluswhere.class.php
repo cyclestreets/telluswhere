@@ -1027,6 +1027,13 @@ class telluswhere
 			}
 		}
 		
+		# Add documentation link if present
+		foreach ($fields as $fieldname => $field) {
+			if ($field['documentationUrl']) {
+				$fields[$fieldname]['description'] .= ($fields[$fieldname]['description'] ? '<br />' : '') . "<a href=\"{$field['documentationUrl']}\" target=\"_blank\" title=\"[Link opens in a new window]\">Full details</a>";
+			}
+		}
+		
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
 		$attributes = array ();

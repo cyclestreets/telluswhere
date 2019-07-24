@@ -1023,8 +1023,10 @@ class telluswhere
 		foreach ($fields as $fieldname => $field) {
 			#!# Also need to be supplying $field['description']
 			$schemaDatabinding[$fieldname] = $this->sqlFieldnameToStructure ($field['datatype'], $field['field']);
+			if (isSet ($field['labels'])) {
+				$schemaDatabinding[$fieldname]['_labels'] = $field['labels'];
+			}
 		}
-		//application::dumpData ($schemaDatabinding);
 		
 		# Assemble selected ID data
 		$selectedIdData = array ();
@@ -1078,8 +1080,9 @@ class telluswhere
 					'field'		=> $field['combinedLabel'],
 					'description'	=> $field['combinedLabel'],
 					'datatype'	=> NULL,	// Will be populated at the end from $combinationValues
+					'labels'	=> NULL,	// Will be populated at the end from $combinationValues
 				);
-				$combinationValues[$combinedFieldname][$fieldname] = $field['description'];
+				$combinationValues[$combinedFieldname][$fieldname] = $field['field'];
 				// Do not copy the original field across
 			} else {
 				$fieldsCombined[$fieldname] = $field;	// Copy-as is, done to ensure that the ordering remains
@@ -1089,6 +1092,7 @@ class telluswhere
 			foreach ($combinationValues as $combinedFieldname => $values) {
 				$fieldsCombined[$combinedFieldname]['datatype'] = "ENUM('" . implode ("','", array_keys ($values)) . "')";
 			}
+			$fieldsCombined[$combinedFieldname]['labels'] = $combinationValues[$combinedFieldname];
 		}
 		
 		# Return the potentially-combined fields
@@ -1199,8 +1203,7 @@ class telluswhere
 			'Default' => NULL,
 			'Extra' => false,
 			'Comment' => $comment,
-//			'_values' => ($matches[1] == 'ENUM' ? str_getcsv ($matches[2], ',', "'"): NULL),
-			'_values' => NULL,
+			'_values' => ($matches[1] == 'ENUM' ? str_getcsv ($matches[2], ',', "'"): NULL),
 		);
 		
 		# Return the field data

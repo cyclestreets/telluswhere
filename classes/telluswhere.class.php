@@ -1009,8 +1009,14 @@ class telluswhere
 	# Function to create the audit form, which includes the map
 	private function auditForm ($fields /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
 	{
+		# Extract the properties for dataBinding and the map popup
+		$locationData = ($data ? $data['properties'] : array ());
+		
 		# Combine mutually-exclusive boolean fields into a single drop-down
 		$fields = $this->auditFormCombineBooleanFields ($fields);
+		
+		# Convert boolean true/false to checkbox
+		$fields = $this->auditFormConvertBooleanCheckbox ($fields, $locationData /* amended by reference */);
 		
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
@@ -1019,9 +1025,6 @@ class telluswhere
 			$schemaDatabinding[$fieldname] = $this->sqlFieldnameToStructure ($field['datatype'], $field['field']);
 		}
 		//application::dumpData ($schemaDatabinding);
-		
-		# Extract the properties for dataBinding and the map popup
-		$locationData = ($data ? $data['properties'] : array ());
 		
 		# Assemble selected ID data
 		$selectedIdData = array ();
@@ -1090,6 +1093,25 @@ class telluswhere
 		
 		# Return the potentially-combined fields
 		return $fieldsCombined;
+	}
+	
+	
+	# Audit form helper function to convert boolean true/false to checkbox
+	private function auditFormConvertBooleanCheckbox ($fields, &$data)
+	{
+		# Convert relevant fields
+		foreach ($fields as $fieldname => $field) {
+			if ($field['datatype'] == "ENUM('TRUE','FALSE')") {
+				$fields[$fieldname]['datatype'] = 'INT(1)';
+				
+				# Amend the data for this field also
+				if ($data[$fieldname] == 'TRUE') {$data[$fieldname] = 1;}
+				if ($data[$fieldname] == 'FALSE') {$data[$fieldname] = '';}
+			}
+		}
+		
+		# Return the fields
+		return $fields;
 	}
 	
 	

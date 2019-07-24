@@ -3021,8 +3021,26 @@ class telluswhere
 		// At present, the login box is not shown
 		$this->template['login-status'] = '';
 		
-		# Return false if no user
+		# Get the user login status
 		$user = $this->sessionGet ('user');
+		
+		# Set CSS classes where the template supports this
+		if ($user) {
+			$this->template['css'] = '
+			<style type="text/css">
+				nav li.login {display: none;}
+				nav li.register {display: none;}
+			</style>
+			';
+		} else {
+			$this->template['css'] = '
+			<style type="text/css">
+				nav li.profile {display: none;}
+			</style>
+			';
+		}
+		
+		# Return false if no user
 		if (!$user) {return false;}
 		
 		# Determine privileges

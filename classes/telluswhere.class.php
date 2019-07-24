@@ -1026,7 +1026,7 @@ class telluswhere
 			$schemaDatabinding[$fieldname] = $this->sqlFieldnameToStructure ($field['datatype'], $field['field']);
 			$attributes[$fieldname]['description'] = $field['description'];
 			if (isSet ($field['labels'])) {
-				$schemaDatabinding[$fieldname]['_labels'] = $field['labels'];
+				$attributes[$fieldname]['values'] = $field['labels'];
 			}
 		}
 		

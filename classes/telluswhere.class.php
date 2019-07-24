@@ -854,8 +854,8 @@ class telluswhere
 		# Flatten the schema
 		#!# Temporary workaround - creates clashing names
 		$schemaFlattened = array ();
-		foreach ($schema as $type => $fields) {
-			foreach ($fields as $fieldname => $field) {
+		foreach ($schema as $id => $type) {
+			foreach ($type['fields'] as $fieldname => $field) {
 				$schemaFlattened[$fieldname] = $field['field'];
 			}
 		}
@@ -932,7 +932,7 @@ class telluswhere
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%type', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Create the audit form (with map)
-		$this->auditForm ($schema[$category], $category, array ());
+		$this->auditForm ($schema[$category]['fields'], $category, array ());
 	}
 	
 	
@@ -983,7 +983,7 @@ class telluswhere
 		}
 		
 		# Create the audit form (with map)
-		$this->auditForm ($schema, $category, $data);
+		$this->auditForm ($schema['fields'], $category, $data);
 	}
 	
 	

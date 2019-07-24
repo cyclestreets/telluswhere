@@ -1020,9 +1020,11 @@ class telluswhere
 		
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
+		$attributes = array ();
 		foreach ($fields as $fieldname => $field) {
 			#!# Also need to be supplying $field['description']
 			$schemaDatabinding[$fieldname] = $this->sqlFieldnameToStructure ($field['datatype'], $field['field']);
+			$attributes[$fieldname]['description'] = $field['description'];
 			if (isSet ($field['labels'])) {
 				$schemaDatabinding[$fieldname]['_labels'] = $field['labels'];
 			}
@@ -1057,6 +1059,7 @@ class telluswhere
 			'intelligence' => true,
 			'int1ToCheckbox' => true,
 			'data' => $locationData,
+			'attributes' => $attributes,
 		));
 		$formHtml = '';
 		$result = $form->process ($formHtml);

@@ -1007,11 +1007,14 @@ class telluswhere
 	
 	
 	# Function to create the audit form, which includes the map
-	private function auditForm ($schema /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
+	private function auditForm ($fields /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
 	{
+		# Combine mutually-exclusive boolean fields into a single drop-down
+		$fields = $this->auditFormCombineBooleanFields ($fields);
+		
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
-		foreach ($schema as $fieldname => $field) {
+		foreach ($fields as $fieldname => $field) {
 			#!# Also need to be supplying $field['description']
 			$schemaDatabinding[$fieldname] = $this->sqlFieldnameToStructure ($field['datatype'], $field['field']);
 		}
@@ -1054,6 +1057,38 @@ class telluswhere
 		$this->template['form'] = $formHtml;
 		
 		
+	}
+	
+	
+	# Audit form helper function to combine mutually-exclusive boolean fields into a single drop-down
+	private function auditFormCombineBooleanFields ($fields)
+	{
+		# Combine separate boolean fields to a drop-down, where present
+		$fieldsCombined = array ();
+		$combinationValues = array ();
+		foreach ($fields as $fieldname => $field) {
+			if ($field['combine'] && $field['datatype'] == "ENUM('TRUE','FALSE')") {
+				$combinedFieldname = $field['combine'];
+				$fieldsCombined[$combinedFieldname] = array (
+					'fieldname'	=> $combinedFieldname,
+					'field'		=> $field['combinedLabel'],
+					'description'	=> $field['combinedLabel'],
+					'datatype'	=> NULL,	// Will be populated at the end from $combinationValues
+				);
+				$combinationValues[$combinedFieldname][$fieldname] = $field['description'];
+				// Do not copy the original field across
+			} else {
+				$fieldsCombined[$fieldname] = $field;	// Copy-as is, done to ensure that the ordering remains
+			}
+		}
+		if ($combinationValues) {
+			foreach ($combinationValues as $combinedFieldname => $values) {
+				$fieldsCombined[$combinedFieldname]['datatype'] = "ENUM('" . implode ("','", array_keys ($values)) . "')";
+			}
+		}
+		
+		# Return the potentially-combined fields
+		return $fieldsCombined;
 	}
 	
 	

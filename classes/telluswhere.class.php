@@ -1018,6 +1018,15 @@ class telluswhere
 		# Convert boolean true/false to checkbox
 		$fields = $this->auditFormConvertBooleanCheckbox ($fields, $locationData /* amended by reference */);
 		
+		# Reformat descriptions
+		foreach ($fields as $fieldname => $field) {
+			if ($field['datatype'] == 'INT(1)') {
+				$fields[$fieldname]['description'] = str_replace ('False =', "<br />" . 'False = ', $fields[$fieldname]['description']);
+				$fields[$fieldname]['description'] = str_replace ('True =', '&#10004; = ', $fields[$fieldname]['description']);
+				$fields[$fieldname]['description'] = str_replace ('False =', '<span class="faded">&#9633;</span> =', $fields[$fieldname]['description']);
+			}
+		}
+		
 		# Convert the schema to dataBinding schema format
 		$schemaDatabinding = array ();
 		$attributes = array ();

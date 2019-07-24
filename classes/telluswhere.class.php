@@ -868,19 +868,26 @@ class telluswhere
 	
 	
 	# Function to set the popup labels from the schema
-	private function auditSetPopupLabels ($schema)
+	private function auditSetPopupLabels ($schema, $flatten = true)
 	{
-		# Flatten the schema
-		#!# Temporary workaround - creates clashing names
-		$schemaFlattened = array ();
-		foreach ($schema as $id => $type) {
-			foreach ($type['fields'] as $fieldname => $field) {
-				$schemaFlattened[$fieldname] = $field['field'];
+		# Flatten the schema if required
+		#!# Creates clashing names where not unique within container
+		if ($flatten) {
+			$schemaFlattened = array ('fields' => array ());
+			foreach ($schema as $id => $type) {
+				$schemaFlattened['fields'] += $type['fields'];
 			}
+			$schema = $schemaFlattened;
+		}
+		
+		# Assign the labels
+		$popupLabels = array ();
+		foreach ($schema['fields'] as $fieldname => $field) {
+			$popupLabels[$fieldname] = $field['field'];
 		}
 		
 		# Set the labels
-		$this->popupLabels = $schemaFlattened;
+		$this->popupLabels = $popupLabels;
 		#!# Not yet working
 		$this->popupLabelSubsetField = false;
 	}
@@ -990,6 +997,9 @@ class telluswhere
 			echo $html;
 			return false;
 		}
+		
+		# Assign the popup labels
+		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
 		# Create the audit form (with map)
 		$this->auditForm ($schema['fields'], $category, $data);

@@ -1051,6 +1051,7 @@ class telluswhere
 		$form = new form (array (
 			'displayRestrictions'		=> false,
 			'requiredFieldIndicator'	=> false,
+			'submitButtonText'		=> 'Save changes &nbsp; &gt;',
 			'submitButtonAccesskey'		=> false,
 			'nullText'			=> false,
 		));

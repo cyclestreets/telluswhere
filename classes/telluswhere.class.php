@@ -851,17 +851,8 @@ class telluswhere
 	# Audit map for browsing
 	private function auditMap ($schema)
 	{
-		# Flatten the schema
-		#!# Temporary workaround - creates clashing names
-		$schemaFlattened = array ();
-		foreach ($schema as $id => $type) {
-			foreach ($type['fields'] as $fieldname => $field) {
-				$schemaFlattened[$fieldname] = $field['field'];
-			}
-		}
-		$this->popupLabels = $schemaFlattened;
-		#!# Not yet working
-		$this->popupLabelSubsetField = false;
+		# Assign the popup labels
+		$this->auditSetPopupLabels ($schema);
 		
 		# Finalise the API URL
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
@@ -873,6 +864,25 @@ class telluswhere
 		
 		# Register the HTML
 		$this->template['map'] = $html;
+	}
+	
+	
+	# Function to set the popup labels from the schema
+	private function auditSetPopupLabels ($schema)
+	{
+		# Flatten the schema
+		#!# Temporary workaround - creates clashing names
+		$schemaFlattened = array ();
+		foreach ($schema as $id => $type) {
+			foreach ($type['fields'] as $fieldname => $field) {
+				$schemaFlattened[$fieldname] = $field['field'];
+			}
+		}
+		
+		# Set the labels
+		$this->popupLabels = $schemaFlattened;
+		#!# Not yet working
+		$this->popupLabelSubsetField = false;
 	}
 	
 	

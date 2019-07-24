@@ -76,7 +76,7 @@ var telluswhere = (function ($) {
 			// Set tile layer
 			var tileUrl = 'https://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
-			_maxZoom = 18;
+			_maxZoom = 19;
 			L.tileLayer(tileUrl, {
 				attribution: tileAttribution,
 				maxZoom: _maxZoom

@@ -53,7 +53,7 @@
  * @package ultimateForm
  * @license	https://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-19, Martin Lucas-Smith, University of Cambridge
+ * @copyright Copyright  2003-17, Martin Lucas-Smith, University of Cambridge
  * @version See $version below
  */
 class form
@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.2';
+	var $version = '1.25.1';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -7923,13 +7923,6 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 						if ($useRadiobuttons && $enumRadiobuttonsInitialNullText && is_array ($enumRadiobuttonsInitialNullText) && isSet ($enumRadiobuttonsInitialNullText[$fieldName])) {
 							$standardAttributes['nullText'] = $enumRadiobuttonsInitialNullText[$fieldName];
 						}
-					}
-					if (isSet ($fieldAttributes['_labels'])) {
-						$valuesAssociative = array ();
-						foreach ($values as $value) {
-							$valuesAssociative[$value] = (isSet ($fieldAttributes['_labels'][$value]) ? $fieldAttributes['_labels'][$value] : $value);
-						}
-						$values = $valuesAssociative;
 					}
 					$widgetType = ($useRadiobuttons ? 'radiobuttons' : 'select');
 					$this->$widgetType ($standardAttributes + array (

@@ -1099,8 +1099,8 @@ class telluswhere
 				$combinedFieldname = $field['combine'];
 				$fieldsCombined[$combinedFieldname] = array (
 					'fieldname'	=> $combinedFieldname,
-					'field'		=> $field['combinedLabel'],
-					'description'	=> $field['combinedLabel'],
+					'field'		=> $field['combineLabel'],
+					'description'	=> $field['combineLabel'],
 					'datatype'	=> NULL,	// Will be populated at the end from $combinationValues
 					'labels'	=> NULL,	// Will be populated at the end from $combinationValues
 				);

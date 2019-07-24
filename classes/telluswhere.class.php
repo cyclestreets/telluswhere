@@ -1064,6 +1064,7 @@ class telluswhere
 			'submitButtonAccesskey'		=> false,
 			'nullText'			=> false,
 			'div'				=> 'auditform',
+			'labelsSurround'		=> true,
 		));
 		$form->dataBinding (array (
 			'schema' => $schemaDatabinding,

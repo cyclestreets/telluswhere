@@ -1045,6 +1045,7 @@ class telluswhere
 			'displayRestrictions'		=> false,
 			'requiredFieldIndicator'	=> false,
 			'submitButtonAccesskey'		=> false,
+			'nullText'			=> false,
 		));
 		$form->dataBinding (array (
 			'schema' => $schemaDatabinding,

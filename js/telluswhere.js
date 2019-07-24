@@ -35,6 +35,7 @@ var telluswhere = (function ($) {
 	
 	// Whether to set a marker initially
 	var _setMarkerInitially;
+	var _markerSettingZoom = 19;
 	
 	// Selected ID, if any, and whether it is moveable
 	var _selectedId;
@@ -101,7 +102,7 @@ var telluswhere = (function ($) {
 			if(_setMarkerInitially){
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
 				telluswhere.setMarker(latlng, _useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
-				map.setView(latlng,_initialZoom);
+				map.setView(latlng, _markerSettingZoom);
 			}
 			
 			// Add drawing support if enabled

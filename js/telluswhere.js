@@ -475,6 +475,11 @@ var telluswhere = (function ($) {
 					value = '<a href="' + _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/">' + telluswhere.htmlspecialchars (value) + '</a>';
 				}
 				
+				// Value conversions
+				if (value == 'TRUE') {
+					value = '&#10004;';
+				}
+				
 				// Compile the HTML
 				html += '<tr><td>' + fieldLabel + ':</td><td><strong>' + value + '</strong></td></tr>';
 			});

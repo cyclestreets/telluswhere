@@ -227,7 +227,8 @@ var telluswhere = (function ($) {
 				suggest: new largeIcon({iconUrl: '/images/markers/suggest.png'}),
 				current: new largeIcon({iconUrl: '/images/markers/current.png'}),
 				already: new smallIcon({iconUrl: '/images/markers/already.png'}),
-				auditlocation: new smallIcon({iconUrl: '/images/markers/auditlocation.png'})
+				auditlocation: new smallIcon({iconUrl: '/images/markers/auditlocation.png'}),
+				auditaddlocation: new smallIcon({iconUrl: '/images/markers/auditaddlocation.png'})
 			};
 			
 			// Return the icons

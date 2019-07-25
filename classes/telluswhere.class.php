@@ -962,11 +962,13 @@ class telluswhere
 		if (!$result = $this->auditForm ($schema[$category]['fields'], $category, array ())) {return;}
 		
 		# Assemble the insert
+		$location = $result['location'];
+		unset ($result['location']);
 		$insert = array (
 			'dataset'	=> $this->settings['auditDataset'],
 			'type'		=> $category,
 			#!# API should really be renamed location
-			'geometry'	=> $result['location'],
+			'geometry'	=> $location,
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
 		);
@@ -1038,11 +1040,13 @@ class telluswhere
 		if (!$result = $this->auditForm ($schema['fields'], $category, $data)) {return;}
 		
 		# Assemble the update
+		$location = $result['location'];
+		unset ($result['location']);
 		$update = array (
 			'dataset'	=> $this->settings['auditDataset'],
 			'id'		=> $id,
 			#!# API should really be renamed location
-			'geometry'	=> $result['location'],
+			'geometry'	=> $location,
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
 		);

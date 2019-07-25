@@ -444,6 +444,15 @@ var telluswhere = (function ($) {
 				if ($.type (value) === 'array')  {return; /* i.e. continue */}
 				if ($.type (value) === 'object') {return; /* i.e. continue */}
 				
+				// If the label is null, hide the row
+				if (_popupLabels) {
+					if (key in _popupLabels) {
+						if (_popupLabels[key] == null) {
+							return;	/* i.e. continue */
+						}
+					}
+				}
+				
 				// Key
 				fieldLabel = key;
 				if (_popupLabels) {

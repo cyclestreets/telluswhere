@@ -889,6 +889,11 @@ class telluswhere
 		# Add core fields
 		$popupLabels['surveyDate'] = 'Survey date';
 		
+		# Hide internal fields
+		$popupLabels['_type'] = NULL;
+		$popupLabels['road_name'] = NULL;
+		$popupLabels['osm_id'] = NULL;
+		
 		# Set the labels
 		$this->popupLabels = $popupLabels;
 		#!# Not yet working

@@ -948,7 +948,9 @@ class telluswhere
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%type', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Create the audit form (with map)
-		$this->auditForm ($schema[$category]['fields'], $category, array ());
+		$result = $this->auditForm ($schema[$category]['fields'], $category, array ());
+		
+		application::dumpData ($result);
 	}
 	
 	
@@ -1002,7 +1004,9 @@ class telluswhere
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
 		# Create the audit form (with map)
-		$this->auditForm ($schema['fields'], $category, $data);
+		$result = $this->auditForm ($schema['fields'], $category, $data);
+		
+		application::dumpData ($result);
 	}
 	
 	
@@ -1013,7 +1017,8 @@ class telluswhere
 		$locationData = ($data ? $data['properties'] : array ());
 		
 		# Combine mutually-exclusive boolean fields into a single drop-down
-		$fields = $this->auditFormCombineBooleanFields ($fields);
+		$fieldsOriginal = $fields;	// Cache for later use
+		$fields = $this->auditFormCombineBooleanFields ($fields, $combinationValues /* returned by reference */);
 		
 		# Convert boolean true/false to checkbox
 		$fields = $this->auditFormConvertBooleanCheckbox ($fields, $locationData /* amended by reference */);
@@ -1084,12 +1089,19 @@ class telluswhere
 		$result = $form->process ($formHtml);
 		$this->template['form'] = $formHtml;
 		
+		# Un-convert boolean true/false to checkbox
+		$fields = $this->auditFormUnconvertBooleanCheckbox ($result, $fieldsOriginal);
 		
+		# Un-combine mutually-exclusive boolean fields into a single drop-down
+		$result = $this->auditFormUncombineBooleanFields ($result, $combinationValues, $fieldsOriginal);
+		
+		# Return the result
+		return $result;
 	}
 	
 	
 	# Audit form helper function to combine mutually-exclusive boolean fields into a single drop-down
-	private function auditFormCombineBooleanFields ($fields)
+	private function auditFormCombineBooleanFields ($fields, &$combinationValues)
 	{
 		# Combine separate boolean fields to a drop-down, where present
 		$fieldsCombined = array ();
@@ -1122,6 +1134,28 @@ class telluswhere
 	}
 	
 	
+	# Audit form helper function to un-combine a drop-down back to separate boolean fields
+	private function auditFormUncombineBooleanFields ($result, $combinationValues, $fieldsOriginal)
+	{
+		# Substitute back
+		$resultUncombined = array ();
+		foreach ($result as $field => $value) {
+			if (isSet ($combinationValues[$field])) {
+				foreach ($combinationValues[$field] as $originalField => $label) {
+					$result[$originalField] = ($value == $originalField ? 'TRUE' : 'FALSE');
+				}
+				unset ($result[$field]);
+			}
+		}
+		
+		# Reorder as per original schema
+		$result = application::arrayFields ($result, array_keys ($fieldsOriginal));
+		
+		# Return the result
+		return $result;
+	}
+	
+	
 	# Audit form helper function to convert boolean true/false to checkbox
 	private function auditFormConvertBooleanCheckbox ($fields, &$data)
 	{
@@ -1141,6 +1175,23 @@ class telluswhere
 	}
 	
 	
+	# Audit form helper function to convert un-convert checkbox back to boolean true/false
+	private function auditFormUnconvertBooleanCheckbox ($result, $fieldsOriginal)
+	{
+		# Unconvert relevant fields
+		foreach ($fieldsOriginal as $fieldname => $field) {
+			if ($field['datatype'] == "ENUM('TRUE','FALSE')") {
+				
+				# Convert the data back
+				if ($result[$fieldname] == 1) {$result[$fieldname] = 'TRUE';}
+				if ($result[$fieldname] == '') {$result[$fieldname] = 'FALSE';}
+			}
+		}
+		
+		# Return the result
+		return $result;
+	}
+
 	# Helper function to get the schema for auditing
 	private function getAuditSchema ($category = false)
 	{

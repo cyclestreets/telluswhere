@@ -948,7 +948,20 @@ class telluswhere
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%type', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Create the audit form (with map)
-		$result = $this->auditForm ($schema[$category]['fields'], $category, array ());
+		if (!$result = $this->auditForm ($schema[$category]['fields'], $category, array ())) {return;}
+		
+		# Assemble the insert
+		$insert = array (
+			'dataset'	=> $this->settings['auditDataset'],
+			'type'		=> $category,
+			'geometry'	=> json_encode ($result['geometry']),
+			'attributes'	=> json_encode ($result),
+			'surveydate'	=> $result['surveyDate'],
+		);
+		
+		# Perform the insert; see: https://www.cyclestreets.net/api/v2/infrastructure.add/
+		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.add?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($schemaUrl, $insert);
 		
 		application::dumpData ($result);
 	}
@@ -1010,8 +1023,7 @@ class telluswhere
 		$update = array (
 			'dataset'	=> $this->settings['auditDataset'],
 			'id'		=> $id,
-			#!# Need to support changing the geometry - currently just passed through unamended
-			'geometry'	=> json_encode ($data['geometry']),
+			'geometry'	=> json_encode ($result['geometry']),
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
 		);
@@ -1108,6 +1120,8 @@ class telluswhere
 			'picker' => true,
 			'default' => date ('Y-m-d'),
 		));
+		
+		#!# Need to set the geometry
 		
 		# Process the form, and send to the template
 		$formHtml = '';

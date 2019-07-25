@@ -1055,10 +1055,10 @@ class telluswhere
 		
 		# Combine mutually-exclusive boolean fields into a single drop-down
 		$fieldsOriginal = $fields;	// Cache for later use
-		$fields = $this->auditFormCombineBooleanFields ($fields, $combinationValues /* returned by reference */);
+		$locationDataOriginal = $locationData;
+		$fields = $this->auditFormCombineBooleanFields ($fields, $locationData /* amended by reference */, $combinationValues /* returned by reference */);
 		
 		# Convert boolean true/false to checkbox
-		$locationDataOriginal = $locationData;
 		$fields = $this->auditFormConvertBooleanCheckbox ($fields, $locationData /* amended by reference */);
 		
 		# Reformat descriptions
@@ -1154,7 +1154,7 @@ class telluswhere
 	
 	
 	# Audit form helper function to combine mutually-exclusive boolean fields into a single drop-down
-	private function auditFormCombineBooleanFields ($fields, &$combinationValues)
+	private function auditFormCombineBooleanFields ($fields, &$data, &$combinationValues)
 	{
 		# Combine separate boolean fields to a drop-down, where present
 		$fieldsCombined = array ();
@@ -1171,6 +1171,12 @@ class telluswhere
 				);
 				$combinationValues[$combinedFieldname][$fieldname] = $field['field'];
 				// Do not copy the original field across
+				
+				# Amend the data for this field also
+				if (array_key_exists ($fieldname, $data)) {
+					$data[$combinedFieldname] = $fieldname;
+					unset ($data[$fieldname]);
+				}
 			} else {
 				$fieldsCombined[$fieldname] = $field;	// Copy-as is, done to ensure that the ordering remains
 			}

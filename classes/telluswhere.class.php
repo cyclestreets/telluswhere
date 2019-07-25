@@ -977,7 +977,7 @@ class telluswhere
 		//application::dumpData ($result);
 		
 		# Confirm outcome
-		$this->auditConfirmation ($result);
+		$this->auditConfirmation ($result, 'added');
 	}
 	
 	
@@ -1049,16 +1049,16 @@ class telluswhere
 		//application::dumpData ($result);
 		
 		# Confirm outcome
-		$this->auditConfirmation ($result);
+		$this->auditConfirmation ($result, 'updated');
 	}
 	
 	
 	# Function to confirm the outcome of the audit form change
-	private function auditConfirmation ($result)
+	private function auditConfirmation ($result, $action /* added/updated */)
 	{
 		#!# Error handling needed
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
-		$resultHtml  = "<p>{$unicodeTick} Thank you! This location has now been updated.</p>";
+		$resultHtml  = "<p>{$unicodeTick} Thank you! This location has now been {$action}.</p>";
 		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
 		$this->template['form'] = $resultHtml;
 	}

@@ -886,6 +886,9 @@ class telluswhere
 			$popupLabels[$fieldname] = $field['field'];
 		}
 		
+		# Add core fields
+		$popupLabels['surveyDate'] = 'Survey date';
+		
 		# Set the labels
 		$this->popupLabels = $popupLabels;
 		#!# Not yet working
@@ -1116,6 +1119,7 @@ class telluswhere
 		$form->datetime (array (
 			'name' => 'surveyDate',
 			'title' => 'Survey date',
+			'description' => 'Date when this location was surveyed on-street',
 			'required' => true,
 			'picker' => true,
 			'default' => date ('Y-m-d'),

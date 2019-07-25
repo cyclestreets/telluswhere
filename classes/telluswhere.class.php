@@ -965,7 +965,8 @@ class telluswhere
 		$insert = array (
 			'dataset'	=> $this->settings['auditDataset'],
 			'type'		=> $category,
-			'geometry'	=> json_encode ($result['geometry']),
+			#!# API should really be renamed location
+			'geometry'	=> $result['location'],
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
 		);
@@ -1034,7 +1035,8 @@ class telluswhere
 		$update = array (
 			'dataset'	=> $this->settings['auditDataset'],
 			'id'		=> $id,
-			'geometry'	=> json_encode ($result['geometry']),
+			#!# API should really be renamed location
+			'geometry'	=> $result['location'],
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
 		);
@@ -1111,6 +1113,7 @@ class telluswhere
 		$this->template['map'] = $mapHtml;
 		
 		# Create a new form
+		$formHtml = '';
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'		=> false,
@@ -1139,10 +1142,10 @@ class telluswhere
 			'default' => date ('Y-m-d'),
 		));
 		
-		#!# Need to set the geometry
+		# Location (hidden)
+		$this->addHiddenLocationFields ($form /* modified by reference */, $formHtml /* modified by reference */, $selectedIdData);
 		
 		# Process the form, and send to the template
-		$formHtml = '';
 		$result = $form->process ($formHtml);
 		$this->template['form'] = $formHtml;
 		if (!$result) {return false;}
@@ -1152,6 +1155,14 @@ class telluswhere
 		
 		# Un-combine mutually-exclusive boolean fields into a single drop-down
 		$result = $this->auditFormUncombineBooleanFields ($result, $combinationValues, $fieldsOriginal);
+		
+		# Assemble the location field to a GeoJSON geometry
+		$geometry = array (
+			'type' => 'Point',
+			'coordinates' => array ((float) number_format ($result['longitude'], 6), (float) number_format ($result['latitude'], 6)),
+		);
+		unset ($result['latitude'], $result['longitude'], $result['zoom']);
+		$result['location'] = json_encode ($geometry);
 		
 		# Return the result
 		return $result;
@@ -1215,6 +1226,9 @@ class telluswhere
 		# Reorder as per original schema
 		$fields = array_keys ($fieldsOriginal);
 		$fields[] = 'surveyDate';
+		$fields[] = 'latitude';
+		$fields[] = 'longitude';
+		$fields[] = 'zoom';
 		$result = application::arrayFields ($result, $fields);
 		
 		# Return the result
@@ -2164,27 +2178,31 @@ class telluswhere
 	
 	
 	# Function to provide hidden location fields in a form
-	private function addHiddenLocationFields (&$form, &$html)
+	private function addHiddenLocationFields (&$form, &$html, $initialValue = array ())
 	{
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS
 		$html .= "\n" . '<style type="text/css">
 			#form_latitude, #form_longitude, #form_zoom {display: none;}
+			form tr.latitude, form tr.longitude, form tr.zoom {display: none;}
 		</style>
 		';
 		$form->input (array (
 			'name'			=> 'latitude',
 			'title'			=> 'Latitude (set by clicking on map)',
 			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+			'default'		=> ($initialValue ? $initialValue['latitude'] : false),
 		));
 		$form->input (array (
 			'name'			=> 'longitude',
 			'title'			=> 'Longitude (set by clicking on map)',
 			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+			'default'		=> ($initialValue ? $initialValue['longitude'] : false),
 		));
 		$form->input (array (
 			'name'			=> 'zoom',
 			'title'			=> 'Zoom level (set by clicking on map)',
 			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+			'default'		=> ($initialValue ? $initialValue['zoom'] : false),
 		));
 		
 		# Validate

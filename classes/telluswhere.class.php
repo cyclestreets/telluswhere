@@ -2147,6 +2147,25 @@ class telluswhere
 		));
 		
 		# Location (hidden)
+		$this->addHiddenLocationFields ($form /* modified by reference */, $html /* modified by reference */);
+		
+		# Process the form
+		$result = $form->process ($html);
+		
+		# Upon a successful submission, save the name and e-mail in a cookie for a short period to save the user having to re-type these
+		if ($result) {
+			$name = (isSet ($result['name']) ? $result['name'] : false);
+			$this->setCourtesyUserdetails ($name, $result['email']);
+		}
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Function to provide hidden location fields in a form
+	private function addHiddenLocationFields (&$form, &$html)
+	{
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS
 		$html .= "\n" . '<style type="text/css">
 			#form_latitude, #form_longitude, #form_zoom {display: none;}
@@ -2167,23 +2186,13 @@ class telluswhere
 			'title'			=> 'Zoom level (set by clicking on map)',
 			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
 		));
+		
+		# Validate
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
 			if (!strlen ($unfinalisedData['latitude']) || !strlen ($unfinalisedData['longitude']) || !strlen ($unfinalisedData['zoom']) || !preg_match ('/^[0-9-.]+$/', $unfinalisedData['latitude']) || !preg_match ('/^[0-9-.]+$/', $unfinalisedData['longitude']) || !preg_match ('/^[0-9]{1,2}$/', $unfinalisedData['zoom'])) {
 				$form->registerProblem ('location', 'The map location needs to be set.');
 			}
 		}
-		
-		# Process the form
-		$result = $form->process ($html);
-		
-		# Upon a successful submission, save the name and e-mail in a cookie for a short period to save the user having to re-type these
-		if ($result) {
-			$name = (isSet ($result['name']) ? $result['name'] : false);
-			$this->setCourtesyUserdetails ($name, $result['email']);
-		}
-		
-		# Return the result
-		return $result;
 	}
 	
 	

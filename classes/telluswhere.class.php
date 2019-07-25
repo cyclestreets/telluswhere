@@ -974,8 +974,10 @@ class telluswhere
 		# Perform the insert; see: https://www.cyclestreets.net/api/v2/infrastructure.add/
 		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.add?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($schemaUrl, $insert);
+		//application::dumpData ($result);
 		
-		application::dumpData ($result);
+		# Confirm outcome
+		$this->auditConfirmation ($result);
 	}
 	
 	
@@ -1044,8 +1046,21 @@ class telluswhere
 		# Perform the update; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
 		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.update?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($schemaUrl, $update);
+		//application::dumpData ($result);
 		
-		application::dumpData ($result);
+		# Confirm outcome
+		$this->auditConfirmation ($result);
+	}
+	
+	
+	# Function to confirm the outcome of the audit form change
+	private function auditConfirmation ($result)
+	{
+		#!# Error handling needed
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
+		$resultHtml  = "<p>{$unicodeTick} Thank you! This location has now been updated.</p>";
+		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
+		$this->template['form'] = $resultHtml;
 	}
 	
 	

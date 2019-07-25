@@ -1004,7 +1004,21 @@ class telluswhere
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
 		# Create the audit form (with map)
-		$result = $this->auditForm ($schema['fields'], $category, $data);
+		if (!$result = $this->auditForm ($schema['fields'], $category, $data)) {return;}
+		
+		# Assemble the update
+		$update = array (
+			'dataset'	=> $this->settings['auditDataset'],
+			'id'		=> $id,
+			#!# Need to support changing the geometry - currently just passed through unamended
+			'geometry'	=> json_encode ($data['geometry']),
+			'attributes'	=> json_encode ($result),
+			'surveydate'	=> $result['surveyDate'],
+		);
+		
+		# Perform the update; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
+		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.update?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($schemaUrl, $update);
 		
 		application::dumpData ($result);
 	}
@@ -1102,7 +1116,7 @@ class telluswhere
 		if (!$result) {return false;}
 		
 		# Un-convert boolean true/false to checkbox
-		$fields = $this->auditFormUnconvertBooleanCheckbox ($result, $fieldsOriginal);
+		$result = $this->auditFormUnconvertBooleanCheckbox ($result, $fieldsOriginal);
 		
 		# Un-combine mutually-exclusive boolean fields into a single drop-down
 		$result = $this->auditFormUncombineBooleanFields ($result, $combinationValues, $fieldsOriginal);

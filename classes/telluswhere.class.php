@@ -1232,8 +1232,8 @@ class telluswhere
 		if ($combinationValues) {
 			foreach ($combinationValues as $combinedFieldname => $values) {
 				$fieldsCombined[$combinedFieldname]['datatype'] = "ENUM('" . implode ("','", array_keys ($values)) . "')";
+				$fieldsCombined[$combinedFieldname]['labels'] = $combinationValues[$combinedFieldname];
 			}
-			$fieldsCombined[$combinedFieldname]['labels'] = $combinationValues[$combinedFieldname];
 		}
 		
 		# Return the potentially-combined fields

@@ -1089,6 +1089,11 @@ class telluswhere
 			}
 		}
 		
+		# Set combined fields to be required, as they indicate an overall type selection
+		foreach ($combinationValues as $combinedField => $values) {
+			$attributes[$combinedField]['required'] = true;
+		}
+		
 		# Assemble selected ID data
 		$selectedIdData = array ();
 		if ($data) {

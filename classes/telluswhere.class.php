@@ -974,10 +974,14 @@ class telluswhere
 		# Perform the insert; see: https://www.cyclestreets.net/api/v2/infrastructure.add/
 		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.add?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($schemaUrl, $insert);
+		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
+		# Construct the URL of the new location
+		$url = "/audit/location/{$result['id']}/";
+		
 		# Confirm outcome
-		$this->auditConfirmation ($result, 'added');
+		$this->auditConfirmation ($result, 'added', $url);
 	}
 	
 	
@@ -1046,6 +1050,7 @@ class telluswhere
 		# Perform the update; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
 		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.update?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($schemaUrl, $update);
+		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
 		# Confirm outcome
@@ -1054,11 +1059,14 @@ class telluswhere
 	
 	
 	# Function to confirm the outcome of the audit form change
-	private function auditConfirmation ($result, $action /* added/updated */)
+	private function auditConfirmation ($result, $action /* added/updated */, $urlLink = false)
 	{
 		#!# Error handling needed
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$resultHtml  = "<p>{$unicodeTick} Thank you! This location has now been {$action}.</p>";
+		if ($urlLink) {
+			$resultHtml .= "\n<p>You can now <a href=\"{$urlLink}\">see it on the map or edit it further</a> if you wish.</p>";
+		}
 		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
 		$this->template['form'] = $resultHtml;
 	}

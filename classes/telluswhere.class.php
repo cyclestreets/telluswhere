@@ -955,6 +955,9 @@ class telluswhere
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%type', $category, $this->actions[$this->action]['apiUrl']);
 		
+		# Assign the popup labels
+		$this->auditSetPopupLabels ($schema[$category], $flatten = false);
+		
 		# Create the audit form (with map)
 		if (!$result = $this->auditForm ($schema[$category]['fields'], $category, array ())) {return;}
 		

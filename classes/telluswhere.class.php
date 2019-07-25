@@ -1139,6 +1139,11 @@ class telluswhere
 			'div'				=> 'auditform',
 			'labelsSurround'		=> true,
 		));
+		if ($data) {
+			$form->heading ('p', 'Please check the map location to ensure it is correct. If not, you can drag the marker to give an accurate location.');
+		} else {
+			$form->heading ('p', 'Firstly, click on the map to set the location. You can then drag the marker to get an accurate location.');
+		}
 		$form->dataBinding (array (
 			'schema' => $schemaDatabinding,
 			'intelligence' => true,

@@ -1058,6 +1058,7 @@ class telluswhere
 		$fields = $this->auditFormCombineBooleanFields ($fields, $combinationValues /* returned by reference */);
 		
 		# Convert boolean true/false to checkbox
+		$locationDataOriginal = $locationData;
 		$fields = $this->auditFormConvertBooleanCheckbox ($fields, $locationData /* amended by reference */);
 		
 		# Reformat descriptions
@@ -1101,7 +1102,7 @@ class telluswhere
 		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
-		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationData);
+		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
 		# Create a new form

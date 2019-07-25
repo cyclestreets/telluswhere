@@ -1085,9 +1085,21 @@ class telluswhere
 			'data' => $locationData,
 			'attributes' => $attributes,
 		));
+		
+		# Add survey date
+		$form->datetime (array (
+			'name' => 'surveyDate',
+			'title' => 'Survey date',
+			'required' => true,
+			'picker' => true,
+			'default' => date ('Y-m-d'),
+		));
+		
+		# Process the form, and send to the template
 		$formHtml = '';
 		$result = $form->process ($formHtml);
 		$this->template['form'] = $formHtml;
+		if (!$result) {return false;}
 		
 		# Un-convert boolean true/false to checkbox
 		$fields = $this->auditFormUnconvertBooleanCheckbox ($result, $fieldsOriginal);
@@ -1149,7 +1161,9 @@ class telluswhere
 		}
 		
 		# Reorder as per original schema
-		$result = application::arrayFields ($result, array_keys ($fieldsOriginal));
+		$fields = array_keys ($fieldsOriginal);
+		$fields[] = 'surveyDate';
+		$result = application::arrayFields ($result, $fields);
 		
 		# Return the result
 		return $result;

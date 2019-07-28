@@ -1156,8 +1156,8 @@ class telluswhere
 			'nullText'			=> false,
 			'div'				=> 'auditform',
 			'labelsSurround'		=> true,
-			'uploadThumbnailWidth'		=> 200,
-			'uploadThumbnailHeight'		=> 150,
+			'uploadThumbnailWidth'		=> 160,
+			'uploadThumbnailHeight'		=> 120,
 		));
 		if ($data) {
 			$form->heading ('p', 'Please check the map location to ensure it is correct. If not, you can drag the marker to give an accurate location.');

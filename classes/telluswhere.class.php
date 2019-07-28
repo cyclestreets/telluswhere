@@ -1776,13 +1776,7 @@ class telluswhere
 		$file = false;
 		if (isSet ($rawdata['filename'])) {		// If there is an existing photo, this field will not be present
 			if ($rawdata['filename']) {
-				$file = $filePath . $rawdata['filename'];
-				if (function_exists ('curl_file_create')) {
-					$mediaupload = curl_file_create ($file);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
-				} else {
-					$mediaupload = '@' . $file;	// Deprecated method using @ symbol - see: https://stackoverflow.com/a/4270282/180733
-				}
-				$data['mediaupload'] = $mediaupload;
+				$data['mediaupload'] = $this->prepareFile ($filePath . $rawdata['filename']);
 			}
 		}
 		
@@ -1813,6 +1807,18 @@ class telluswhere
 		
 		# Return the result
 		return $result;
+	}
+	
+	
+	# Function to prepare a file for upload; see: https://stackoverflow.com/a/4270282/180733
+	private function prepareFile ($file)
+	{
+		if (function_exists ('curl_file_create')) {
+			$mediaupload = curl_file_create ($file);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
+		} else {
+			$mediaupload = '@' . $file;	// Deprecated method using @ symbol - see: https://stackoverflow.com/a/4270282/180733
+		}
+		return $mediaupload;
 	}
 	
 	

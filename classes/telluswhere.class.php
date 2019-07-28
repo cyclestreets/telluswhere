@@ -2044,7 +2044,7 @@ class telluswhere
 		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?3"></script>';
+		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?4"></script>';
 		$html .= "\n" . "<script type=\"text/javascript\">
 		// Function to determine requirement for IE<=9 to use JSONP instead of JSON; see: https://stackoverflow.com/a/19562445/180733
 		function useJsonpTransport () {

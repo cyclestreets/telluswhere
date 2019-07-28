@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.4';
+	var $version = '1.25.5';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -7221,21 +7221,24 @@ class form
 				
 				# Overwrite the filename if being forced; this always maintains the file extension
 				if ($arguments['forcedFileName']) {
+					$forcedFilename = $arguments['forcedFileName'];
+					if (is_array ($arguments['forcedFileName'])) {
+						$forcedFilename = $arguments['forcedFileName'][$subfield];
+					}
 					
 					# If the forced filename is prefixed with a %, look for a field of that name, and use its value (e.g. '%id' will use a forcedFileName that is the value of the submitted 'id' element)
 					#!# Currently this doesn't check whether %id is sensible, in terms of a missing/non-required/array-type field (and ideally with a suitable regexp)
-					if (preg_match ('/^%(.+)$/', $arguments['forcedFileName'], $matches)) {
+					if (preg_match ('/^%(.+)$/', $forcedFilename, $matches)) {
 						$matchField = $matches[1];
 						if (isSet ($this->elements[$matchField])) {
 							if (is_string ($this->form[$matchField])) {		// #!# Support only at present for string types; there needs to be a standard way for elements to give a serialised string representation of their output
 								$forcedFilename = $this->form[$matchField];
 								$forcedFilename = str_replace (array ('/', '\\'), '_', $forcedFilename);	// Prevent any kind of directory traversal attacks
-								$arguments['forcedFileName'] = $forcedFilename;
 							}
 						}
 					}
 					
-					$attributes['name'] = $arguments['forcedFileName'] . $fileExtension;
+					$attributes['name'] = $forcedFilename . $fileExtension;
 				}
 				
 				# If appendExtension is set, add that on to the filename

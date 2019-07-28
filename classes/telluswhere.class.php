@@ -964,6 +964,10 @@ class telluswhere
 		# Assemble the insert
 		$location = $result['location'];
 		unset ($result['location']);
+		$photo0 = $result['photo0'];
+		$photo1 = $result['photo1'];
+		unset ($result['photo0']);
+		unset ($result['photo1']);
 		$insert = array (
 			'dataset'	=> $this->settings['auditDataset'],
 			'type'		=> $category,
@@ -971,11 +975,13 @@ class telluswhere
 			'geometry'	=> $location,
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
+			'photo0'	=> $photo0,
+			'photo1'	=> $photo1,
 		);
 		
 		# Perform the insert; see: https://www.cyclestreets.net/api/v2/infrastructure.add/
 		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.add?key=' . $this->settings['apiKey'];
-		$result = application::file_post_contents ($schemaUrl, $insert);
+		$result = application::file_post_contents ($schemaUrl, $insert, $multipart = true);
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
@@ -1150,6 +1156,8 @@ class telluswhere
 			'nullText'			=> false,
 			'div'				=> 'auditform',
 			'labelsSurround'		=> true,
+			'uploadThumbnailWidth'		=> 200,
+			'uploadThumbnailHeight'		=> 150,
 		));
 		if ($data) {
 			$form->heading ('p', 'Please check the map location to ensure it is correct. If not, you can drag the marker to give an accurate location.');
@@ -1162,6 +1170,21 @@ class telluswhere
 			'int1ToCheckbox' => true,
 			'data' => $locationData,
 			'attributes' => $attributes,
+		));
+		
+		# Add photo upload
+		$tempDir = sys_get_temp_dir () . '/';
+		$form->upload (array (
+			'name' => 'photos',
+			'title' => 'Two photos',
+			'description' => 'Must be JPG format',
+			'directory' => $tempDir,
+			'allowedExtensions' => array ('jpg', 'jpeg'),	// 'jpeg' variant needed as iOS picker may supply as *.jpeg
+			'draganddrop' => true,
+			'subfields' => 2,
+			#!# Needs to be uniqued per session
+			'forcedFileName' => array ('photo0', 'photo1'),
+			// Size is set above
 		));
 		
 		# Add survey date
@@ -1187,6 +1210,11 @@ class telluswhere
 		
 		# Un-combine mutually-exclusive boolean fields into a single drop-down
 		$result = $this->auditFormUncombineBooleanFields ($result, $combinationValues, $fieldsOriginal);
+		
+		# Split out and prepare the photos fields
+		$result['photo0'] = $this->prepareFile ($tempDir . $result['photos'][0]);
+		$result['photo1'] = $this->prepareFile ($tempDir . $result['photos'][1]);
+		unset ($result['photos']);
 		
 		# Assemble the location field to a GeoJSON geometry
 		$geometry = array (
@@ -1257,10 +1285,12 @@ class telluswhere
 		
 		# Reorder as per original schema
 		$fields = array_keys ($fieldsOriginal);
+		#!# Should be determined automatically rather than using this hard-coded list
 		$fields[] = 'surveyDate';
 		$fields[] = 'latitude';
 		$fields[] = 'longitude';
 		$fields[] = 'zoom';
+		$fields[] = 'photos';
 		$result = application::arrayFields ($result, $fields);
 		
 		# Return the result

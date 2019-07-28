@@ -1174,6 +1174,7 @@ class telluswhere
 		
 		# Add photo upload
 		$tempDir = sys_get_temp_dir () . '/';
+		$photos = 2;
 		$form->upload (array (
 			'name' => 'photos',
 			'title' => 'Two photos',
@@ -1181,7 +1182,7 @@ class telluswhere
 			'directory' => $tempDir,
 			'allowedExtensions' => array ('jpg', 'jpeg'),	// 'jpeg' variant needed as iOS picker may supply as *.jpeg
 			'draganddrop' => true,
-			'subfields' => 2,
+			'subfields' => $photos,
 			#!# Needs to be uniqued per session
 			'forcedFileName' => array ('photo0', 'photo1'),
 			// Size is set above
@@ -1210,6 +1211,16 @@ class telluswhere
 		
 		# Un-combine mutually-exclusive boolean fields into a single drop-down
 		$result = $this->auditFormUncombineBooleanFields ($result, $combinationValues, $fieldsOriginal);
+		
+		# Ensure files use .jpg rather than .jpeg
+		#!# Should be a generic option in ultimateForm
+		for ($i = 0; $i < $photos; $i++) {
+			$file = $tempDir . $result['photos'][$i];
+			if (preg_match ('/.jpeg$/', $file)) {
+				$result['photos'][$i] = preg_replace ('/.jpeg$/', '.jpg', $result['photos'][$i]);	// Update variable
+				rename ($file, $tempDir . $result['photos'][$i]);	// Move file
+			}
+		}
 		
 		# Split out and prepare the photos fields
 		$result['photo0'] = $this->prepareFile ($tempDir . $result['photos'][0]);

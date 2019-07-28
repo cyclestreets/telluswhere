@@ -859,7 +859,7 @@ class telluswhere
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		
 		# Create the map HTML
-		$html  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
+		$html  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
@@ -1141,7 +1141,7 @@ class telluswhere
 		}
 		
 		# Create the map HTML
-		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
+		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
@@ -1374,7 +1374,7 @@ class telluswhere
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map, in drawing mode
-		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>';
+		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = true);
 		$this->template['map'] = $mapHtml;
 		

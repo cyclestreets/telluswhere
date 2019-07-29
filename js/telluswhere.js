@@ -127,7 +127,7 @@ var telluswhere = (function ($) {
 					
 					// Add popups
 					onEachFeature: function (feature, layer) {
-						layer.bindPopup (telluswhere.popupHtml (feature.properties));
+						layer.bindPopup (telluswhere.popupHtml (feature.properties), {autoPanPaddingTopLeft: [0, 70]});
 					}
 				});
 				_currentDataLayers[index].addTo(map);

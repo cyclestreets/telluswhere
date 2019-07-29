@@ -3307,6 +3307,7 @@ class telluswhere
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
+			'submitTo'			=> $this->baseUrl . '/login/',
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'display'					=> 'template',

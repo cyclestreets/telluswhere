@@ -751,7 +751,7 @@ class telluswhere
 			$this->template['login'] = "<p>You are logged in.</a>";
 		} else {
 			$formHtml = '';
-			$this->loginForm ($formHtml);
+			$this->loginForm ($formHtml, false);
 			$this->template['login'] = $formHtml;
 		}
 		
@@ -3299,7 +3299,7 @@ class telluswhere
 	
 	
 	# Login form
-	private function loginForm (&$html)
+	private function loginForm (&$html, $autofocus = true)
 	{
 		# Start the HTML
 		$html = '';
@@ -3321,7 +3321,7 @@ class telluswhere
 			'name'		=> 'email',
 			'title'		=> 'Your e-mail address',
 			'required'	=> true,
-			'autofocus'	=> true,
+			'autofocus'	=> $autofocus,
 		));
 		$form->password (array (
 			'name'		=> 'password',

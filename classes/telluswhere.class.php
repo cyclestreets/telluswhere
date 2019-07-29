@@ -746,6 +746,15 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
+		# Add login form or status, where supported by the template
+		if ($this->user) {
+			$this->template['login'] = "<p>You are logged in.</a>";
+		} else {
+			$formHtml = '';
+			$this->loginForm ($formHtml);
+			$this->template['login'] = $formHtml;
+		}
+		
 		# Return the HTML
 		return $html;
 	}

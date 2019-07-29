@@ -890,6 +890,9 @@ class telluswhere
 		
 		# Show the audit map
 		$this->auditMap ($schema);
+		
+		# Add areas drop-down if supported
+		$this->template['areas'] = $this->areasDropdown ();
 	}
 	
 	

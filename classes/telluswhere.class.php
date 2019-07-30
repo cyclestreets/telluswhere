@@ -939,6 +939,7 @@ class telluswhere
 		
 		# Hide internal fields
 		$popupLabels['_type'] = NULL;
+		$popupLabels['iconUrl'] = NULL;
 		$popupLabels['road_name'] = NULL;
 		$popupLabels['osm_id'] = NULL;
 		

@@ -122,7 +122,12 @@ var telluswhere = (function ($) {
 					
 					// Style points - create a marker
 					pointToLayer: function (feature,latlng) {
-						return L.marker (latlng, {icon: _icons['already']});
+						var icon = _icons['already'];
+						if (feature.properties.iconUrl) {
+							icon = _icons['_dynamic'];
+							icon.options.iconUrl = feature.properties.iconUrl;
+						}
+						return L.marker (latlng, {icon: icon});
 					},
 					
 					// Add popups
@@ -228,7 +233,8 @@ var telluswhere = (function ($) {
 				current: new largeIcon({iconUrl: '/images/markers/current.png'}),
 				already: new smallIcon({iconUrl: '/images/markers/already.png'}),
 				auditlocation: new smallIcon({iconUrl: '/images/markers/auditlocation.png'}),
-				auditaddlocation: new smallIcon({iconUrl: '/images/markers/auditaddlocation.png'})
+				auditaddlocation: new smallIcon({iconUrl: '/images/markers/auditaddlocation.png'}),
+				_dynamic: new smallIcon({iconUrl: null})
 			};
 			
 			// Return the icons
@@ -435,6 +441,9 @@ var telluswhere = (function ($) {
 		// Popup which creates a table with images (and images) dynamically
 		popupHtmlDynamic: function (properties)
 		{
+			// Create a variable to hold the editing URL
+			var editUrl = null;
+			
 			// Create a simple key/value pair HTML table dynamically
 			// Code based on Leaflet.LayerViewer.js
 			var html = '<table>';
@@ -473,7 +482,8 @@ var telluswhere = (function ($) {
 				
 				// Link to ID
 				if (key == 'id') {
-					value = '<a href="' + _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/">' + telluswhere.htmlspecialchars (value) + '</a>';
+					editUrl = _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/';
+					value = '<a href="' + editUrl + '">' + telluswhere.htmlspecialchars (value) + '</a>';
 				}
 				
 				// Value conversions
@@ -491,6 +501,13 @@ var telluswhere = (function ($) {
 				$.each (properties.images, function (index, imageUrl) {
 					html += '<a href="' + imageUrl + '" target="_blank"><img src="' + imageUrl + '" width="140" /> ';
 				});
+			}
+			
+			// For audit location, add link to editing page
+			if (_action == 'auditlocation') {
+				if (editUrl) {
+					html += '<p><a href="' + editUrl + '" name="action">Edit</a></p>';
+				}
 			}
 			
 			// Return HTML

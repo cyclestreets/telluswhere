@@ -508,7 +508,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// For audit location, add link to editing page
-			if (_action == 'auditlocation') {
+			if (_action == 'audit' || _action == 'auditadd') {
 				if (editUrl) {
 					html += '<p><a href="' + editUrl + '" name="action">Edit</a></p>';
 				}

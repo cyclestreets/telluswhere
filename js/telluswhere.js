@@ -482,8 +482,12 @@ var telluswhere = (function ($) {
 				
 				// Link to ID
 				if (key == 'id') {
-					editUrl = _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/';
-					value = '<a href="' + editUrl + '">' + telluswhere.htmlspecialchars (value) + '</a>';
+					if (_action == 'auditlocation') {	// Do not link on edit page itself
+						value = telluswhere.htmlspecialchars (value);
+					} else {
+						editUrl = _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/';
+						value = '<a href="' + editUrl + '">' + telluswhere.htmlspecialchars (value) + '</a>';
+					}
 				}
 				
 				// Value conversions

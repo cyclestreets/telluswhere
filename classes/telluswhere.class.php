@@ -2064,7 +2064,7 @@ class telluswhere
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?17\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?18\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
 			var map = telluswhere.createMap ({

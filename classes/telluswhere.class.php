@@ -1303,6 +1303,7 @@ class telluswhere
 					'field'		=> $field['combineLabel'],
 					'description'	=> $field['combineLabel'],
 					'datatype'	=> NULL,	// Will be populated at the end from $combinationValues
+					'documentationUrl'	=> $field['documentationUrl'],
 					'labels'	=> NULL,	// Will be populated at the end from $combinationValues
 				);
 				$combinationValues[$combinedFieldname][$fieldname] = $field['field'];

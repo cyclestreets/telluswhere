@@ -1097,18 +1097,24 @@ class telluswhere
 		# Assemble the update
 		$location = $result['location'];
 		unset ($result['location']);
+		$photo0 = $result['photo0'];
+		$photo1 = $result['photo1'];
+		unset ($result['photo0']);
+		unset ($result['photo1']);
 		$update = array (
 			'dataset'	=> $this->settings['auditDataset'],
-			'id'		=> $id,
+			'id'		=> $data['id'],
 			#!# API should really be renamed location
 			'geometry'	=> $location,
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
+			'photo0'	=> $photo0,
+			'photo1'	=> $photo1,
 		);
 		
 		# Perform the update; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
 		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.update?key=' . $this->settings['apiKey'];
-		$result = application::file_post_contents ($schemaUrl, $update);
+		$result = application::file_post_contents ($schemaUrl, $update, $multipart = true);
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		

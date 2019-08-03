@@ -1118,8 +1118,11 @@ class telluswhere
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
+		# Construct the URL of the new location
+		$url = "/audit/location/{$result['id']}/";
+		
 		# Confirm outcome
-		$this->auditConfirmation ($result, 'updated');
+		$this->auditConfirmation ($result, 'updated', $url);
 	}
 	
 	

@@ -71,6 +71,9 @@ var telluswhere = (function ($) {
 			_popupLabels = settings.popupLabels;
 			_popupLabelSubsetField = settings.popupLabelSubsetField;
 			
+			// Use cookie location if present
+			telluswhere.readMapLocationCookie ();
+			
 			// Set map centre location
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
 			
@@ -91,6 +94,11 @@ var telluswhere = (function ($) {
 				icon: 'fa fa-location-arrow',
 				locateOptions: {maxZoom: 17}
 			}));
+			
+			// Set cookie on map move
+			map.on ('moveend', function (e) {
+				telluswhere.setMapLocationCookie ();
+			});
 			
 			// Transmit current location
 			telluswhere.transmitCurrentLocation();
@@ -838,6 +846,52 @@ var telluswhere = (function ($) {
 			
 			// Return the status
 			return formOk;
+		},
+		
+		
+		// Function to read map location cookie
+		readMapLocationCookie: function ()
+		{
+			// Read the cookie location
+			var location = telluswhere.readCookie ('location');
+			
+			// If set, parse out the location
+			if (location) {
+				var locationComponents = location.split ('/');
+				_initialZoom = locationComponents[0];
+				_initialLatitude = locationComponents[1];
+				_initialLongitude = locationComponents[2];
+			}
+		},
+		
+		
+		// Function to set map location cookie
+		setMapLocationCookie: function ()
+		{
+			// Build the location string, e.g. 17/51.51178/-0.10137
+			var zoom = map.getZoom ();
+			var centre = map.getCenter ();
+			var location = zoom + '/' + centre.lat + '/' + centre.lng;
+			
+			// Set the cookie
+			telluswhere.setCookie ('location', location);
+		},
+		
+		
+		// Cookie setting function
+		setCookie: function (name, value)
+		{
+			// Determine the time
+			var days = 7;
+			var date = new Date();
+			date.setTime (date.getTime () + (days * 24 * 60 * 60 * 1000) );
+			var expires = '; expires=' + date.toGMTString();
+			
+			// Set the path component
+			var path = '; path=/';
+			
+			// Compile the cookie string
+			document.cookie = name + '=' + value + expires + path;
 		},
 		
 		

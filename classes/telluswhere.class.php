@@ -1136,7 +1136,7 @@ class telluswhere
 			$resultHtml .= "\n<p>You can now <a href=\"{$urlLink}\">see it on the map or edit it further</a> if you wish.</p>";
 		}
 		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
-		$this->template['form'] = $resultHtml;
+		$this->template['presentForm'] = $resultHtml;
 	}
 	
 	
@@ -1261,7 +1261,7 @@ class telluswhere
 		
 		# Process the form, and send to the template
 		$result = $form->process ($formHtml);
-		$this->template['form'] = $formHtml;
+		$this->template['presentForm'] = $formHtml;
 		if (!$result) {return false;}
 		
 		# Un-convert boolean true/false to checkbox

@@ -1008,37 +1008,9 @@ class telluswhere
 		$this->auditSetPopupLabels ($schema[$category], $flatten = false);
 		
 		# Create the audit form (with map)
-		if (!$result = $this->auditForm ($schema[$category]['fields'], $category, array ())) {return;}
-		
-		# Assemble the insert
-		$location = $result['location'];
-		unset ($result['location']);
-		$photo0 = $result['photo0'];
-		$photo1 = $result['photo1'];
-		unset ($result['photo0']);
-		unset ($result['photo1']);
-		$insert = array (
-			'dataset'	=> $this->settings['auditDataset'],
-			'type'		=> $category,
-			#!# API should really be renamed location
-			'geometry'	=> $location,
-			'attributes'	=> json_encode ($result),
-			'surveydate'	=> $result['surveyDate'],
-			'photo0'	=> $photo0,
-			'photo1'	=> $photo1,
-		);
-		
-		# Perform the insert; see: https://www.cyclestreets.net/api/v2/infrastructure.add/
-		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.add?key=' . $this->settings['apiKey'];
-		$result = application::file_post_contents ($schemaUrl, $insert, $multipart = true);
-		$result = json_decode ($result, true);
-		//application::dumpData ($result);
-		
-		# Construct the URL of the new location
-		$url = "/audit/location/{$result['id']}/";
-		
-		# Confirm outcome
-		$this->auditConfirmation ($result, 'added', $url);
+		if ($result = $this->auditFormPresent ($schema[$category]['fields'], $category, array ())) {
+			$this->auditPresentCommit ($result, false, $category);
+		}
 	}
 	
 	
@@ -1092,8 +1064,15 @@ class telluswhere
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
 		# Create the audit form (with map)
-		if (!$result = $this->auditForm ($schema['fields'], $category, $data)) {return;}
-		
+		if ($result = $this->auditFormPresent ($schema['fields'], $category, $data)) {
+			$this->auditPresentCommit ($result, $id, false);
+		}
+	}
+	
+	
+	# Function to commit the results of an audit form for infrastructure present
+	private function auditPresentCommit ($result, $updateId = false, /* or if insert instead: */ $category = false)
+	{
 		# Assemble the update
 		$location = $result['location'];
 		unset ($result['location']);
@@ -1101,9 +1080,8 @@ class telluswhere
 		$photo1 = $result['photo1'];
 		unset ($result['photo0']);
 		unset ($result['photo1']);
-		$update = array (
+		$data = array (
 			'dataset'	=> $this->settings['auditDataset'],
-			'id'		=> $data['id'],
 			#!# API should really be renamed location
 			'geometry'	=> $location,
 			'attributes'	=> json_encode ($result),
@@ -1111,10 +1089,16 @@ class telluswhere
 			'photo0'	=> $photo0,
 			'photo1'	=> $photo1,
 		);
+		if ($updateId) {
+			$data['id'] = $updateId;
+		} else {
+			$data['type'] = $category;
+		}
 		
-		# Perform the update; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
-		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.update?key=' . $this->settings['apiKey'];
-		$result = application::file_post_contents ($schemaUrl, $update, $multipart = true);
+		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
+		$apiCall = ($updateId ? 'infrastructure.update' : 'infrastructure.add');
+		$schemaUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
@@ -1122,12 +1106,13 @@ class telluswhere
 		$url = "/audit/location/{$result['id']}/";
 		
 		# Confirm outcome
-		$this->auditConfirmation ($result, 'updated', $url);
+		$action = ($updateId ? 'updated' : 'added');
+		$this->auditConfirmation ($result, $action, $url);
 	}
 	
 	
 	# Function to confirm the outcome of the audit form change
-	private function auditConfirmation ($result, $action /* added/updated */, $urlLink = false)
+	private function auditConfirmation ($result, $action /* added/updated */, $urlLink)
 	{
 		#!# Error handling needed
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
@@ -1140,8 +1125,8 @@ class telluswhere
 	}
 	
 	
-	# Function to create the audit form, which includes the map
-	private function auditForm ($fields /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
+	# Function to create the audit form for infrastructure present, which includes the map
+	private function auditFormPresent ($fields /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
 	{
 		# Extract the properties for dataBinding and the map popup
 		$locationData = ($data ? $data['properties'] : array ());

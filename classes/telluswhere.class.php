@@ -1068,6 +1068,10 @@ class telluswhere
 			$this->auditPresentCommit ($result, $id, false);
 		}
 		
+		# Create the gone form
+		if ($result = $this->auditFormDelete ()) {
+			$this->auditDeleteCommit ($result, $id);
+		}
 	}
 	
 	
@@ -1408,6 +1412,60 @@ class telluswhere
 		}
 		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
 		$this->template['presentForm'] = $resultHtml;
+	}
+	
+	
+	# Form to mark a location as gone
+	private function auditFormDelete ()
+	{
+		# Create a new form
+		$formHtml = '';
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'name' => 'delete',
+			'submitButtonText'		=> 'Mark as no longer present &nbsp; &gt;',
+			'submitButtonAccesskey'		=> false,
+		));
+		$form->heading ('p', 'Or you can mark this location as no longer present:');
+		
+		# Add survey date
+		$form->datetime (array (
+			'name' => 'surveyDate',
+			'title' => 'Survey date',
+			'description' => 'Date when this location was surveyed on-street',
+			'required' => true,
+			'picker' => true,
+			'default' => date ('Y-m-d'),
+		));
+		
+		# Process the form, and send to the template
+		$result = $form->process ($formHtml);
+		$this->template['deleteForm'] = $formHtml;
+		if (!$result) {return false;}
+		
+		# Return the result
+		return $result;
+	}
+	
+	
+	# Function to commit the results of an audit form for infrastructure gone
+	private function auditDeleteCommit ($result, $id)
+	{
+		# Assemble the update
+		$data = array (
+			'dataset'	=> $this->settings['auditDataset'],
+			'id'		=> $id,
+			'surveydate'	=> $result['surveyDate'],
+		);
+		
+		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
+		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.delete?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
+		$result = json_decode ($result, true);
+		//application::dumpData ($result);
+		
+		# Confirm outcome
+		$this->auditConfirmation ($result, 'marked as deleted', false);
 	}
 	
 	

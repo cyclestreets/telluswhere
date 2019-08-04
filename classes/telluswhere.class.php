@@ -1063,65 +1063,11 @@ class telluswhere
 		# Assign the popup labels
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
-		# Create the audit form (with map)
+		# Create the audit location present form (with map)
 		if ($result = $this->auditFormPresent ($schema['fields'], $category, $data)) {
 			$this->auditPresentCommit ($result, $id, false);
 		}
-	}
-	
-	
-	# Function to commit the results of an audit form for infrastructure present
-	private function auditPresentCommit ($result, $updateId = false, /* or if insert instead: */ $category = false)
-	{
-		# Assemble the update
-		$location = $result['location'];
-		unset ($result['location']);
-		$photo0 = $result['photo0'];
-		$photo1 = $result['photo1'];
-		unset ($result['photo0']);
-		unset ($result['photo1']);
-		$data = array (
-			'dataset'	=> $this->settings['auditDataset'],
-			#!# API should really be renamed location
-			'geometry'	=> $location,
-			'attributes'	=> json_encode ($result),
-			'surveydate'	=> $result['surveyDate'],
-			'photo0'	=> $photo0,
-			'photo1'	=> $photo1,
-		);
-		if ($updateId) {
-			$data['id'] = $updateId;
-		} else {
-			$data['type'] = $category;
-		}
 		
-		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
-		$apiCall = ($updateId ? 'infrastructure.update' : 'infrastructure.add');
-		$schemaUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
-		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
-		$result = json_decode ($result, true);
-		//application::dumpData ($result);
-		
-		# Construct the URL of the new location
-		$url = "/audit/location/{$result['id']}/";
-		
-		# Confirm outcome
-		$action = ($updateId ? 'updated' : 'added');
-		$this->auditConfirmation ($result, $action, $url);
-	}
-	
-	
-	# Function to confirm the outcome of the audit form change
-	private function auditConfirmation ($result, $action /* added/updated */, $urlLink)
-	{
-		#!# Error handling needed
-		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
-		$resultHtml  = "<p>{$unicodeTick} Thank you! This location has now been {$action}.</p>";
-		if ($urlLink) {
-			$resultHtml .= "\n<p>You can now <a href=\"{$urlLink}\">see it on the map or edit it further</a> if you wish.</p>";
-		}
-		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
-		$this->template['presentForm'] = $resultHtml;
 	}
 	
 	
@@ -1408,7 +1354,61 @@ class telluswhere
 		# Return the schema
 		return $schema;
 	}
-
+	
+	
+	# Function to commit the results of an audit form for infrastructure present
+	private function auditPresentCommit ($result, $updateId = false, /* or if insert instead: */ $category = false)
+	{
+		# Assemble the update
+		$location = $result['location'];
+		unset ($result['location']);
+		$photo0 = $result['photo0'];
+		$photo1 = $result['photo1'];
+		unset ($result['photo0']);
+		unset ($result['photo1']);
+		$data = array (
+			'dataset'	=> $this->settings['auditDataset'],
+			#!# API should really be renamed location
+			'geometry'	=> $location,
+			'attributes'	=> json_encode ($result),
+			'surveydate'	=> $result['surveyDate'],
+			'photo0'	=> $photo0,
+			'photo1'	=> $photo1,
+		);
+		if ($updateId) {
+			$data['id'] = $updateId;
+		} else {
+			$data['type'] = $category;
+		}
+		
+		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
+		$apiCall = ($updateId ? 'infrastructure.update' : 'infrastructure.add');
+		$schemaUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
+		$result = json_decode ($result, true);
+		//application::dumpData ($result);
+		
+		# Construct the URL of the new location
+		$url = "/audit/location/{$result['id']}/";
+		
+		# Confirm outcome
+		$action = ($updateId ? 'updated' : 'added');
+		$this->auditConfirmation ($result, $action, $url);
+	}
+	
+	
+	# Function to confirm the outcome of the audit form change
+	private function auditConfirmation ($result, $action /* added/updated */, $urlLink)
+	{
+		#!# Error handling needed
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
+		$resultHtml  = "<p>{$unicodeTick} Thank you! This location has now been {$action}.</p>";
+		if ($urlLink) {
+			$resultHtml .= "\n<p>You can now <a href=\"{$urlLink}\">see it on the map or edit it further</a> if you wish.</p>";
+		}
+		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
+		$this->template['presentForm'] = $resultHtml;
+	}
 	
 	
 	# Page to set priority areas

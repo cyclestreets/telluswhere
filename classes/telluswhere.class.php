@@ -1009,7 +1009,7 @@ class telluswhere
 		
 		# Create the audit form (with map)
 		if ($result = $this->auditFormPresent ($schema[$category]['fields'], $category, array ())) {
-			$this->auditPresentCommit ($result, false, $category);
+			$this->template['presentForm'] = $this->auditPresentCommit ($result, false, $category);
 		}
 	}
 	
@@ -1065,12 +1065,17 @@ class telluswhere
 		
 		# Create the audit location present form (with map)
 		if ($result = $this->auditFormPresent ($schema['fields'], $category, $data)) {
-			$this->auditPresentCommit ($result, $id, false);
+			$this->template['presentForm'] = $this->auditPresentCommit ($result, $id, false);
+		}
+		
+		# Create the unchanged form
+		if ($result = $this->auditStatusChangeForm ('unchanged', 'unchangedForm')) {
+			$this->template['unchangedForm'] = $this->auditStatusCommit ('infrastructure.unchanged', $result, $id, 'unchanged');
 		}
 		
 		# Create the gone form
-		if ($result = $this->auditFormDelete ()) {
-			$this->auditDeleteCommit ($result, $id);
+		if ($result = $this->auditStatusChangeForm ('no longer present', 'deleteForm')) {
+			$this->template['deleteForm'] = $this->auditStatusCommit ('infrastructure.delete', $result, $id, 'no longer present');
 		}
 	}
 	
@@ -1397,7 +1402,7 @@ class telluswhere
 		
 		# Confirm outcome
 		$action = ($updateId ? 'updated' : 'added');
-		$this->auditConfirmation ($result, $action, $url);
+		return $this->auditConfirmation ($result, $action, $url);
 	}
 	
 	
@@ -1411,22 +1416,22 @@ class telluswhere
 			$resultHtml .= "\n<p>You can now <a href=\"{$urlLink}\">see it on the map or edit it further</a> if you wish.</p>";
 		}
 		$resultHtml .= "\n<p>Having up-to-date data like this helps apps, mapping, transport planning, and other uses that help cyclists.</p>";
-		$this->template['presentForm'] = $resultHtml;
+		return $resultHtml;
 	}
 	
 	
-	# Form to mark a location as gone
-	private function auditFormDelete ()
+	# Form to mark a location with a new status (unchanged/gone)
+	private function auditStatusChangeForm ($label, $placeholder)
 	{
 		# Create a new form
 		$formHtml = '';
 		require_once ('ultimateForm.php');
 		$form = new form (array (
-			'name' => 'delete',
-			'submitButtonText'		=> 'Mark as no longer present &nbsp; &gt;',
+			'name' => str_replace ('Form', '', $placeholder),
+			'submitButtonText'		=> "Mark as {$label} &nbsp; &gt;",
 			'submitButtonAccesskey'		=> false,
 		));
-		$form->heading ('p', 'Or you can mark this location as no longer present:');
+		$form->heading ('p', "Or you can mark this location as {$label}:");
 		
 		# Add survey date
 		$form->datetime (array (
@@ -1440,7 +1445,7 @@ class telluswhere
 		
 		# Process the form, and send to the template
 		$result = $form->process ($formHtml);
-		$this->template['deleteForm'] = $formHtml;
+		$this->template[$placeholder] = $formHtml;
 		if (!$result) {return false;}
 		
 		# Return the result
@@ -1448,8 +1453,8 @@ class telluswhere
 	}
 	
 	
-	# Function to commit the results of an audit form for infrastructure gone
-	private function auditDeleteCommit ($result, $id)
+	# Function to commit the results of an audit form for infrastructure unchanged/gone
+	private function auditStatusCommit ($apiMethod, $result, $id, $label)
 	{
 		# Assemble the update
 		$data = array (
@@ -1459,13 +1464,13 @@ class telluswhere
 		);
 		
 		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
-		$schemaUrl = $this->settings['apiBase'] . '/v2/infrastructure.delete?key=' . $this->settings['apiKey'];
+		$schemaUrl = $this->settings['apiBase'] . '/v2/' . $apiMethod . '?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
 		# Confirm outcome
-		$this->auditConfirmation ($result, 'marked as deleted', false);
+		return $this->auditConfirmation ($result, 'marked as ' . $label, false);
 	}
 	
 	

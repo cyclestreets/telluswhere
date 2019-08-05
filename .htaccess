@@ -57,6 +57,7 @@ RewriteCond %{REQUEST_FILENAME} !/robots\.txt$
 RewriteCond %{REQUEST_FILENAME} !/css/generic\.css$
 RewriteCond %{REQUEST_FILENAME} !/images/multipleupload\.png$
 RewriteCond %{REQUEST_FILENAME} !/images/ui-anim_basic_16x16\.gif$
+RewriteCond %{REQUEST_FILENAME} !/images/spinner\.svg$
 RewriteCond %{REQUEST_FILENAME} !/images/categories
 RewriteCond %{REQUEST_FILENAME} !/images/general
 RewriteCond %{REQUEST_FILENAME} !/images/icons

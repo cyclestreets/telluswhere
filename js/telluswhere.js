@@ -764,6 +764,15 @@ var telluswhere = (function ($) {
 		// Inner function to fetch current marker data
 		getDataLayer: function (url, layerIndex)
 		{
+			// Start spinner, initially adding it to the page
+			if (layerIndex == 0) {	// main
+				if (!$('#map #loading').length) {
+					$('#map').append('<img id="loading" src="' + _baseUrl + '/images/spinner.svg" />');
+				}
+				$('#map #loading').show();
+			}
+			
+			// Get the data
 			var data = 'bbox=' + map.getBounds().toBBoxString();
 			$.ajax ({
 				url: url,
@@ -772,6 +781,11 @@ var telluswhere = (function ($) {
 				data: data,
 				success: function (ajaxResponse) {
 					telluswhere.showCurrentDataLayer (ajaxResponse, layerIndex);
+					
+					// Remove spinner
+					if (layerIndex == 0) {	// main
+						$('#map #loading').hide();
+					}
 				}
 			});
 		},

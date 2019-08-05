@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.5';
+	var $version = '1.25.6';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -1050,6 +1050,7 @@ class form
 			'removeComments'		=> true,
 			'replacements'			=> array (),	// Regexp replacements to add before standard replacements are done
 			'after'					=> false,	# Placing the widget after a specific other widget
+			'noClickHere'				=> true,	# Disallow 'click here' and 'here' as link text
 		);
 		
 		# Create a new form widget
@@ -1430,6 +1431,15 @@ class form
 		
 		# Re-assign back the value
 		$this->form[$arguments['name']] = $elementValue;
+		
+		# Disallow 'Click here' and variants
+		if ($arguments['noClickHere']) {
+			if ($elementValue) {
+				if (substr_count (strtolower ($elementValue), '>here<') || substr_count (strtolower ($elementValue), '>click here<')) {
+					$elementProblems['noClickHere'] = "Please do not use 'click here' or similar - this is not accessible (as people scan pages); please rewrite the link text to be self-explanatory.";
+				}
+			}
+		}
 		
 		# Get the posted data
 		if ($this->formPosted) {

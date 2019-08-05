@@ -90,9 +90,10 @@ var telluswhere = (function ($) {
 			// Add hash
 			new L.Hash (map);
 			
-			// Add geolocation control
+			// Add geolocation control; see: https://github.com/domoritz/leaflet-locatecontrol
 			map.addControl(L.control.locate({
 				icon: 'fa fa-location-arrow',
+				setView: 'once',	// The default, 'untilPanOrZoom', can reduce battery heavily
 				locateOptions: {maxZoom: 17}
 			}));
 			

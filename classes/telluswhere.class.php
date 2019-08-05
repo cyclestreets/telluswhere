@@ -884,7 +884,7 @@ class telluswhere
 		if (!$this->settings['auditDataset']) {return false;}
 		
 		# Obtain the schema
-		if (!$schema = $this->getAuditSchema ($category)) {
+		if (!$schema = $this->getAuditSchema ()) {
 			$html = $this->page404 ();
 			echo $html;
 			return false;

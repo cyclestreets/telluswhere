@@ -78,12 +78,13 @@ var telluswhere = (function ($) {
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
 			
 			// Set tile layer
-			var tileUrl = 'https://{s}.tile.cyclestreets.net/mapnik/{z}/{x}/{y}.png';
+			var tileUrl = 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png';
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
-			_maxZoom = 19;
+			_maxZoom = 21;
 			L.tileLayer(tileUrl, {
 				attribution: tileAttribution,
-				maxZoom: _maxZoom
+				maxZoom: _maxZoom,
+				opacity: 0.8
 			}).addTo(map);
 			
 			// Add hash

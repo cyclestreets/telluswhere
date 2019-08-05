@@ -1339,8 +1339,10 @@ class telluswhere
 				$fields[$fieldname]['datatype'] = 'INT(1)';
 				
 				# Amend the data for this field also
-				if ($data[$fieldname] == 'TRUE') {$data[$fieldname] = 1;}
-				if ($data[$fieldname] == 'FALSE') {$data[$fieldname] = '';}
+				if ($data) {
+					if ($data[$fieldname] == 'TRUE') {$data[$fieldname] = 1;}
+					if ($data[$fieldname] == 'FALSE') {$data[$fieldname] = '';}
+				}
 			}
 		}
 		

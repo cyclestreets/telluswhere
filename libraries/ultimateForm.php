@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.6';
+	var $version = '1.25.7';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -145,6 +145,7 @@ class form
 		'submitButtonAccesskeyString'		=> false,							# Whether to show the accesskey string in the submit button
 		'submitButtonTabindex'				=> false,							# The form submit button tabindex (if any)
 		'submitButtonImage'					=> false,							# Location of an image to replace the form submit button
+		'submitButtonClass'					=> 'button',							# Submit button class
 		'refreshButton'						=> false,							# Whether to include a refresh button (i.e. submit form to redisplay but not process)
 		'refreshButtonAtEnd'				=> true,							# Whether the refresh button appears at the end or the start of the form
 		'refreshButtonText'					=> 'Refresh!',						# The form refresh button text
@@ -3187,6 +3188,11 @@ class form
 		
 		$arguments = $widget->getArguments ();
 		
+		# Automatically enable thumbnail when using drag and drop
+		if ($arguments['draganddrop']) {
+			$arguments['thumbnail'] = true;
+		}
+		
 		# Deal with handling of default file specification
 		if ($arguments['default']) {
 			$arguments['default'] = application::ensureArray ($arguments['default']);
@@ -3341,7 +3347,9 @@ class form
 			
 			# Where default file(s) are/is expected, show - for the current subfield - the filename for each file (or that there is no file)
 			if ($arguments['default']) {
-				$widgetHtml .= '<p class="currentfile' . ($subfield > 0 ? ' currentfilenext' : '') . '">' . (isSet ($arguments['default'][$subfield]) ? 'Current file: <span class="filename">' . htmlspecialchars (basename ($arguments['default'][$subfield]['name'])) . '</span>' : '<span class="comment">(No current file)</span>') . "</p>\n\t\t\t";
+				if (!$arguments['thumbnail']) {		// In thumbnail mode, default is instead shown in thumbnail box, below
+					$widgetHtml .= '<p class="currentfile' . ($subfield > 0 ? ' currentfilenext' : '') . '">' . (isSet ($arguments['default'][$subfield]) ? 'Current file: <span class="filename">' . htmlspecialchars (basename ($arguments['default'][$subfield]['name'])) . '</span>' : '<span class="comment">(No current file)</span>') . "</p>\n\t\t\t";
+				}
 			}
 			
 			# Define the widget's core HTML; note that MAX_FILE_SIZE as mentioned in the PHP manual is bogus (non-standard and seemingly not supported by any browsers), so is not supported here - doing so would also require MAX_FILE_SIZE as a disallowed form name, and would expose to the user the size of the PHP ini setting
@@ -3364,9 +3372,8 @@ class form
 		
 		# Convert to drag and drop zone if required; this merely styles the input box and does not use HTML5 Drag and Drop; see: https://codepen.io/TheLukasWeb/pen/qlGDa
 		if ($arguments['draganddrop']) {
-			$arguments['thumbnail'] = true;
 			$thumbnailText = 'Click here to pick photo, or drag and drop into this box.';
-                        $widgetHtml .= "
+			$widgetHtml .= "
 			<style type=\"text/css\">
 				form tr.upload div.draganddrop {
 					width: calc({$this->settings['uploadThumbnailWidth']}px + 4px + 4px);
@@ -3377,7 +3384,7 @@ class form
 					width: {$this->settings['uploadThumbnailWidth']}px;
 					height: {$this->settings['uploadThumbnailHeight']}px;
 					text-align: center;
-					padding: 25px;
+					padding: 15px;
 					color: gray;
 				}
 				form tr.upload div input {
@@ -3523,13 +3530,24 @@ class form
 					$thumbnailText = '(Thumbnail will appear here.)';
 				}
 				
+				# Determine whether there is a default image
+				$createDefaultImageJs = ($arguments['default'] && isSet ($arguments['default'][$subfield]) ? 'true' : 'false');
+				
 				# Add the Javascript
 				$this->jQueryCode[__FUNCTION__  . $arguments['name']] .= "\n" . "
 				$(document).ready(function() {
 					
 					if ({$createDivJs}) {
-						$('#{$elementId}').after ( $('<div />', {id: '{$thumbnailDivId}', width: '{$this->settings['uploadThumbnailWidth']}px', height: '{$this->settings['uploadThumbnailHeight']}px'}) );
+						$('#{$elementId}').after ( $('<div />', {
+							id: '{$thumbnailDivId}',
+							width: '{$this->settings['uploadThumbnailWidth']}px',
+							height: '{$this->settings['uploadThumbnailHeight']}px'
+						}) );
 						$('{$selector}').html( '<p class=\"comment\">{$thumbnailText}</p>' );
+					}
+					
+					if ({$createDefaultImageJs}) {
+						$('#{$thumbnailDivId}').html ('<img src=\"{$arguments['default'][$subfield]['name']}\" style=\"max-width: 100%; max-height: 100%;\" />');
 					}
 					
 					$('#{$elementId}').change(function() {
@@ -3537,7 +3555,6 @@ class form
 					});
 				});
 				";
-				
 			}
 		}
 		
@@ -6004,7 +6021,7 @@ class form
 		#!# Accesskey string needs to detect the user's platform and browser type, as Shift+Alt is not always correct, and on a Mac does not exist
 		if (!$this->formDisabled) {
 			$submitButtonText = $this->settings['submitButtonText'] . ((!empty ($this->settings['submitButtonAccesskey']) && $this->settings['submitButtonAccesskeyString']) ? '&nbsp; &nbsp;[Shift+Alt+' . $this->settings['submitButtonAccesskey'] . ']' : '');
-			$formButtonHtml = '<input type="' . (!$this->settings['submitButtonImage'] ? 'submit' : "image\" src=\"{$this->settings['submitButtonImage']}\" name=\"submit\" alt=\"{$submitButtonText}") . '" value="' . $submitButtonText . '"' . (!empty ($this->settings['submitButtonAccesskey']) ? " accesskey=\"{$this->settings['submitButtonAccesskey']}\""  : '') . (is_numeric ($this->settings['submitButtonTabindex']) ? " tabindex=\"{$this->settings['submitButtonTabindex']}\"" : '') . ' class="button' . (isSet ($this->multipleSubmitReturnHandlerClass) ? " {$this->multipleSubmitReturnHandlerClass}" : '') . '" />';
+			$formButtonHtml = '<input type="' . (!$this->settings['submitButtonImage'] ? 'submit' : "image\" src=\"{$this->settings['submitButtonImage']}\" name=\"submit\" alt=\"{$submitButtonText}") . '" value="' . $submitButtonText . '"' . (!empty ($this->settings['submitButtonAccesskey']) ? " accesskey=\"{$this->settings['submitButtonAccesskey']}\""  : '') . (is_numeric ($this->settings['submitButtonTabindex']) ? " tabindex=\"{$this->settings['submitButtonTabindex']}\"" : '') . ' class="' . ($this->settings['submitButtonClass']) . (isSet ($this->multipleSubmitReturnHandlerClass) ? " {$this->multipleSubmitReturnHandlerClass}" : '') . '" />';
 			if ($this->settings['refreshButton']) {
 				$refreshButtonText = $this->settings['refreshButtonText'] . (!empty ($this->settings['refreshButtonAccesskey']) ? '&nbsp; &nbsp;[Shift+Alt+' . $this->settings['refreshButtonAccesskey'] . ']' : '');
 				#!# Need to deny __refresh as a reserved form name

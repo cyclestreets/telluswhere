@@ -1183,6 +1183,7 @@ class telluswhere
 			'subfields' => $photos,
 			#!# Needs to be uniqued per session
 			'forcedFileName' => array ('photo0', 'photo1'),
+			'default' => ($locationData ? $locationData['images'] : false),
 			// Size is set above
 		));
 		

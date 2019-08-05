@@ -1065,6 +1065,25 @@ class telluswhere
 		# Assign the popup labels
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
+		# Add memory support for tabs to avoid loss of correct tab on POST; see: https://stackoverflow.com/a/18602487
+		$this->template['tabsJs'] = "
+		<script src=\"https://code.jquery.com/ui/1.12.1/jquery-ui.js\"></script>
+		<script src=\"https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js\"></script>
+		<script>
+			$(function() {
+				var cookieName = 'location{$id}-activetab';	// Namespaced by location
+				$('#tabs').tabs({
+					active : Cookies.get (cookieName),
+					activate : function (event, ui){
+						Cookies.set (cookieName, ui.newTab.index (), {
+							expires: 7
+						});
+					}
+				});
+			} );
+		</script>
+		";
+		
 		# Create the audit location present form (with map)
 		if ($result = $this->auditFormPresent ($schema['fields'], $category, $data)) {
 			$this->template['presentForm'] = $this->auditPresentCommit ($result, $id, false);

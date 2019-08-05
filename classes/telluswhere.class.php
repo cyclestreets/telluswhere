@@ -19,6 +19,8 @@ class telluswhere
 			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
 			'trackingCode'			=> false,
 			'dataset'			=> false,	// For audit
+			#!# Needs to be added to database settings
+			'geocoderBboxBounded'		=> '-6.6577,49.9370,1.7797,57.6924',	// English mainland
 		);
 		
 		# Return the defaults
@@ -2181,7 +2183,7 @@ class telluswhere
 		</script>";
 		$html .= "\n" . "<script type=\"text/javascript\">
 			autocomplete.addTo (\"input[name='location']\", {
-				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=-6.6577,49.9370,1.7797,57.6924',
+				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=' + '{$this->settings['geocoderBboxBounded']}',
 				select: function (event, ui) {
 					var bbox = ui.item.feature.properties.bbox.split(',');
 					map.fitBounds([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ], {maxZoom: 19});	// See: https://leafletjs.com/reference.html#latlngbounds

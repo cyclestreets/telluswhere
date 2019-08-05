@@ -606,7 +606,7 @@ var telluswhere = (function ($) {
 			: '')
 			
 			//  Caption
-			+ '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br(telluswhere.truncateString(properties.caption, 200),true)) + '</p>'
+			+ (properties.caption ? '<p class="caption">' + (properties.nodeId ? 'Cycle parking is present here.' : telluswhere.nl2br (telluswhere.truncateString (properties.caption, 200),true)) + '</p>' : '')
 			
 			// Image
 			+ (properties.hasPhoto ? '<img src="' + properties.thumbnailUrl + '" alt="Image" />' : '')

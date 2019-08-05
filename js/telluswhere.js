@@ -140,9 +140,53 @@ var telluswhere = (function ($) {
 						return L.marker (latlng, {icon: icon});
 					},
 					
-					// Add popups
+					// Add interactions
 					onEachFeature: function (feature, layer) {
+						
+						// Add popups
 						layer.bindPopup (telluswhere.popupHtml (feature.properties), {autoPanPaddingTopLeft: [0, 70]});
+						
+						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
+						layer.on ({
+							mouseover: function (e) {
+								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
+									var layer = e.target;
+									layer.setStyle({
+										color: 'red',
+										weight: 10
+									});
+								}
+							},
+							mouseout: function (e) {
+								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
+									var layer = e.target;
+									layer.setStyle({
+										color: 'red',
+										weight: 5	// i.e. reset to style below
+									});
+								}
+							}
+						});
+					},
+					
+					// Polygon styling
+					style: function (feature) {
+						var styles = {};
+						
+						// Lines
+						if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
+							styles.color = 'red';
+							styles.weight = 5;
+						}
+						
+						// Polygons
+						if (feature.geometry.type == 'Polygon') {
+							styles.color = 'red';
+							styles.fillColor = 'red';
+						}
+						
+						// Return the styles
+						return styles;
 					}
 				});
 				_currentDataLayers[index].addTo(map);

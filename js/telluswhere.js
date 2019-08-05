@@ -649,19 +649,22 @@ var telluswhere = (function ($) {
 		showCurrentDataLayer: function (ajaxResponse, layerIndex)
 		{
 			// Remove all markers, except those with open popups
+			var popup;
 			_currentDataLayers[layerIndex].eachLayer (function (layer) {
-				if (!layer._popup._isOpen) {
+				popup = layer.getPopup ();
+				if (!popup.isOpen ()) {
 					_currentDataLayers[layerIndex].removeLayer (layer);
 				}
 			});
-
+			
 			// Add the data
 			_currentDataLayers[layerIndex].addData (ajaxResponse);
-
+			
 			// Markers with opened popups remain - this brings the old ones back on top
 			// Note: the previous markers are still there underneath - put are probably benign
 			_currentDataLayers[layerIndex].eachLayer (function (layer) {
-				if (layer._popup._isOpen) {
+				popup = layer.getPopup ();
+				if (!popup.isOpen ()) {
 					_currentDataLayers[layerIndex].bringToFront (layer);
 				}
 			});

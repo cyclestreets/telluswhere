@@ -557,7 +557,7 @@ var telluswhere = (function ($) {
 			// Add images if enabled
 			if (properties.images) {
 				$.each (properties.images, function (index, imageUrl) {
-					html += '<a href="' + imageUrl + '" target="_blank"><img src="' + imageUrl + '&size=140" width="140" /> ';
+					html += '<a href="' + imageUrl + '" target="_blank"><img src="' + imageUrl + '&size=140" width="140" /></a> ';
 				});
 			}
 			

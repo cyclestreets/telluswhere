@@ -60,19 +60,19 @@ class telluswhere
 			'audit' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/',
-				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400&simplify=1',
 				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
 			'auditadd' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/add/',
-				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400&simplify=1',
 				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
 			'auditaddlocation' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/add/location/',	// Template location; URL will be /audit/add/%category/
-				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%type&limit=400',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&type=%type&limit=400&simplify=1',
 				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
 			),
 			'auditlocation' => array (

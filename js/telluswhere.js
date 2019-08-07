@@ -143,6 +143,11 @@ var telluswhere = (function ($) {
 					// Add interactions
 					onEachFeature: function (feature, layer) {
 						
+						// Remove internal colour field if present
+						if (feature.properties.hasOwnProperty ('_colour')) {
+							delete feature.properties._colour;
+						}
+						
 						// Add popups
 						layer.bindPopup (telluswhere.popupHtml (feature.properties), {autoPanPaddingTopLeft: [0, 70]});
 						
@@ -181,8 +186,13 @@ var telluswhere = (function ($) {
 						
 						// Polygons
 						if (feature.geometry.type == 'Polygon') {
-							styles.color = 'red';
-							styles.fillColor = 'red';
+							if (feature.properties.hasOwnProperty ('_colour')) {
+								styles.color = feature.properties._colour;
+								styles.fillColor = feature.properties._colour;
+							} else {
+								styles.color = 'red';
+								styles.fillColor = 'red';
+							}
 						}
 						
 						// Return the styles

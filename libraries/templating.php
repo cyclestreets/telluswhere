@@ -1,7 +1,7 @@
 <?php
 
 # Class providing templating pre-processing methods
-# Version 0.9.1
+# Version 0.9.2
 class templating
 {
 	# Function to add placeholder surrounds to a raw HTML page
@@ -161,6 +161,21 @@ class templating
 				}
 			}
 			
+/* New algorithm from 0.9.2 breaks on some pages, so old algorithm reinstated above
+			# Directory-traversal URLs - chop prefix for each, i.e. ../contacts/ => /prefix/../contacts/ => /contacts/
+			if ($paths[$i] == '..') {$paths[$i] = '../';}	// Normalise
+			if (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
+				$newPrefix = $prefix;
+				while (preg_match ('|^\.\./(.*)$|', $paths[$i], $matches)) {
+					if (strlen ($newPrefix)) {	// Never traverse higher than / - if HTML of ../../ should have been ../ then treat it as such
+						$newPrefix = str_replace ('\\', '/', dirname ($newPrefix));	// Chop last component
+					}
+					$paths[$i] = $newPrefix . $matches[1];
+				}
+				continue;
+			}
+*/
+			
 			# Prefix remainder, which are "from here" paths, e.g. "path/to" becomes "/prefix/path/to"
 			$paths[$i] = $prefix . $paths[$i];
 			
@@ -188,7 +203,7 @@ class templating
 	public static function commentsToPlaceholders ($html, &$replacedPlaceholders = array ())
 	{
 		# Cache matched placeholder comments; note \1 is a backreference to ensure the opening and closing tags match, and the s modifier enables multiple-line matches
-		$regexp = '|' . '<!--\s+\{\$([^}]+)\}\s+-->(.*)<!--\s+/\{\$\1\}\s+-->' . '|s';
+		$regexp = '|' . '<!--\s+\{\$([^}]+)\}\s+-->(.*)<!--\s+/\{\$\1\}\s+-->' . '|sU';		// Ungreedy used to support multiple replacements of same placeholder
 		if (preg_match_all ($regexp, $html, $matches, PREG_SET_ORDER)) {
 			foreach ($matches as $match) {
 				$replacedPlaceholders[$match[1]] = $match[2];		// placeholdername => html

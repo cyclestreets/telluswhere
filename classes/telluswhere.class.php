@@ -334,6 +334,12 @@ class telluswhere
 			return false;
 		}
 		
+		# Set the login link for the template
+		$this->template['loginLink'] = $this->baseUrl . '/login/';
+		if ($_SERVER['REQUEST_URI'] != '/login/' && !substr_count ($_SERVER['REQUEST_URI'], '/login/?')) {
+			$this->template['loginLink'] .= '?' . $_SERVER['REQUEST_URI'];
+		}
+		
 		# Require authentication if specified
 		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator']) || isSet ($this->actions[$this->action]['rightRequired'])) {
 			if (!$this->user) {
@@ -3367,6 +3373,10 @@ class telluswhere
 			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/logout/\">log out</a> if you wish.</p>";
 			$this->template['text'] = $html;
 			$this->template['form'] = false;
+			if ($returnPath = preg_replace ('|/login/\??|', '', $_SERVER['REQUEST_URI'])) {
+				$redirectTo = $_SERVER['_SITE_URL'] . $returnPath;
+				application::sendHeader (302, $redirectTo, true);
+			}
 		} else {
 			
 			# Login form; if successful, log the user in
@@ -3390,7 +3400,6 @@ class telluswhere
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
-			'submitTo'			=> $this->baseUrl . '/login/',
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'display'					=> 'template',

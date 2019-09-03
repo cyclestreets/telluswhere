@@ -1178,6 +1178,7 @@ class telluswhere
 			'requiredFieldIndicator'	=> false,
 			'submitButtonText'		=> 'Save changes &nbsp; &gt;',
 			'submitButtonAccesskey'		=> false,
+			'unsavedDataProtection'		=> true,
 			'nullText'			=> false,
 			'div'				=> 'auditform',
 			'labelsSurround'		=> true,

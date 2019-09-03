@@ -3658,7 +3658,33 @@ class telluswhere
 	# Registration page
 	private function register ()
 	{
-		#!# TODO
+		# Create the form
+		$formHtml = '';
+		if ($data = $this->profileForm ($formHtml)) {
+			
+			# Namespace the fields
+			$data['email'] = 'telluswhere\\' . $data['email'];
+			$data['username'] = 'telluswhere\\' . $data['username'];
+			
+			# Create the account, which will use the name,email,password fields
+			$apiUrl = $this->settings['apiBase'] . '/v2/user.create' . '?key=' . $this->settings['apiKey'];
+			$result = application::file_post_contents ($apiUrl, $data);
+			$result = json_decode ($result, true);
+			if (isSet ($result['error'])) {
+				$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
+				return false;
+			}
+			
+			# Add the user profile settings which will use the email,city fields
+			$apiUrl = $this->settings['apiBase'] . '/v2/user.settings' . '?key=' . $this->settings['apiKey'];
+			$result = application::file_post_contents ($apiUrl, $data);
+			$result = json_decode ($result, true);
+			if (isSet ($result['error'])) {
+				$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
+				return false;
+			}
+		}
+		$this->template['form'] = $formHtml;
 	}
 	
 	
@@ -3666,6 +3692,96 @@ class telluswhere
 	private function profile ()
 	{
 		#!# TODO
+	}
+	
+	
+	# Login form
+	private function profileForm (&$html)
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'		=> false,
+			'formCompleteText'			=> false,
+			'requiredFieldIndicator'	=> false,
+			'submitButtonText'			=> 'Register',
+			'submitButtonAccesskey'		=> false,
+			'autofocus'			=> true,
+		));
+		
+		# Widgets
+		$form->input (array (
+			'name'		=> 'name',
+			'title'		=> 'Your name',
+			'required'	=> true,
+		));
+		$form->select (array (
+			'name'		=> 'city',
+			'title'		=> 'Borough (optional)',
+			'values'	=> array (
+				37	=> 'Barking and Dagenham',
+				43	=> 'Barnet',
+				35	=> 'Bexley',
+				24	=> 'Brent',
+				32	=> 'Bromley',
+				4	=> 'Camden',
+				1677	=> 'City of London',
+				15	=> 'City of Westminster',
+				31	=> 'Croydon',
+				25	=> 'Ealing',
+				42	=> 'Enfield',
+				34	=> 'Greenwich',
+				22	=> 'Hackney',
+				17	=> 'Hammersmith and Fulham',
+				41	=> 'Haringey',
+				44	=> 'Harrow',
+				36	=> 'Havering',
+				45	=> 'Hillingdon',
+				26	=> 'Hounslow',
+				23	=> 'Islington',
+				16	=> 'Kensington and Chelsea',
+				11	=> 'Kingston upon Thames',
+				19	=> 'Lambeth',
+				33	=> 'Lewisham',
+				29	=> 'Merton',
+				39	=> 'Newham',
+				38	=> 'Redbridge',
+				1692	=> 'Richmond upon Thames',
+				20	=> 'Southwark',
+				30	=> 'Sutton',
+				21	=> 'Tower Hamlets',
+				40	=> 'Waltham Forest',
+				18	=> 'Wandsworth',
+			),
+		));
+		//$form->heading ('', 'Login details:');
+		$form->input (array (
+			'name'		=> 'username',
+			'title'		=> 'Create a username',
+			'required'	=> true,
+			'description'	=> 'Lower-case letters and numbers only, no spaces',
+		));
+		$form->email (array (
+			'name'		=> 'email',
+			'title'		=> 'Your e-mail address',
+			'required'	=> true,
+			'autofocus'	=> true,
+		));
+		$form->password (array (
+			'name'		=> 'password',
+			'title'		=> 'Password',
+			'required'	=> true,
+			'confirmation'	=> true,
+		));
+		
+		# Process the form
+		if (!$result = $form->process ($html)) {return false;}
+		
+		# Return the result
+		return $result;
 	}
 	
 	

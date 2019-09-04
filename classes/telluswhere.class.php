@@ -2403,8 +2403,7 @@ class telluswhere
 	{
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS
 		$html .= "\n" . '<style type="text/css">
-			#form_latitude, #form_longitude, #form_zoom {display: none;}
-			form tr.latitude, form tr.longitude, form tr.zoom {display: none;}
+			form .latitude, form .longitude, form .zoom {display: none;}
 		</style>
 		';
 		$form->input (array (

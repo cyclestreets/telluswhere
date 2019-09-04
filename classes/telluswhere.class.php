@@ -3671,31 +3671,37 @@ class telluswhere
 	{
 		# Create the form
 		$formHtml = '';
-		if ($data = $this->profileForm ($formHtml)) {
-			
-			# Namespace the fields
-			$data['email'] = 'telluswhere\\' . $data['email'];
-			$data['username'] = 'telluswhere\\' . $data['username'];
-			
-			# Create the account, which will use the name,email,password fields
-			$apiUrl = $this->settings['apiBase'] . '/v2/user.create' . '?key=' . $this->settings['apiKey'];
-			$result = application::file_post_contents ($apiUrl, $data);
-			$result = json_decode ($result, true);
-			if (isSet ($result['error'])) {
-				$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
-				return false;
-			}
-			
-			# Add the user profile settings which will use the email,city fields
-			$apiUrl = $this->settings['apiBase'] . '/v2/user.settings' . '?key=' . $this->settings['apiKey'];
-			$result = application::file_post_contents ($apiUrl, $data);
-			$result = json_decode ($result, true);
-			if (isSet ($result['error'])) {
-				$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
-				return false;
-			}
+		if (!$data = $this->profileForm ($formHtml)) {
+			$this->template['form'] = $formHtml;
+			return;
 		}
-		$this->template['form'] = $formHtml;
+		
+		# Namespace the fields
+		$data['email'] = 'telluswhere\\' . $data['email'];
+		$data['username'] = 'telluswhere\\' . $data['username'];
+		
+		# Create the account, which will use the name,email,password fields
+		$apiUrl = $this->settings['apiBase'] . '/v2/user.create' . '?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($apiUrl, $data);
+		$result = json_decode ($result, true);
+		if (isSet ($result['error'])) {
+			$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
+			return false;
+		}
+		
+		# Add the user profile settings which will use the email,city fields
+		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings' . '?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($apiUrl, $data);
+		$result = json_decode ($result, true);
+		if (isSet ($result['error'])) {
+			$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
+			return false;
+		}
+		
+		# Confirm that the user should check their inbox
+		#!# Link needs to be local
+		$this->template['form'] = "\n<p>Many thanks. Please check your e-mail and click on the confirmation link we have sent you.</p>";
+		return true;
 	}
 	
 	

@@ -105,6 +105,10 @@ class telluswhere
 				'description' => false,
 				'url' => '/about/',
 			),
+			'privacy' => array (
+				'description' => false,
+				'url' => '/privacy/',
+			),
 			'programme' => array (
 				'description' => false,
 				'url' => '/programme/',
@@ -2535,6 +2539,13 @@ class telluswhere
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Privacy page
+	private function privacy ()
+	{
+		// No action - template contains everything
 	}
 	
 	

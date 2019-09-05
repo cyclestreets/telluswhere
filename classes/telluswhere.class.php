@@ -407,6 +407,10 @@ class telluswhere
 			$this->categories = ($this->settings['categories'] ? preg_split ("/\s+/", trim ($this->settings['categories'])) : array ());	// The ternary exists because first run will have none
 		}
 		
+		# Get the points of the user
+		$this->gamificationActivities = $this->getGamificationActivities ();
+		$this->template['points'] = $this->gamificationActivities['total'];
+		
 		# Perform the action, which will write into the page template array
 		#!# Need to handle 404s properly by using return value for each action
 		$this->{$this->action} ();
@@ -977,6 +981,24 @@ class telluswhere
 		
 		# Show the audit map
 		$this->auditMap ($schema);
+	}
+	
+	
+	# Function to get the gamification data for the user
+	private function getGamificationActivities ()
+	{
+		# Obtain the data for this user from the API
+		$apiUrl = $this->settings['apiBase'] . '/v2/gamification.activities&key=' . $this->settings['apiKey'] . '&email=' . $this->user['email'];
+		$data = file_get_contents ($apiUrl);
+		$data = json_decode ($data, true);
+		
+		# End if no schema (which should never happen if the data in the API is consistent)
+		if (isSet ($data['error'])) {
+			return array ();
+		}
+		
+		# Return the activity data
+		return $data;
 	}
 	
 	
@@ -3707,7 +3729,11 @@ class telluswhere
 	# Profile page
 	private function profile ()
 	{
-		#!# TODO
+		# Send the group and gamification scores to the template
+		$this->template['total'] = $this->gamificationActivities['total'];
+		$this->template['groupScore'] = $this->gamificationActivities['groupTotal'];
+		$this->template['locationsEdited'] = (isSet ($this->gamificationActivities['activities']['LOCATION_EDITED']) ? $this->gamificationActivities['activities']['LOCATION_EDITED'] : 0);
+		$this->template['locationsAdded']  = (isSet ($this->gamificationActivities['activities']['LOCATION_ADDED']) ?  $this->gamificationActivities['activities']['LOCATION_ADDED']  : 0);
 	}
 	
 	

@@ -2178,6 +2178,7 @@ class telluswhere
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
+		$minZoom = (preg_match ('/^(audit|priorityareas)/', $this->action) ? 16 : 7);
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?20\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
@@ -2187,6 +2188,7 @@ class telluswhere
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
 				initialZoom: {$mapLocation['zoom']},
+				minZoom: {$minZoom},
 				browsingApiUrl: {$browsingApiUrlJs},
 				useIcon: '{$showLayer}',
 				setMarkerInitially: {$setMarkerInitiallyJs},

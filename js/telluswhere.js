@@ -13,6 +13,7 @@ var telluswhere = (function ($) {
 	var _currentDataLayers = {};
 	var _geolocationData;
 	var _maxZoom;
+	var _minZoom;
 	var _viewOnlyMode;
 	var _enableDrawing;
 	
@@ -60,6 +61,7 @@ var telluswhere = (function ($) {
 			_initialLongitude = settings.initialLongitude;
 			_initialZoom = settings.initialZoom;
 			_maxZoom = settings.maxZoom || 21;
+			_minZoom = settings.minZoom || 7;
 			_browsingApiUrls[0] = settings.browsingApiUrl;
 			if (settings.browsingApiUrl2) {
 				_browsingApiUrls[1] = settings.browsingApiUrl2;
@@ -84,6 +86,7 @@ var telluswhere = (function ($) {
 			L.tileLayer(tileUrl, {
 				attribution: tileAttribution,
 				maxZoom: _maxZoom,
+				minZoom: _minZoom,
 				opacity: 0.8
 			}).addTo(map);
 			

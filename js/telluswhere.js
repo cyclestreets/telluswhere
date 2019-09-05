@@ -59,6 +59,7 @@ var telluswhere = (function ($) {
 			_initialLatitude = settings.initialLatitude;
 			_initialLongitude = settings.initialLongitude;
 			_initialZoom = settings.initialZoom;
+			_maxZoom = settings.maxZoom || 21;
 			_browsingApiUrls[0] = settings.browsingApiUrl;
 			if (settings.browsingApiUrl2) {
 				_browsingApiUrls[1] = settings.browsingApiUrl2;
@@ -80,7 +81,6 @@ var telluswhere = (function ($) {
 			// Set tile layer
 			var tileUrl = 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png';
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
-			_maxZoom = 21;
 			L.tileLayer(tileUrl, {
 				attribution: tileAttribution,
 				maxZoom: _maxZoom,

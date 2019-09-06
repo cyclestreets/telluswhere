@@ -777,7 +777,8 @@ class telluswhere
 		
 		# Add login form or status, where supported by the template
 		if ($this->user) {
-			$this->template['login'] = "<p>You are logged in.</a>";
+			$this->template['login']  = "<p>You are logged in.</p>";
+			$this->template['login'] .= "\n<p>You have <a href=\"{$this->baseUrl}/profile/\">{$this->gamificationActivities['total']} points</a>.</p>";
 		} else {
 			$formHtml = '';
 			$this->loginForm ($formHtml, false);

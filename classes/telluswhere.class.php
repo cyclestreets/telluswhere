@@ -3974,7 +3974,29 @@ class telluswhere
 	# Admin progress by borough
 	private function adminboroughs ()
 	{
-		#!# TODO
+		# Obtain the data for this user from the API
+		$apiUrl = $this->settings['apiBase'] . '/v2/gamification.cities&key=' . $this->settings['apiKey'];
+		$data = file_get_contents ($apiUrl);
+		$data = json_decode ($data, true);
+		
+		# End if error
+		if (isSet ($data['error'])) {
+			return array ();
+		}
+		
+		# Assemble the table data, seeding from the city list
+		#!# Need to put highest first
+		$table = array ();
+		foreach ($this->cityIds as $id => $name) {
+			$table[] = array (
+				'borough'	=> $name,
+				'progress'	=> (isSet ($data[$id]) ? $data[$id]['completionPercentage'] : '0%'),
+				'score'		=> (isSet ($data[$id]) ? number_format ($data[$id]['score']) : '0'),
+			);
+		}
+		
+		# Send to the template
+		$this->template['table'] = application::htmlTable ($table, array (), $class = 'responsive-table', $keyAsFirstColumn = false, $uppercaseHeadings = true);
 	}
 }
 

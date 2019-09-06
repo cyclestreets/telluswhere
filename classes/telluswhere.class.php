@@ -1015,13 +1015,14 @@ class telluswhere
 	
 	
 	# Function to get the gamification data for the user
-	private function addGamificationPoints ($activity)
+	private function addGamificationPoints ($activity, $data = false)
 	{
 		# Assemble the data
 		$data = array (
 			'email'		=> $this->user['email'],
 			'points'	=> $this->gamificationPoints[$activity],
 			'activity'	=> $activity,
+			'data'		=> $data,
 		);
 		
 		# Obtain the data for this user from the API
@@ -1493,7 +1494,7 @@ class telluswhere
 		
 		# Add gamification points for registering
 		$activity = ($updateId ? 'AUDIT_CONFIRM' : 'AUDIT_ADD');
-		$this->addGamificationPoints ($activity);
+		$this->addGamificationPoints ($activity, $result['id']);
 		
 		# Construct the URL of the new location
 		$url = "/audit/location/{$result['id']}/";
@@ -1568,7 +1569,7 @@ class telluswhere
 		//application::dumpData ($result);
 		
 		# Add gamification points for registering
-		$this->addGamificationPoints ('AUDIT_CONFIRM');
+		$this->addGamificationPoints ('AUDIT_CONFIRM', $id);
 		
 		# Confirm outcome
 		return $this->auditConfirmation ($result, 'marked as ' . $label, false);

@@ -264,6 +264,18 @@ class telluswhere
 		'unknown'			=> 'Not sure',
 	);
 	
+	# Gamification points
+	private $gamificationPoints = array (
+		'TELLUSWHERE_REGISTER'	=> 10,
+		'AUDIT_ADD'				=> 5,
+		'AUDIT_CONFIRM'			=> 1,
+		'AUDIT_PASSED_CHECK'	=> 2,
+		'AUDIT_SECOND_REVIEW'	=> 2,
+		'PROBLEM_REPORT'		=> 1,
+		'TELLUSWHERE_REFERAL'	=> 10,
+	);
+	
+	
 	
 	# Constructor
 	public function __construct ($settings)
@@ -966,7 +978,7 @@ class telluswhere
 	}
 	
 	
-	# Page for adding a location, as stage 1 to select the type
+	# Page for adding a location, as stage 1 to select the type; stage 2 is auditaddlocation
 	private function auditadd ()
 	{
 		# End if not enabled
@@ -992,13 +1004,38 @@ class telluswhere
 		$data = file_get_contents ($apiUrl);
 		$data = json_decode ($data, true);
 		
-		# End if no schema (which should never happen if the data in the API is consistent)
+		# End if error
 		if (isSet ($data['error'])) {
 			return array ();
 		}
 		
 		# Return the activity data
 		return $data;
+	}
+	
+	
+	# Function to get the gamification data for the user
+	private function addGamificationPoints ($activity)
+	{
+		# Assemble the data
+		$data = array (
+			'email'		=> $this->user['email'],
+			'points'	=> $this->gamificationPoints[$activity],
+			'activity'	=> $activity,
+		);
+		
+		# Obtain the data for this user from the API
+		$apiUrl = $this->settings['apiBase'] . '/v2/gamification.addactivity&key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($apiUrl, $data);
+		$result = json_decode ($result, true);
+		
+		# End if error
+		if (isSet ($result['error'])) {
+			return array ();
+		}
+		
+		# Update the points count in the template with the new value
+		$this->template['points'] = $result['total'];
 	}
 	
 	
@@ -1454,6 +1491,10 @@ class telluswhere
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
+		# Add gamification points for registering
+		$activity = ($updateId ? 'AUDIT_CONFIRM' : 'AUDIT_ADD');
+		$this->addGamificationPoints ($activity);
+		
 		# Construct the URL of the new location
 		$url = "/audit/location/{$result['id']}/";
 		
@@ -1525,6 +1566,9 @@ class telluswhere
 		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
+		
+		# Add gamification points for registering
+		$this->addGamificationPoints ('AUDIT_CONFIRM');
 		
 		# Confirm outcome
 		return $this->auditConfirmation ($result, 'marked as ' . $label, false);
@@ -3721,6 +3765,9 @@ class telluswhere
 			$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
 			return false;
 		}
+		
+		# Add gamification points for registering
+		$this->addGamificationPoints ('TELLUSWHERE_REGISTER');
 		
 		# Confirm that the user should check their inbox
 		#!# Link needs to be local

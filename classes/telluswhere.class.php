@@ -2620,8 +2620,8 @@ class telluswhere
 		# Start the HTML
 		$html = '';
 		
-		# Unpack user details cookie if present from a previous submission
-		$data = $this->getCourtesyUserdetails ();
+		# Pre-fill name from the user if logged in, or if not, unpack user details cookie if present from a previous submission
+		$data = ($this->user ? $this->user : $this->getCourtesyUserdetails ());
 		
 		# Obtain the internal form element templates
 		$formTemplate = $this->placeholderHtmlToFormTemplate ('form', $this->action, true);

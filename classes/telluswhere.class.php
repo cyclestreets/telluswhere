@@ -3798,7 +3798,7 @@ class telluswhere
 		}
 		
 		# Add the user profile settings which will use the email,city fields
-		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings' . '?key=' . $this->settings['apiKey'];
+		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings.set' . '?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($apiUrl, $data);
 		$result = json_decode ($result, true);
 		if (isSet ($result['error'])) {
@@ -3819,6 +3819,19 @@ class telluswhere
 	# Profile page
 	private function profile ()
 	{
+		# Obtain the group of this user from the API
+		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings.get&key=' . $this->settings['apiKey'] . '&email=' . $this->user['email'];
+		$userSettings = file_get_contents ($apiUrl);
+		$userSettings = json_decode ($userSettings, true);
+		if ($cityId = $userSettings['city']) {
+			$groupName = $this->cityIds[$cityId];
+			$this->template['group'] = "Your score will also accrue to the <strong>{$groupName}</strong> group.";
+		} else {
+			$this->template['group'] = 'If you wish, you can associate your scores with a group, by setting this below.';
+		}
+
+
+		
 		# Calculate the number of edited locations
 		$locationsEdited = 0;
 		$editTypes = array ('AUDIT_UPDATE', 'AUDIT_CONFIRM');

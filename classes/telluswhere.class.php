@@ -3803,10 +3803,8 @@ class telluswhere
 			return false;
 		}
 		
-		# Add the user profile settings which will use the email,city fields
-		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings.set' . '?key=' . $this->settings['apiKey'];
-		$result = application::file_post_contents ($apiUrl, $data);
-		$result = json_decode ($result, true);
+		# Add the user profile settings
+		$result = $this->setUserSettings ($data['email'], $data['city']);
 		if (isSet ($result['error'])) {
 			$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
 			return false;
@@ -3822,6 +3820,23 @@ class telluswhere
 	}
 	
 	
+	# Function to set the user profile settings
+	private function setUserSettings ($email, $city)
+	{
+		# Assemble the data
+		$data = array (
+			'email'	=> $email,
+			'city'	=> $city,
+		);
+		
+		# Add the user profile settings which will use the email,city fields
+		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings.set' . '?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($apiUrl, $data);
+		$result = json_decode ($result, true);
+		return $result;
+	}
+	
+	
 	# Profile page
 	private function profile ()
 	{
@@ -3829,14 +3844,13 @@ class telluswhere
 		$apiUrl = $this->settings['apiBase'] . '/v2/user.settings.get&key=' . $this->settings['apiKey'] . '&email=' . $this->user['email'];
 		$userSettings = file_get_contents ($apiUrl);
 		$userSettings = json_decode ($userSettings, true);
+		$groupText = "Your score will also accrue to the <strong>%groupName</strong> group.";
 		if ($cityId = $userSettings['city']) {
 			$groupName = $this->cityIds[$cityId];
-			$this->template['group'] = "Your score will also accrue to the <strong>{$groupName}</strong> group.";
+			$this->template['group'] = str_replace ('%groupName', $groupName, $groupText);
 		} else {
 			$this->template['group'] = 'If you wish, you can associate your scores with a group, by setting this below.';
 		}
-
-
 		
 		# Calculate the number of edited locations
 		$locationsEdited = 0;
@@ -3852,11 +3866,31 @@ class telluswhere
 		$this->template['groupScore'] = $this->gamificationActivities['groupTotal'];
 		$this->template['locationsEdited'] = $locationsEdited;
 		$this->template['locationsAdded']  = (isSet ($this->gamificationActivities['instances']['AUDIT_ADD']) ?  $this->gamificationActivities['instances']['AUDIT_ADD']  : 0);
+		
+		# Create the profile update form
+		#!# Update mode currently only supports setting of city, due to API restrictions
+		$formHtml = '';
+		if (!$data = $this->profileForm ($formHtml, $update = true, $data = array ('city' => $cityId))) {
+			$this->template['form'] = $formHtml;
+			return;
+		}
+		
+		# Add the user profile settings
+		$result = $this->setUserSettings ($this->user['email'], $data['city']);
+		if (isSet ($result['error'])) {
+			$this->template['form'] = "\n<p>Error: " . htmlspecialchars ($result['error'])  . '</p>';
+			return false;
+		}
+		
+		# Confirm update, and update the template
+		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
+		$this->template['form'] = "<p>{$unicodeTick} Your profile has been updated.</p>";
+		$this->template['group'] = str_replace ('%groupName', $this->cityIds[$data['city']], $groupText);
 	}
 	
 	
-	# Login form
-	private function profileForm (&$html)
+	# Profile form
+	private function profileForm (&$html, $update = false, $data = array ())
 	{
 		# Start the HTML
 		$html = '';
@@ -3867,41 +3901,46 @@ class telluswhere
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'requiredFieldIndicator'	=> false,
-			'submitButtonText'			=> 'Register',
+			'submitButtonText'			=> ($update ? 'Update' : 'Register'),
 			'submitButtonAccesskey'		=> false,
-			'autofocus'			=> true,
+			'autofocus'					=> true,
 		));
 		
 		# Widgets
-		$form->input (array (
-			'name'		=> 'name',
-			'title'		=> 'Your name',
-			'required'	=> true,
-		));
+		if (!$update) {
+			$form->input (array (
+				'name'		=> 'name',
+				'title'		=> 'Your name',
+				'required'	=> true,
+			));
+		}
 		$form->select (array (
 			'name'		=> 'city',
 			'title'		=> 'Borough (optional)',
 			'values'	=> $this->cityIds,
+			'default'	=> (isSet ($data['city']) ? $data['city'] : false),
 		));
-		//$form->heading ('', 'Login details:');
-		$form->input (array (
-			'name'		=> 'username',
-			'title'		=> 'Create a username',
-			'required'	=> true,
-			'description'	=> 'Lower-case letters and numbers only, no spaces',
-		));
-		$form->email (array (
-			'name'		=> 'email',
-			'title'		=> 'Your e-mail address',
-			'required'	=> true,
-			'autofocus'	=> true,
-		));
-		$form->password (array (
-			'name'		=> 'password',
-			'title'		=> 'Password',
-			'required'	=> true,
-			'confirmation'	=> true,
-		));
+		if (!$update) {
+			//$form->heading ('', 'Login details:');
+			$form->input (array (
+				'name'		=> 'username',
+				'title'		=> 'Create a username',
+				'required'	=> true,
+				'description'	=> 'Lower-case letters and numbers only, no spaces',
+			));
+			$form->email (array (
+				'name'		=> 'email',
+				'title'		=> 'Your e-mail address',
+				'required'	=> true,
+				'autofocus'	=> true,
+			));
+			$form->password (array (
+				'name'		=> 'password',
+				'title'		=> 'Password',
+				'required'	=> true,
+				'confirmation'	=> true,
+			));
+		}
 		
 		# Process the form
 		if (!$result = $form->process ($html)) {return false;}

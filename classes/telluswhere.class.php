@@ -3863,7 +3863,7 @@ class telluswhere
 		
 		# Send the group and gamification scores to the template
 		$this->template['total'] = $this->gamificationActivities['total'];
-		$this->template['groupScore'] = $this->gamificationActivities['groupTotal'];
+		$this->template['groupScore'] = ($cityId ? "Your group's score is {$this->gamificationActivities['groupTotal']}." : 'Your scores are not currently accruing to a group.');
 		$this->template['locationsEdited'] = $locationsEdited;
 		$this->template['locationsAdded']  = (isSet ($this->gamificationActivities['instances']['AUDIT_ADD']) ?  $this->gamificationActivities['instances']['AUDIT_ADD']  : 0);
 		

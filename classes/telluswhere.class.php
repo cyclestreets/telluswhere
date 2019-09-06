@@ -267,8 +267,9 @@ class telluswhere
 	# Gamification points
 	private $gamificationPoints = array (
 		'TELLUSWHERE_REGISTER'	=> 10,
-		'AUDIT_ADD'				=> 5,
-		'AUDIT_CONFIRM'			=> 1,
+		'AUDIT_ADD'				=> 5,	// Added new infrastructure
+		'AUDIT_UPDATE'			=> 1,	// Updated existing asset
+		'AUDIT_CONFIRM'			=> 1,	// Unchanged/gone
 		'AUDIT_PASSED_CHECK'	=> 2,
 		'AUDIT_SECOND_REVIEW'	=> 2,
 		'PROBLEM_REPORT'		=> 1,
@@ -1492,8 +1493,8 @@ class telluswhere
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
-		# Add gamification points for registering
-		$activity = ($updateId ? 'AUDIT_CONFIRM' : 'AUDIT_ADD');
+		# Add gamification points
+		$activity = ($updateId ? 'AUDIT_UPDATE' : 'AUDIT_ADD');
 		$this->addGamificationPoints ($activity, $result['id']);
 		
 		# Construct the URL of the new location
@@ -3780,11 +3781,20 @@ class telluswhere
 	# Profile page
 	private function profile ()
 	{
+		# Calculate the number of edited locations
+		$locationsEdited = 0;
+		$editTypes = array ('AUDIT_UPDATE', 'AUDIT_CONFIRM');
+		foreach ($editTypes as $editType) {
+			if (isSet ($this->gamificationActivities['instances'][$editType])) {
+				$locationsEdited += $this->gamificationActivities['instances'][$editType];
+			}
+		}
+		
 		# Send the group and gamification scores to the template
 		$this->template['total'] = $this->gamificationActivities['total'];
 		$this->template['groupScore'] = $this->gamificationActivities['groupTotal'];
-		$this->template['locationsEdited'] = (isSet ($this->gamificationActivities['activities']['LOCATION_EDITED']) ? $this->gamificationActivities['activities']['LOCATION_EDITED'] : 0);
-		$this->template['locationsAdded']  = (isSet ($this->gamificationActivities['activities']['LOCATION_ADDED']) ?  $this->gamificationActivities['activities']['LOCATION_ADDED']  : 0);
+		$this->template['locationsEdited'] = $locationsEdited;
+		$this->template['locationsAdded']  = (isSet ($this->gamificationActivities['instances']['AUDIT_ADD']) ?  $this->gamificationActivities['instances']['AUDIT_ADD']  : 0);
 	}
 	
 	

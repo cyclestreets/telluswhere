@@ -3777,6 +3777,12 @@ class telluswhere
 	# Registration page
 	private function register ()
 	{
+		# If the user is already logged in, end
+		if ($this->user) {
+			$this->template['form'] = '<p>You are already logged in.</p>';
+			return;
+		}
+		
 		# Create the form
 		$formHtml = '';
 		if (!$data = $this->profileForm ($formHtml)) {

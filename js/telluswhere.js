@@ -586,6 +586,7 @@ var telluswhere = (function ($) {
 				
 				// Link to ID
 				if (key == 'id') {
+					fieldLabel = 'Location #';
 					if (_action == 'auditlocation') {	// Do not link on edit page itself
 						value = telluswhere.htmlspecialchars (value);
 					} else {

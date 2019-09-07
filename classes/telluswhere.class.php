@@ -1541,12 +1541,12 @@ class telluswhere
 		
 		# Confirm outcome
 		$action = ($updateId ? 'updated' : 'added');
-		return $this->auditConfirmation ($result, $action, $url);
+		return $this->auditConfirmation ($action, $url);
 	}
 	
 	
 	# Function to confirm the outcome of the audit form change
-	private function auditConfirmation ($result, $action /* added/updated */, $urlLink)
+	private function auditConfirmation ($action /* added/updated */, $urlLink)
 	{
 		#!# Error handling needed
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
@@ -1612,7 +1612,7 @@ class telluswhere
 		$this->addGamificationPoints ('AUDIT_CONFIRM', $id);
 		
 		# Confirm outcome
-		return $this->auditConfirmation ($result, 'marked as ' . $label, false);
+		return $this->auditConfirmation ('marked as ' . $label, false);
 	}
 	
 	

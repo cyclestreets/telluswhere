@@ -1201,13 +1201,13 @@ class telluswhere
 		
 		# Create the unchanged form
 		if ($result = $this->auditStatusChangeForm ('unchanged', 'unchangedForm')) {
-			$this->auditStatusCommit ('infrastructure.unchanged', $result, $id);
+			$this->auditStatusCommit ('infrastructure.unchanged', $id, $result['surveyDate']);
 			$this->template['unchangedForm'] = $this->auditConfirmation ('marked as unchanged', false);
 		}
 		
 		# Create the gone form
 		if ($result = $this->auditStatusChangeForm ('no longer present', 'deleteForm')) {
-			$this->auditStatusCommit ('infrastructure.delete', $result, $id);
+			$this->auditStatusCommit ('infrastructure.delete', $id, $result['surveyDate']);
 			$this->template['deleteForm'] = $this->auditConfirmation ('marked as no longer present', false);
 		}
 	}
@@ -1595,13 +1595,13 @@ class telluswhere
 	
 	
 	# Function to commit the results of an audit form for infrastructure unchanged/gone
-	private function auditStatusCommit ($apiMethod, $result, $id)
+	private function auditStatusCommit ($apiMethod, $id, $surveyDate)
 	{
 		# Assemble the update
 		$data = array (
 			'dataset'		=> $this->settings['auditDataset'],
 			'id'			=> $id,
-			'surveydate'	=> $result['surveyDate'],
+			'surveydate'	=> $surveyDate,
 		);
 		
 		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/

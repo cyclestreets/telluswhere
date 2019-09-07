@@ -3500,7 +3500,7 @@ class telluswhere
 		} else {
 			
 			# Login form; if successful, log the user in
-			$html .= "\n<p><strong>Please log in below to access this section:</strong></p>";
+			$html .= "\n<p><strong>Please log in (or first create an account) below to access this section:</strong></p>";
 			$this->template['text'] = $html;
 			$formHtml = '';
 			if ($result = $this->loginForm ($formHtml)) {

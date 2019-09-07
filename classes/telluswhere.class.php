@@ -1201,12 +1201,14 @@ class telluswhere
 		
 		# Create the unchanged form
 		if ($result = $this->auditStatusChangeForm ('unchanged', 'unchangedForm')) {
-			$this->template['unchangedForm'] = $this->auditStatusCommit ('infrastructure.unchanged', $result, $id, 'unchanged');
+			$this->auditStatusCommit ('infrastructure.unchanged', $result, $id);
+			$this->template['unchangedForm'] = $this->auditConfirmation ('marked as unchanged', false);
 		}
 		
 		# Create the gone form
 		if ($result = $this->auditStatusChangeForm ('no longer present', 'deleteForm')) {
-			$this->template['deleteForm'] = $this->auditStatusCommit ('infrastructure.delete', $result, $id, 'no longer present');
+			$this->auditStatusCommit ('infrastructure.delete', $result, $id);
+			$this->template['deleteForm'] = $this->auditConfirmation ('marked as no longer present', false);
 		}
 	}
 	
@@ -1593,12 +1595,12 @@ class telluswhere
 	
 	
 	# Function to commit the results of an audit form for infrastructure unchanged/gone
-	private function auditStatusCommit ($apiMethod, $result, $id, $label)
+	private function auditStatusCommit ($apiMethod, $result, $id)
 	{
 		# Assemble the update
 		$data = array (
-			'dataset'	=> $this->settings['auditDataset'],
-			'id'		=> $id,
+			'dataset'		=> $this->settings['auditDataset'],
+			'id'			=> $id,
 			'surveydate'	=> $result['surveyDate'],
 		);
 		
@@ -1610,9 +1612,6 @@ class telluswhere
 		
 		# Add gamification points for registering
 		$this->addGamificationPoints ('AUDIT_CONFIRM', $id);
-		
-		# Confirm outcome
-		return $this->auditConfirmation ('marked as ' . $label, false);
 	}
 	
 	

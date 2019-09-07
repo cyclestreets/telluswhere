@@ -164,6 +164,7 @@ class telluswhere
 			'profile' => array (
 				'description' => false,
 				'url' => '/profile/',
+				'authentication' => true,
 			),
 			'adminreview' => array (
 				'description' => 'Review submissions',

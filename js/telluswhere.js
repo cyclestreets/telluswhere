@@ -230,6 +230,43 @@ var telluswhere = (function ($) {
 				});
 			});
 			
+			// For audit location, add link to editing page
+			if (_action == 'audit') {
+				$('#map').on('click', 'a#auditunchanged', function (e) {
+					if (confirm ('Confirm - all data correct?')) {
+						
+						// Assemble the data
+						var data = {
+							id: $(this).attr('data-id')
+						};
+						
+						// Send the AJAX request and handle the response
+						$.ajax({
+							type: 'POST',
+							url: _baseUrl + '/ajax/',
+							data: data,
+							dataType: 'json',
+							success: function (response) {
+								
+								// Update the points
+								$('span.badge').text (response.points + ' points');
+								
+								// Confirm success
+								alert ('Thank you for confirming this location. Your score is now ' + response.points + ' points.');
+								
+								// Update the icon to green, by forcing map move of zero position change to result in new AJAX request
+								map.panTo (map.getCenter());
+							},
+							error: function (xhr, status, error) {
+								var data = $.parseJSON(xhr.responseText);
+								/*vex.dialog.*/alert (data.error);
+							}
+						});
+					}
+					e.preventDefault ();	// Don't follow link
+				});
+			}
+			
 			// Determine whether to use JSONP transport instead of JSON for the marker layer calls (for older browsers)
 			_useJsonpTransport = telluswhere.useJsonpTransport();
 			
@@ -577,9 +614,12 @@ var telluswhere = (function ($) {
 			}
 			
 			// For audit location, add link to editing page
-			if (_action == 'audit' || _action == 'auditadd') {
+			if (_action == 'audit') {
 				if (editUrl) {
-					html += '<p><a href="' + editUrl + '" name="action">Edit</a></p>';
+					html += '<p>';
+					html += '<a id="auditunchanged" data-id="' + properties.id + '" href="' + editUrl + '#unchanged" class="btn waves-effect waves-light green modal-trigger" name="action">Details all OK <i class="material-icons right">check</i></a> &nbsp; ';
+					html += '<a href="' + editUrl + '#update" class="btn waves-effect waves-light" name="action">Edit <i class="material-icons right">build</i></a>';
+					html += '</p>';
 				}
 			}
 			

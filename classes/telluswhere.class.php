@@ -189,6 +189,12 @@ class telluswhere
 				'url' => '/admin/boroughs/',
 				'administrator' => true,
 			),
+			'ajax' => array (
+				'description' => false,
+				'url' => '/ajax',
+				'export' => true,
+				'authentication' => true,
+			),
 		);
 		
 		# Return the actions
@@ -401,6 +407,10 @@ class telluswhere
 		# Require authentication if specified
 		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator']) || isSet ($this->actions[$this->action]['rightRequired'])) {
 			if (!$this->user) {
+				if (isSet ($this->actions[$this->action]['export'])) {
+					$this->sendJsonError ('Please firstly log in to perform this action.');
+					exit;
+				}
 				$this->action = 'login';
 			}
 		}
@@ -617,6 +627,15 @@ class telluswhere
 		
 		# Return the location, not slash-terminated
 		return $directory;
+	}
+	
+	
+	# Function to send a JSON error
+	private function sendJsonError ($error)
+	{
+		header ('HTTP/1.1 400 Bad Request');
+		header ('Content-type:application/json');
+		echo json_encode (array ('error' => $error));
 	}
 	
 	
@@ -1081,6 +1100,9 @@ class telluswhere
 		
 		# Update the points count in the template with the new value
 		$this->template['points'] = $result['total'];
+		
+		# Return the points value, for use when running in an AJAX context
+		return $result['total'];
 	}
 	
 	
@@ -1598,6 +1620,31 @@ class telluswhere
 	}
 	
 	
+	# Function to receive commit changes via AJAX, for an unchanged ID
+	private function ajax ()
+	{
+		# Ensure ID supplied
+		if (!isSet ($_POST['id'])) {
+			echo json_encode (array ('error' => 'Error: No ID supplied.'));
+			return;
+		}
+		
+		# Assemble the data
+		$id = $_POST['id'];
+		$surveyDate = date ('Y-m-d');	// Assume the survey date to be today
+		
+		# Commit the change
+		$points = $this->auditStatusCommit ('infrastructure.unchanged', $id, $surveyDate);
+		
+		# Return a success response
+		$result = array (
+			'success'	=> true,
+			'points'	=> $points,
+		);
+		echo json_encode ($result);
+	}
+	
+	
 	# Function to commit the results of an audit form for infrastructure unchanged/gone
 	private function auditStatusCommit ($apiMethod, $id, $surveyDate)
 	{
@@ -1614,8 +1661,11 @@ class telluswhere
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
 		
-		# Add gamification points for registering
-		$this->addGamificationPoints ('AUDIT_CONFIRM', $id);
+		# Add gamification points
+		$points = $this->addGamificationPoints ('AUDIT_CONFIRM', $id);
+		
+		# Return the points value, for use when running in an AJAX context
+		return $points;
 	}
 	
 	

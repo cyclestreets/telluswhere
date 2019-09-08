@@ -18,9 +18,10 @@ class telluswhere
 			'flashMessageName'		=> 'confirmation',
 			'editabilityPeriod'		=> 7 * 24 * 60 * 60,		// In seconds
 			'trackingCode'			=> false,
-			'dataset'			=> false,	// For audit
+			'dataset'				=> false,	// For audit
 			#!# Needs to be added to database settings
-			'geocoderBboxBounded'		=> '-6.6577,49.9370,1.7797,57.6924',	// English mainland
+			'geocoderBboxBounded'	=> '-6.6577,49.9370,1.7797,57.6924',	// English mainland
+			'authNamespace'			=> 'telluswhere\\',
 		);
 		
 		# Return the defaults
@@ -3618,7 +3619,7 @@ class telluswhere
 	{
 		# Assemble the data to post
 		$postData = array (
-			'identifier'	=> $email,
+			'identifier'	=> $this->settings['authNamespace'] . $email,
 			'password'	=> $password,
 		);
 		
@@ -3845,8 +3846,8 @@ class telluswhere
 		}
 		
 		# Namespace the fields
-		$data['email'] = 'telluswhere\\' . $data['email'];
-		$data['username'] = 'telluswhere\\' . $data['username'];
+		$data['email'] = $this->settings['authNamespace'] . $data['email'];
+		$data['username'] = $this->settings['authNamespace'] . $data['username'];
 		
 		# Create the account, which will use the name,email,password fields
 		$apiUrl = $this->settings['apiBase'] . '/v2/user.create' . '?key=' . $this->settings['apiKey'];

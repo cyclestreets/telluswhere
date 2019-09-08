@@ -838,12 +838,14 @@ class telluswhere
 		
 		# Add login form or status, where supported by the template
 		if ($this->user) {
-			$this->template['login']  = "<p>You are logged in.</p>";
-			$this->template['login'] .= "\n<p>You have <a href=\"{$this->baseUrl}/profile/\">{$this->gamificationActivities['total']} points</a>.</p>";
+			$this->template['form']  = "<p>You are logged in.</p>";
+			$this->template['form'] .= "\n<p>You have <a href=\"{$this->baseUrl}/profile/\">{$this->gamificationActivities['total']} points</a>.</p>";
 		} else {
 			$formHtml = '';
-			$this->loginForm ($formHtml, false);
-			$this->template['login'] = $formHtml;
+			if ($result = $this->loginForm ($formHtml, false)) {
+				$this->doLogin ($result);	// $result now contains the user details (username, email, name, privileges)
+			}
+			$this->template['form'] = $formHtml;
 		}
 		
 		# Add areas drop-down if supported

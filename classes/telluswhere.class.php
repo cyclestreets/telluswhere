@@ -3958,6 +3958,8 @@ class telluswhere
 			'displayRestrictions'		=> false,
 			'formCompleteText'			=> false,
 			'requiredFieldIndicator'	=> false,
+			'display'					=> 'template',
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form', $this->action),
 			'submitButtonText'			=> ($update ? 'Update' : 'Register'),
 			'submitButtonAccesskey'		=> false,
 			'autofocus'					=> true,
@@ -3978,12 +3980,12 @@ class telluswhere
 			'default'	=> (isSet ($data['city']) ? $data['city'] : false),
 		));
 		if (!$update) {
-			//$form->heading ('', 'Login details:');
 			$form->input (array (
 				'name'		=> 'username',
 				'title'		=> 'Create a username',
 				'required'	=> true,
 				'description'	=> 'Lower-case letters and numbers only, no spaces',
+				'placeholder'	=> 'Lower-case a-z, 0-9 only',
 			));
 			$form->email (array (
 				'name'		=> 'email',

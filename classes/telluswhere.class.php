@@ -3624,7 +3624,7 @@ class telluswhere
 		);
 		
 		# Post to the user authentication API
-		$apiUrl = $this->settings['apiBase'] . $this->actions[$this->action]['apiUrl'] . '?key=' . $this->settings['apiKey'];
+		$apiUrl = $this->settings['apiBase'] . $this->actions['login']['apiUrl'] . '?key=' . $this->settings['apiKey'];
 		$resultJson = application::file_post_contents ($apiUrl, $postData, $error);
 		if ($error) {
 			// echo $error;		// Debug

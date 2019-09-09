@@ -705,7 +705,7 @@ class telluswhere
 		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
 		
 		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
-		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders);
+		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders /* returned by reference */);
 		
 		# Capture the list of form fields in the template and pass back by reference
 		$formFieldsInTemplate = array_keys ($replacedPlaceholders);

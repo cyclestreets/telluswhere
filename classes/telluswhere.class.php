@@ -3680,14 +3680,14 @@ class telluswhere
 		if ($user) {
 			$this->template['css'] = '
 			<style type="text/css">
-				nav li.login {display: none;}
+				nav li.login, span.login {display: none;}
 				nav li.register {display: none;}
 			</style>
 			';
 		} else {
 			$this->template['css'] = '
 			<style type="text/css">
-				nav li.profile {display: none;}
+				nav li.profile, span.profile {display: none;}
 			</style>
 			';
 		}

@@ -857,7 +857,7 @@ class telluswhere
 	
 	
 	# Function to create an areas drop-down
-	private function areasDropdown ()
+	private function areasDropdown ($asList = false)
 	{
 		# Determine the file or end if not supported
 		$file = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . '/areas.csv';
@@ -868,21 +868,29 @@ class telluswhere
 		$areas = csv::getData ($file);
 		
 		# Construct the HTML
-		$html  = "\n<select id=\"regionswitcher\">";
-		$html .= "\n<option value=\"\">Go to borough:</option>";
-		foreach ($areas as $area) {
-			$html .= "\n\t<option value=\"{$this->baseUrl}/audit/#16/{$area['longitude']}/{$area['latitude']}\">" . htmlspecialchars ($area['name']) . '</option>';
+		if ($asList) {
+			$list = array ();
+			foreach ($areas as $area) {
+				$list[] = "<a href=\"#16/{$area['longitude']}/{$area['latitude']}\">" . htmlspecialchars ($area['name']) . '</a>';
+			}
+			$html = application::htmlUl ($list, 0, 'areaslist');
+		} else {
+			$html  = "\n<select id=\"regionswitcher\">";
+			$html .= "\n<option value=\"\">Go to borough:</option>";
+			foreach ($areas as $area) {
+				$html .= "\n\t<option value=\"{$this->baseUrl}/audit/#16/{$area['longitude']}/{$area['latitude']}\">" . htmlspecialchars ($area['name']) . '</option>';
+			}
+			$html .= "\n</select>";
+			$html .= "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+			$html .= "\n<script type=\"text/javascript\">
+				$('#regionswitcher').change (function () {
+					if (this.value) {
+						window.location = $(this).val();
+					}
+				});
+			</script>
+			";
 		}
-		$html .= "\n</select>";
-		$html .= "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-		$html .= "\n<script type=\"text/javascript\">
-			$('#regionswitcher').change (function () {
-				if (this.value) {
-					window.location = $(this).val();
-				}
-			});
-		</script>
-		";
 		
 		# Return the HTML
 		return $html;
@@ -986,6 +994,7 @@ class telluswhere
 		
 		# Add areas drop-down if supported
 		$this->template['areas'] = $this->areasDropdown ();
+		$this->template['areasList'] = $this->areasDropdown ($asList = true);
 	}
 	
 	

@@ -248,6 +248,9 @@ var telluswhere = (function ($) {
 							dataType: 'json',
 							success: function (response) {
 								
+								// Hide the popup button for this ID
+								$('p.auditbuttons' + data.id).html ('<p style="color: green;">✓ This location has now been reviewed.</p>');
+								
 								// Update the points
 								$('span.badge').text (response.points + ' points');
 								
@@ -617,10 +620,14 @@ var telluswhere = (function ($) {
 			// For audit location, add link to editing page
 			if (_action == 'audit') {
 				if (editUrl) {
-					html += '<p>';
-					html += '<a id="auditunchanged" data-id="' + properties.id + '" href="' + editUrl + '#unchanged" class="btn waves-effect waves-light green modal-trigger" name="action">Details all OK <i class="material-icons right">check</i></a> &nbsp; ';
-					html += '<a href="' + editUrl + '#update" class="btn waves-effect waves-light" name="action">Edit <i class="material-icons right">build</i></a>';
-					html += '</p>';
+					if (typeof properties.iconUrl == 'string' && properties.iconUrl.match(/_bad/)) {
+						html += '<p class="auditbuttons' + properties.id + '">';
+						html += '<a id="auditunchanged" data-id="' + properties.id + '" href="' + editUrl + '#unchanged" class="btn waves-effect waves-light green modal-trigger" name="action">Details all OK <i class="material-icons right">check</i></a> &nbsp; ';
+						html += '<a href="' + editUrl + '#update" class="btn waves-effect waves-light" name="action">Edit <i class="material-icons right">build</i></a>';
+						html += '</p>';
+					} else {
+						html += '<p style="color: green;">✓ This location has been reviewed.</p>';
+					}
 				}
 			}
 			

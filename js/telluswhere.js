@@ -20,6 +20,9 @@ var telluswhere = (function ($) {
 	// baseUrl of application
 	var _baseUrl;
 	
+	// Login status
+	var _user = false;
+	
 	// GUI action
 	var _action;
 	
@@ -57,6 +60,7 @@ var telluswhere = (function ($) {
 			// Set class properties
 			_baseUrl = settings.baseUrl;
 			_action = settings.action;
+			_user = settings.user;
 			_initialLatitude = settings.initialLatitude;
 			_initialLongitude = settings.initialLongitude;
 			_initialZoom = settings.initialZoom;
@@ -244,12 +248,21 @@ var telluswhere = (function ($) {
 			// For audit location, add link to editing page
 			if (_action == 'audit') {
 				$('#map').on('click', 'a#auditunchanged', function (e) {
+					
+					// Assemble the data, obtaining the ID
+					var data = {
+						id: $(this).attr('data-id')
+					};
+					
+					// If not logged in, convert the button to a login requirement
+					if (!_user) {
+						$('p.auditbuttons' + data.id).html ('<p style="color: red;">Please <a href="' + _baseUrl + '/login/?/audit/">log in</a> or <a href="' + _baseUrl + '/register/">register</a> first.</p>');
+						e.preventDefault ();
+						return;		// End
+					}
+					
+					// Show confirmation first
 					if (confirm ('Confirm - all data correct?')) {
-						
-						// Assemble the data
-						var data = {
-							id: $(this).attr('data-id')
-						};
 						
 						// Send the AJAX request and handle the response
 						$.ajax({
@@ -264,9 +277,6 @@ var telluswhere = (function ($) {
 								
 								// Update the points
 								$('span.badge').text (response.points + ' points');
-								
-								// Confirm success
-								alert ('Thank you for confirming this location. Your score is now ' + response.points + ' points.');
 								
 								// Update the icon to green, by forcing map move of zero position change to result in new AJAX request
 								map.panTo (map.getCenter());

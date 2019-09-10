@@ -2324,6 +2324,7 @@ class telluswhere
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/lib/jquery.exif.js\"></script>";
 		
 		# Load the map application Javascript and run it
+		$userJs = ($this->user ? 'true' : 'false');
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? (ctype_digit ($selectedIdData['id']) ? $selectedIdData['id'] : "'{$selectedIdData['id']}'") : 'false');
@@ -2338,6 +2339,7 @@ class telluswhere
 			var map = telluswhere.createMap ({
 				baseUrl: '{$this->baseUrl}',
 				action: '{$this->action}',
+				user: {$userJs},
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
 				initialZoom: {$mapLocation['zoom']},

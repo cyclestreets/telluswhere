@@ -3852,6 +3852,18 @@ class telluswhere
 			return;
 		}
 		
+		# If a token is specified, trigger this upstream
+		if (isSet ($_GET['token']) && preg_match ('/^[a-f0-9]{24}$/', $_GET['token'])) {
+			#!# Should be a proper API call upstream
+			$url = 'https://www.cyclestreets.net/signin/register/' . $_GET['token'] . '/';
+			$webpage = file_get_contents ($url);
+			if (substr_count ($webpage, 'has now been validated')) {
+				$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
+				$this->template['form'] = "<p>{$unicodeTick} Thank you for validating the account. Please <a href=\"/login/?/audit/\">log in</a> to continue.</p>";
+			}
+			return;
+		}
+		
 		# Create the form
 		$formHtml = '';
 		if (!$data = $this->profileForm ($formHtml)) {
@@ -3864,7 +3876,7 @@ class telluswhere
 		$data['username'] = $this->settings['authNamespace'] . $data['username'];
 		
 		# Create the account, which will use the name,email,password fields
-		$apiUrl = $this->settings['apiBase'] . '/v2/user.create' . '?key=' . $this->settings['apiKey'];
+		$apiUrl = $this->settings['apiBase'] . '/v2/user.create' . '?key=' . $this->settings['apiKey'] . "&urlprefix={$_SERVER['_SITE_URL']}";
 		$result = application::file_post_contents ($apiUrl, $data);
 		$result = json_decode ($result, true);
 		if (isSet ($result['error'])) {

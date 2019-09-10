@@ -166,8 +166,14 @@ var telluswhere = (function ($) {
 							delete feature.properties._colour;
 						}
 						
+						// For auditing, add class for reviewed/unreviewed
+						var className = null;
+						if (_action == 'audit') {
+							className = (feature.properties.iconUrl.match(/_bad/) ? 'unreviewed' : 'reviewed');
+						}
+						
 						// Add popups
-						layer.bindPopup (telluswhere.popupHtml (feature.properties), {autoPanPaddingTopLeft: [0, 70]});
+						layer.bindPopup (telluswhere.popupHtml (feature.properties), {className: className, autoPanPaddingTopLeft: [0, 70]});
 						
 						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
 						layer.on ({

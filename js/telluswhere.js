@@ -249,7 +249,7 @@ var telluswhere = (function ($) {
 							success: function (response) {
 								
 								// Hide the popup button for this ID
-								$('p.auditbuttons' + data.id).html ('<p style="color: green;">✓ This location has now been reviewed.</p>');
+								$('p.auditbuttons' + data.id).html ('<p style="color: green;">✓ This location has now been reviewed - thank you!</p>');
 								
 								// Update the points
 								$('span.badge').text (response.points + ' points');

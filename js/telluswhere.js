@@ -283,6 +283,7 @@ var telluswhere = (function ($) {
 								
 								// Update the points
 								$('span.badge, span.profile a').text (response.points + ' points');
+								$('span.badge, span.profile a').fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);	// https://stackoverflow.com/questions/275931/
 								
 								// Update the icon to green, by forcing map move of zero position change to result in new AJAX request
 								map.panTo (map.getCenter());

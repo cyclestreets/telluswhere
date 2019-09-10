@@ -10,6 +10,7 @@ class telluswhere
 		$defaults = array (
 			'style'					=> 'default',
 			'apiBase'				=> 'https://api.cyclestreets.net',
+			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
 			'apiKey'				=> false,
 			'username'				=> false,
 			'password'				=> false,
@@ -2334,7 +2335,6 @@ class telluswhere
 		$minZoom = (preg_match ('/^(audit|priorityareas)/', $this->action) ? 16 : 7);
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?20\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
 			var map = telluswhere.createMap ({
 				baseUrl: '{$this->baseUrl}',
 				action: '{$this->action}',

@@ -474,7 +474,7 @@ class telluswhere
 		
 		# Get the points of the user
 		$this->gamificationActivities = $this->getGamificationActivities ();
-		$this->template['points'] = $this->gamificationActivities['total'];
+		$this->template['points'] = ($this->gamificationActivities ? $this->gamificationActivities['total'] : NULL);
 		
 		# Perform the action, which will write into the page template array
 		#!# Need to handle 404s properly by using return value for each action
@@ -705,7 +705,7 @@ class telluswhere
 		$htmlBlock = $this->replacedPlaceholders[$placeholderName];
 		
 		# Extract the HTML between placeholder-comments nested within the form template to leave a standard template for the form
-		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders);
+		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders /* returned by reference */);
 		
 		# Capture the list of form fields in the template and pass back by reference
 		$formFieldsInTemplate = array_keys ($replacedPlaceholders);
@@ -1074,6 +1074,9 @@ class telluswhere
 	# Function to get the gamification data for the user
 	private function getGamificationActivities ()
 	{
+		# End if not signed in
+		if (!$this->user) {return array ();}
+		
 		# Obtain the data for this user from the API
 		$apiUrl = $this->settings['apiBase'] . '/v2/gamification.activities&key=' . $this->settings['apiKey'] . '&email=' . $this->user['email'];
 		$data = file_get_contents ($apiUrl);

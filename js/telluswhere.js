@@ -276,7 +276,7 @@ var telluswhere = (function ($) {
 								$('p.auditbuttons' + data.id).html ('<p style="color: green;">✓ This location has now been reviewed - thank you!</p>');
 								
 								// Update the points
-								$('span.badge').text (response.points + ' points');
+								$('span.badge, span.profile a').text (response.points + ' points');
 								
 								// Update the icon to green, by forcing map move of zero position change to result in new AJAX request
 								map.panTo (map.getCenter());

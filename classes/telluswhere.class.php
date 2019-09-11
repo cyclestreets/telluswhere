@@ -378,6 +378,10 @@ class telluswhere
 		# Get the user's details, if authenticated
 		$this->user = $this->getUser ();
 		
+		# Get the points of the user
+		$this->gamificationActivities = $this->getGamificationActivities ();
+		$this->template['points'] = ($this->gamificationActivities ? $this->gamificationActivities['total'] : NULL);
+		
 		# End if no action specified
 		if (!isSet ($_GET['action']) || !strlen ($_GET['action'])) {
 			$html = $this->page404 ();
@@ -475,10 +479,6 @@ class telluswhere
 		} else {
 			$this->categories = ($this->settings['categories'] ? preg_split ("/\s+/", trim ($this->settings['categories'])) : array ());	// The ternary exists because first run will have none
 		}
-		
-		# Get the points of the user
-		$this->gamificationActivities = $this->getGamificationActivities ();
-		$this->template['points'] = ($this->gamificationActivities ? $this->gamificationActivities['total'] : NULL);
 		
 		# Perform the action, which will write into the page template array
 		#!# Need to handle 404s properly by using return value for each action

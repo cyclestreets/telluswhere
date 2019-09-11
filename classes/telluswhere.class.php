@@ -3738,6 +3738,9 @@ class telluswhere
 		# If the user is an administrator, grant right
 		if ($userIsAdministrator) {return true;}
 		
+		# Remove namespacing
+		$email = str_replace ($this->settings['authNamespace'], '', $email);
+		
 		# Determine if the user is an administrator
 		$emails = ($this->settings[$field] ? preg_split ("/\s+/", trim ($this->settings[$field])) : array ());
 		return (in_array ($email, $emails));

@@ -1575,6 +1575,7 @@ class telluswhere
 		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
 		$apiCall = ($updateId ? 'infrastructure.update' : 'infrastructure.add');
 		$schemaUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
+		#!# Failure detection needed
 		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
 		$result = json_decode ($result, true);
 		//application::dumpData ($result);
@@ -2175,6 +2176,11 @@ class telluswhere
 	# Function to prepare a file for upload; see: https://stackoverflow.com/a/4270282/180733
 	private function prepareFile ($file)
 	{
+		# If the file is a URL, i.e. is the original file, mark as unchanged
+		#!# This scenario should be handled as a native ultimateForm higher up in the code
+		if (preg_match ('|https?://|', $file)) {return 'unchanged';}
+		
+		# Create and return the file handle
 		if (function_exists ('curl_file_create')) {
 			$mediaupload = curl_file_create ($file);	// Modern method, avoids CURL deprecation warnings from PHP 5.5+
 		} else {

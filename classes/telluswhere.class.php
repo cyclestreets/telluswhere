@@ -412,12 +412,14 @@ class telluswhere
 		if ($_SERVER['REQUEST_URI'] != '/login/' && !substr_count ($_SERVER['REQUEST_URI'], '/login/?')) {
 			$this->template['loginLink'] .= '?' . $_SERVER['REQUEST_URI'];
 		}
+$this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Require authentication if specified
 		if (isSet ($this->actions[$this->action]['authentication']) || isSet ($this->actions[$this->action]['administrator']) || isSet ($this->actions[$this->action]['rightRequired'])) {
 			if (!$this->user) {
 				if (isSet ($this->actions[$this->action]['export'])) {
-					$this->sendJsonError ('Please firstly log in to perform this action.');
+					header ('Content-type:application/json');
+					echo $this->jsonError ('Please firstly log in to perform this action.');
 					exit;
 				}
 				$this->action = 'login';
@@ -636,11 +638,10 @@ class telluswhere
 	
 	
 	# Function to send a JSON error
-	private function sendJsonError ($error)
+	private function jsonError ($error)
 	{
 		header ('HTTP/1.1 400 Bad Request');
-		header ('Content-type:application/json');
-		echo json_encode (array ('error' => $error));
+		return json_encode (array ('error' => $error));
 	}
 	
 	
@@ -1643,21 +1644,24 @@ class telluswhere
 	# AJAX endpoint
 	private function ajax ()
 	{
+		# Send JSON header
+		header ('Content-type:application/json');
+		
 		# Ensure a call is specified
 		if (!isSet ($_GET['call']) || !strlen ($_GET['call']) || !preg_match ('/^[a-z]+$/', $_GET['call'])) {
-			$this->sendJsonError ('Error: No valid call supplied.');
+			echo $this->jsonError ('Error: No valid call supplied.');
 			return;
 		}
 		
 		# Ensure function exists
 		$method = 'ajax' . ucfirst ($_GET['call']);
 		if (!method_exists ($this, $method)) {
-			$this->sendJsonError ('Error: No valid call supplied.');
+			echo $this->jsonError ('Error: No valid call supplied.');
 			return;
 		}
 		
 		# Return the call result
-		return $this->{$method} ();
+		echo $this->{$method} ();
 	}
 	
 	
@@ -1666,8 +1670,7 @@ class telluswhere
 	{
 		# Ensure ID supplied
 		if (!isSet ($_POST['id'])) {
-			$this->sendJsonError ('Error: No ID supplied.');
-			return;
+			return $this->jsonError ('Error: No ID supplied.');
 		}
 		
 		# Assemble the data

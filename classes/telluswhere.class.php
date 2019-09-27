@@ -1640,12 +1640,33 @@ class telluswhere
 	}
 	
 	
-	# Function to receive commit changes via AJAX, for an unchanged ID
+	# AJAX endpoint
 	private function ajax ()
+	{
+		# Ensure a call is specified
+		if (!isSet ($_GET['call']) || !strlen ($_GET['call']) || !preg_match ('/^[a-z]+$/', $_GET['call'])) {
+			$this->sendJsonError ('Error: No valid call supplied.');
+			return;
+		}
+		
+		# Ensure function exists
+		$method = 'ajax' . ucfirst ($_GET['call']);
+		if (!method_exists ($this, $method)) {
+			$this->sendJsonError ('Error: No valid call supplied.');
+			return;
+		}
+		
+		# Return the call result
+		return $this->{$method} ();
+	}
+	
+	
+	# AJAX call to receive commit changes via AJAX, for an unchanged ID
+	private function ajaxAuditunchanged ()
 	{
 		# Ensure ID supplied
 		if (!isSet ($_POST['id'])) {
-			echo json_encode (array ('error' => 'Error: No ID supplied.'));
+			$this->sendJsonError ('Error: No ID supplied.');
 			return;
 		}
 		

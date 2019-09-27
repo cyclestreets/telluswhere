@@ -17,8 +17,8 @@ php_flag output_buffering Off
 # Run application pages
 RewriteEngine On
 RewriteRule ^$ index.html?action=home [L,QSA]
-RewriteRule ^(suggest|current|audit|embed|news|about|privacy|programme|terms|contacts|data|ajax|settings|admin|batch|login|logout|register|profile)/$ index.html?action=$1 [L,QSA]
-RewriteRule ^(suggest|current|audit|embed|news|about|privacy|programme|terms|contacts|data|ajax|settings|admin|login|batch|logout|register|profile)$ /$1/ [L,R=301]
+RewriteRule ^(suggest|current|audit|embed|news|about|privacy|programme|terms|contacts|data|settings|admin|batch|login|logout|register|profile)/$ index.html?action=$1 [L,QSA]
+RewriteRule ^(suggest|current|audit|embed|news|about|privacy|programme|terms|contacts|data|settings|admin|login|batch|logout|register|profile)$ /$1/ [L,R=301]
 RewriteRule ^(suggest|current|audit|terms)/iframe.html$ index.html?action=$1&iframe=1 [L,QSA]
 RewriteRule ^(register)/([a-f0-9]{24})/?$ /index.html?action=$1&token=$2 [L]
 RewriteRule ^(location)/([1-9][0-9]*)/$ index.html?action=$1&id=$2 [L,QSA]
@@ -50,6 +50,7 @@ RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)$ /$1/$2/$3/
 RewriteRule ^(batch)/cancel.html$ index.html?action=$1&do=cancel [L]
 RewriteRule ^(admin)/(review|search|users|boroughs)/$ index.html?action=$1$2 [L,QSA]
 RewriteRule ^(admin)/(review|search|users|boroughs)$ /$1/$2/ [L,R=301]
+RewriteRule ^ajax/([a-z]+)$ index.html?action=ajax&call=$1 [L,QSA]
 
 # If no match above, serve files from the style folder directly, via the web application, for the configured style, other than specified static files
 RewriteCond %{REQUEST_FILENAME} !/.well-known

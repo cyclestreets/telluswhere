@@ -273,7 +273,7 @@ var telluswhere = (function ($) {
 						// Send the AJAX request and handle the response
 						$.ajax({
 							type: 'POST',
-							url: _baseUrl + '/ajax/',
+							url: _baseUrl + '/ajax/auditunchanged',
 							data: data,
 							dataType: 'json',
 							success: function (response) {

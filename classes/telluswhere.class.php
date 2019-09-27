@@ -1689,6 +1689,36 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
+	# AJAX call for priority area deletion
+	private function ajaxPriorityareasdelete ()
+	{
+		# Ensure ID supplied
+		if (!isSet ($_POST['id'])) {
+			return $this->jsonError ('Error: No ID supplied.');
+		}
+		
+		# Assemble the data
+		$data = array (
+			'dataset'		=> $this->settings['auditDataset'],
+			'id'			=> $_POST['id'],
+		);
+		
+		# Post the response to the API; see: https://www.cyclestreets.net/api/v2/infrastructure.priorityareas.delete/
+		$schemaUrl = $this->settings['apiBase'] . '/v2/' . 'infrastructure.priorityareas.delete' . '?key=' . $this->settings['apiKey'];
+		$result = application::file_post_contents ($schemaUrl, $data, $multipart = true);
+		$result = json_decode ($result, true);
+		//application::dumpData ($result);
+		
+		# If an error occured, send error header
+		if (isSet ($result['error'])) {
+			return $this->jsonError ('Error: ' . $result['error']);
+		}
+		
+		# Return the result
+		return json_encode ($result);
+	}
+	
+	
 	# Function to commit the results of an audit form for infrastructure unchanged/gone
 	private function auditStatusCommit ($apiMethod, $id, $surveyDate)
 	{

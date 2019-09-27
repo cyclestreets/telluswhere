@@ -257,7 +257,7 @@ var telluswhere = (function ($) {
 					
 					// Assemble the data, obtaining the ID
 					var data = {
-						id: $(this).attr('data-id')
+						id: $(this).data('id')
 					};
 					
 					// If not logged in, convert the button to a login requirement
@@ -295,6 +295,38 @@ var telluswhere = (function ($) {
 						});
 					}
 					e.preventDefault ();	// Don't follow link
+				});
+			}
+			
+			// On priority areas page, enable deletion
+			if (_action == 'priorityareas') {
+				$('#map').on ('click', 'a.priorityareasdelete', function (e) {
+					if (confirm ('Are you sure?')) {
+						
+						// Asssemble the data
+						var data = {
+							id: $(this).data('id')
+						}
+						
+						// Send the AJAX request and handle the response
+						$.ajax({
+							type: 'POST',
+							url: '/ajax/priorityareasdelete',
+							data: data,
+							dataType: 'json',
+							success: function (response) {
+								
+								// Move the map to delete the polygon and refresh state
+								map.closePopup();
+								map.panTo (map.getCenter());
+							},
+							error: function (xhr, status, error) {
+								var data = $.parseJSON(xhr.responseText);
+								/*vex.dialog.*/alert (data.error);
+							}
+						});
+						e.preventDefault ();
+					}
 				});
 			}
 			
@@ -657,6 +689,14 @@ var telluswhere = (function ($) {
 						html += '<p style="color: green;">✓ This location has been reviewed.</p>';
 					}
 				}
+			}
+			
+			// For priority areas, add deletion button
+			if (_action == 'priorityareas') {
+				html += '<p>';
+//				html += '<a href="#" class="priorityareaedit btn waves-effect waves-light" name="action" data-id="' + properties.id + '">Edit area <i class="material-icons right">build</i></a> &nbsp; ';
+				html += '<a href="#" class="priorityareasdelete btn waves-effect waves-light" name="action" data-id="' + properties.id + '">Delete <i class="material-icons right">build</i></a>';
+				html += '</p>';
 			}
 			
 			// Return HTML

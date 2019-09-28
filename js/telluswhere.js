@@ -680,6 +680,10 @@ var telluswhere = (function ($) {
 					value = '&#10004;';
 				}
 				
+				// Clarifications
+				if (fieldLabel == 'Provision') {value += ' stands';}
+				if (fieldLabel == 'Capacity') {value += ' cycles';}
+				
 				// Compile the HTML
 				html += '<tr><td>' + fieldLabel + ':</td><td><strong>' + value + '</strong></td></tr>';
 			});

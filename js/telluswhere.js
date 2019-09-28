@@ -630,7 +630,7 @@ var telluswhere = (function ($) {
 			
 			// Create a simple key/value pair HTML table dynamically
 			// Code based on Leaflet.LayerViewer.js
-			var html = '<table>';
+			var html = '<table class="popupproperties">';
 			var fieldLabel;
 			$.each (properties, function (key, value) {
 				

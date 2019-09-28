@@ -2348,6 +2348,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			p#formwarning {color: red;}
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
+			table.popupproperties tr td:first-child {width: 60%;}
 			
 			/* Likes */
 			#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; border: 1px solid #eee; background-color: #fcfcfc; border-radius: 5px;}

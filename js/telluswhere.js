@@ -48,6 +48,9 @@ var telluswhere = (function ($) {
 	var _popupLabels = {};
 	var _popupLabelSubsetField;
 	
+	// Line styling
+	var _lineSize = {initial: 8, hover: 15};
+	var _lineColour = {initial: 'red'};
 	
 	
 	return {
@@ -181,8 +184,8 @@ var telluswhere = (function ($) {
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
 									var layer = e.target;
 									layer.setStyle({
-										color: 'red',
-										weight: 10
+										color: _lineColour.initial,
+										weight: _lineSize.hover
 									});
 								}
 							},
@@ -190,8 +193,8 @@ var telluswhere = (function ($) {
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
 									var layer = e.target;
 									layer.setStyle({
-										color: 'red',
-										weight: 5	// i.e. reset to style below
+										color: _lineColour.initial,
+										weight: _lineSize.initial
 									});
 								}
 							}
@@ -204,8 +207,8 @@ var telluswhere = (function ($) {
 						
 						// Lines
 						if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
-							styles.color = 'red';
-							styles.weight = 5;
+							styles.color = _lineColour.initial;
+							styles.weight = _lineSize.initial;
 						}
 						
 						// Polygons
@@ -214,8 +217,8 @@ var telluswhere = (function ($) {
 								styles.color = feature.properties._colour;
 								styles.fillColor = feature.properties._colour;
 							} else {
-								styles.color = 'red';
-								styles.fillColor = 'red';
+								styles.color = _lineColour.initial;
+								styles.fillColor = _lineColour.initial;
 							}
 						}
 						

@@ -50,7 +50,7 @@ var telluswhere = (function ($) {
 	
 	// Line styling
 	var _lineSize = {initial: 8, hover: 15};
-	var _lineColour = {initial: 'red'};
+	var _lineColour = {initial: 'red', reviewed: 'green'};
 	
 	
 	return {
@@ -184,7 +184,7 @@ var telluswhere = (function ($) {
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
 									var layer = e.target;
 									layer.setStyle({
-										color: _lineColour.initial,
+										color: telluswhere.lineColour (e.target.feature.properties),
 										weight: _lineSize.hover
 									});
 								}
@@ -193,7 +193,7 @@ var telluswhere = (function ($) {
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
 									var layer = e.target;
 									layer.setStyle({
-										color: _lineColour.initial,
+										color: telluswhere.lineColour (e.target.feature.properties),
 										weight: _lineSize.initial
 									});
 								}
@@ -207,7 +207,7 @@ var telluswhere = (function ($) {
 						
 						// Lines
 						if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
-							styles.color = _lineColour.initial;
+							styles.color = telluswhere.lineColour (feature.properties);
 							styles.weight = _lineSize.initial;
 						}
 						
@@ -288,7 +288,7 @@ var telluswhere = (function ($) {
 								$('span.badge, span.profile a').text (response.points + ' points');
 								$('span.badge, span.profile a').fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);	// https://stackoverflow.com/questions/275931/
 								
-								// Update the icon to green, by forcing map move of zero position change to result in new AJAX request
+								// Update the icon/line to green, by forcing map move of zero position change to result in new AJAX request
 								map.panTo (map.getCenter());
 							},
 							error: function (xhr, status, error) {
@@ -364,6 +364,20 @@ var telluswhere = (function ($) {
 			
 			// Return map
 			return map;
+		},
+		
+		
+		lineColour: function (properties)
+		{
+			// If there is a properties status field, and it is not initial, return the reviewed style
+			if (properties._status) {
+				if (properties._status != 'initial') {
+					return _lineColour.reviewed;
+				}
+			}
+			
+			// Otherwise return the default style
+			return _lineColour.initial;
 		},
 		
 		

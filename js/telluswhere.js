@@ -176,7 +176,7 @@ var telluswhere = (function ($) {
 						}
 						
 						// Add popups
-						layer.bindPopup (telluswhere.popupHtml (feature.properties), {className: className, autoPanPaddingTopLeft: [0, 70]});
+						layer.bindPopup (telluswhere.popupHtml (feature.properties, index), {className: className, autoPanPaddingTopLeft: [0, 70]});
 						
 						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
 						layer.on ({
@@ -612,10 +612,10 @@ var telluswhere = (function ($) {
 		
 		
 		// Define HTML to be used in the popup
-		popupHtml: function (properties)
+		popupHtml: function (properties, layerIndex)
 		{
 			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation' || _action == 'priorityareas') {
-				return telluswhere.popupHtmlDynamic (properties);
+				return telluswhere.popupHtmlDynamic (properties, layerIndex);
 			} else {
 				return telluswhere.popupHtmlFixed (properties);
 			}
@@ -623,7 +623,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Popup which creates a table with images (and images) dynamically
-		popupHtmlDynamic: function (properties)
+		popupHtmlDynamic: function (properties, layerIndex)
 		{
 			// Create a variable to hold the editing URL
 			var editUrl = null;
@@ -708,6 +708,30 @@ var telluswhere = (function ($) {
 						html += '</p>';
 					} else {
 						html += '<p style="color: green;">✓ This location has been reviewed.</p>';
+					}
+				}
+			}
+			
+			// For priority area polygons, create custom popup
+			var priorityAreaPolygons = false;
+			if (_action == 'priorityareas') {
+				priorityAreaPolygons = true;
+			}
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+				if (layerIndex == 1) {
+					priorityAreaPolygons = true;
+				}
+			}
+			if (priorityAreaPolygons) {
+				html  = '';		// Reset any current HTML
+				html += '<h3>' + telluswhere.htmlspecialchars (properties.name) + '</h3>';
+				html += '<p>This area is a particular <strong>priority area</strong>.</p>';
+				if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+					if (map.getZoom() < 17) {
+						html += '<p>Please zoom in to review locations in this area.</p>';
+					} else {
+						html += '<p>Please click on an icon or line to review that location in this area.</p>';
+						html += '<p>Thanks for your help!</p>';
 					}
 				}
 			}

@@ -1322,6 +1322,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
+		# Disable intelligence for colour fields, forcing ENUM
+		foreach ($schemaDatabinding as $fieldname => $field) {
+			if (substr_count ($fieldname, 'colour')) {
+				$attributes[$fieldname]['type'] = 'select';
+			}
+		}
+		
 		# Create a new form
 		$formHtml = '';
 		require_once ('ultimateForm.php');

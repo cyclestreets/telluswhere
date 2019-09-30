@@ -844,7 +844,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Inner function to fetch current marker data
-		showCurrentDataLayer: function (ajaxResponse, layerIndex)
+		showCurrentDataLayer: function (ajaxResponse, layerIndex, clearOnly)
 		{
 			// Remove all markers, except those with open popups
 			var popup;
@@ -854,6 +854,9 @@ var telluswhere = (function ($) {
 					_currentDataLayers[layerIndex].removeLayer (layer);
 				}
 			});
+			
+			// End if only clearing
+			if (clearOnly) {return;}
 			
 			// Add the data
 			_currentDataLayers[layerIndex].addData (ajaxResponse);
@@ -898,14 +901,6 @@ var telluswhere = (function ($) {
 		// Wrapper function to fetch current marker data layer/layers
 		getData: function ()
 		{
-			// For the audit layer, require a close zoom before loading due to the volume of data
-			// #!# Needs turning into a database setting if future datasets
-			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
-				if (map.getZoom() < 16) {
-					return;
-				}
-			}
-			
 			// Get each data layer
 			$.each (_browsingApiUrls, function (index, url) {
 				telluswhere.getDataLayer (url, index);
@@ -916,6 +911,17 @@ var telluswhere = (function ($) {
 		// Inner function to fetch current marker data
 		getDataLayer: function (url, layerIndex)
 		{
+			// For the audit layer, require a close zoom before loading due to the volume of data
+			// #!# Needs turning into a database setting if future datasets
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+				if (layerIndex == 0) {	// Main icons layer
+					if (map.getZoom() < 17) {
+						telluswhere.showCurrentDataLayer (null, layerIndex, true);
+						return;
+					}
+				}
+			}
+			
 			// Start spinner, initially adding it to the page
 			if (layerIndex == 0) {	// main
 				if (!$('#map #loading').length) {

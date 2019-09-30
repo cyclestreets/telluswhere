@@ -2404,7 +2404,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
-		$minZoom = (preg_match ('/^(audit|priorityareas)/', $this->action) ? 16 : 7);
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?20\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap ({
@@ -2414,7 +2413,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
 				initialZoom: {$mapLocation['zoom']},
-				minZoom: {$minZoom},
 				browsingApiUrl: {$browsingApiUrlJs},
 				useIcon: '{$showLayer}',
 				setMarkerInitially: {$setMarkerInitiallyJs},

@@ -366,7 +366,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '190911';
+		$this->template['revision'] = '190930';
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {

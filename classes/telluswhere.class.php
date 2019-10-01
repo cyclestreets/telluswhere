@@ -2408,7 +2408,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?20\"></script>";
+		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
 			var map = telluswhere.createMap ({
 				baseUrl: '{$this->baseUrl}',

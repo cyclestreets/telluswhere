@@ -367,7 +367,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '190930';
+		$this->template['revision'] = '191001';
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
@@ -4187,7 +4187,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			<div id=\"{$mapId}\" class=\"smallmap\"></div>
 			<script>
 				var {$mapId} = L.map('{$mapId}').setView([{$centre['lat']}, {$centre['lon']}], 15);
-				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png').addTo({$mapId});
+				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png@2x').addTo({$mapId});
 				var icon = L.icon({iconUrl: '{$iconUrl}', shadowUrl: 'https://www.cyclestreets.net/images/categories/iconsets/cyclestreets/svg/shadow.svg', iconSize: [24, 40]});
 				L.marker([{$centre['lat']}, {$centre['lon']}], {icon: icon}).addTo({$mapId});
 			</script>

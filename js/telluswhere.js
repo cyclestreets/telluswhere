@@ -88,7 +88,7 @@ var telluswhere = (function ($) {
 			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
 			
 			// Set tile layer
-			var tileUrl = 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png';
+			var tileUrl = 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png';
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
 			L.tileLayer(tileUrl, {
 				attribution: tileAttribution,

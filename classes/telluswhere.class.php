@@ -3629,7 +3629,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# If the user is logged in, state this
 		if ($this->user) {
-			$html .= "\n<p><strong>You are logged in</strong>, as " . $this->user['email'] . " .</p>";
+			$html .= "\n<p><strong>You are logged in</strong>, as " . str_replace ($this->settings['authNamespace'], '', $this->user['email']) . " .</p>";
 			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/logout/\">log out</a> if you wish.</p>";
 			$this->template['text'] = $html;
 			$this->template['form'] = false;

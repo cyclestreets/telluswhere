@@ -175,6 +175,7 @@ class telluswhere
 				'description' => 'Review submissions',
 				'url' => '/admin/review/',
 				'administrator' => true,
+				'apiUrl' => '/v2/infrastructure.locations?dataset=tflcid&review=1',
 			),
 			'adminsearch' => array (
 				'description' => 'Search locations',
@@ -2356,6 +2357,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			table.metadatatable td.value, p.metadata {font-weight: bold;}
 			p.metadata {margin-bottom: 2em;}
 			table.popupproperties tr td:first-child {width: 60%;}
+			.smallmap {width: 100%; height: 100%;}
+			table.reviewmetadata {width: 200px;}
+			table.reviewmetadata tr td:first-child {width: 60%;}
 			
 			/* Likes */
 			#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; border: 1px solid #eee; background-color: #fcfcfc; border-radius: 5px;}
@@ -4110,7 +4114,87 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	# Admin review submissions page
 	private function adminreview ()
 	{
-		#!# TODO
+		# Get the data
+		$apiUrl = $this->settings['apiBase'] . $this->actions[__FUNCTION__]['apiUrl'] . '&key=' . $this->settings['apiKey'];
+		$data = file_get_contents ($apiUrl);
+		$data = json_decode ($data, true);
+		//application::dumpData ($data);
+		
+		# Create the map HTML
+		$html  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
+		$this->template['map'] = $html;
+		
+		# Obtain schema labels
+		$schema = $this->getAuditSchema ();
+		$this->auditSetPopupLabels ($schema, $flatten = true);
+		$labels = $this->popupLabels;
+		
+		# Add each row of data
+		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders /* returned by reference */);
+		$table = array ();
+		$rowTemplate = $this->placeholderHtmlToFormTemplate ('tableRows', $this->action, false, array (), $innerPlaceholders /* returned by reference */);
+		foreach ($data['features'] as $index => $feature) {
+			
+			# Prepare the properties table
+			$properties = $feature['properties'];
+			unset ($properties['id']);
+			unset ($properties['_type']);
+			unset ($properties['surveyDate']);
+			unset ($properties['images']);
+			unset ($properties['iconUrl']);
+			
+			# Extract data from the GeoJSON for this feature
+			$substitutions = array (
+				'featureId'		=> $feature['properties']['id'],
+				'type'			=> $feature['properties']['_type'],
+				'borough'		=> $feature['properties']['_borough'],
+				'smallMap'		=> $this->smallMap ($feature['geometry'], $feature['properties']['iconUrl'], $index),
+				'photo1'		=> $feature['properties']['images'][0],
+				'photo2'		=> $feature['properties']['images'][1],
+				'metadata'		=> application::htmlTableKeyed ($properties, $labels, true, 'lines compressed reviewmetadata'),
+				'surveyDate'	=> $feature['properties']['surveyDate'],
+				'status'		=> $feature['properties'][''],
+				'version'		=> $feature['properties'][''],
+				'review'		=> $feature['properties'][''],
+			);
+			
+			# Perform substitution
+			$replacements = array ();
+			foreach ($substitutions as $placeholder => $substitution) {
+				$key = '{' . $placeholder . '}';
+				$replacements[$key] = $substitution;
+			}
+			$table[] = strtr ($rowTemplate, $replacements);
+		}
+		$table = implode ("\n", $table);
+		$this->template['tableRows'] = $table;
+	}
+	
+	
+	# Function to create a simple small map using Leaflet
+	private function smallMap ($geometry, $iconUrl, $index = 0)
+	{
+		# Determine the centre point
+		$centre = array (
+			'lat'	=> $geometry['coordinates'][1],
+			'lon'	=> $geometry['coordinates'][0],
+		);
+		
+		# Create the HTML; see: https://leafletjs.com/examples/quick-start/example.html
+		$mapId = 'smallmap' . $index;
+		$html  = "
+			<div id=\"{$mapId}\" class=\"smallmap\"></div>
+			<script>
+				var {$mapId} = L.map('{$mapId}').setView([{$centre['lat']}, {$centre['lon']}], 15);
+				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png').addTo({$mapId});
+				var icon = L.icon({iconUrl: '{$iconUrl}', shadowUrl: 'https://www.cyclestreets.net/images/categories/iconsets/cyclestreets/svg/shadow.svg', iconSize: [24, 40]});
+				L.marker([{$centre['lat']}, {$centre['lon']}], {icon: icon}).addTo({$mapId});
+			</script>
+		";
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	

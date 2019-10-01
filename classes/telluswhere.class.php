@@ -3869,6 +3869,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		ini_set ('session.name', 'session');
 		ini_set ('session.use_only_cookies', 1);
 		
+		# Extend session time from 24 minutes
+		ini_set ('session.gc_maxlifetime', 60*60*24*7);
+		
 		# Start the session handling
 		if (!session_id ()) {session_start ();}
 	}

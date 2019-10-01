@@ -104,7 +104,7 @@ var telluswhere = (function ($) {
 			map.addControl (L.control.locate ({
 				icon: 'fa fa-location-arrow',
 				setView: 'once',	// The default, 'untilPanOrZoom', can reduce battery heavily
-				locateOptions: {maxZoom: 17}
+				locateOptions: {maxZoom: 16}
 			}));
 			
 			// If there is a custom button, pass the click on to the main button; see: https://stackoverflow.com/questions/23016863/ and https://github.com/domoritz/leaflet-locatecontrol/issues/205#issuecomment-530096560

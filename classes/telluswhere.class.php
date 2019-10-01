@@ -4190,7 +4190,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			<div id=\"{$mapId}\" class=\"smallmap\"></div>
 			<script>
 				var {$mapId} = L.map('{$mapId}').setView([{$centre['lat']}, {$centre['lon']}], 15);
-				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}.png@2x').addTo({$mapId});
+				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png').addTo({$mapId});
 				var icon = L.icon({iconUrl: '{$iconUrl}', shadowUrl: 'https://www.cyclestreets.net/images/categories/iconsets/cyclestreets/svg/shadow.svg', iconSize: [24, 40]});
 				L.marker([{$centre['lat']}, {$centre['lon']}], {icon: icon}).addTo({$mapId});
 			</script>

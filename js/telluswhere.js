@@ -94,7 +94,7 @@ var telluswhere = (function ($) {
 				attribution: tileAttribution,
 				maxZoom: _maxZoom,
 				minZoom: _minZoom,
-				opacity: 0.8
+				opacity: 0.7
 			}).addTo(map);
 			
 			// Add hash

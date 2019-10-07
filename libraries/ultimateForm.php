@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.7';
+	var $version = '1.25.8';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -1679,6 +1679,7 @@ class form
 			'autocomplete'			=> false,	# URL of data provider
 			'autocompleteOptions'	=> false,	# Autocomplete options; see: http://jqueryui.com/demos/autocomplete/#remote (this is the new plugin)
 			'entities'				=> true,	# Convert HTML in label to entity equivalents
+			'data'					=> array (),	# Values for data-* attributes
 		);
 		
 		# Create a new form widget
@@ -1942,7 +1943,8 @@ class form
 						}
 						foreach ($arguments['valuesWithNull'] as $availableValue => $visible) {
 							$isSelected = $this->select_isSelected ($arguments['expandable'], $elementValue, $subwidget, $availableValue);
-							$subwidgetHtml[$subwidget] .= "\n\t\t\t\t" . '<option value="' . htmlspecialchars ($availableValue) . '"' . ($isSelected ? ' selected="selected"' : '') . $this->nameIdHtml ($subwidgetName, false, $availableValue, true, $idOnly = true) . '>' . str_replace ('  ', '&nbsp;&nbsp;', htmlspecialchars ($visible)) . '</option>';
+							$attributesHtml = $this->dataAttributes ($arguments['data'], $availableValue);
+							$subwidgetHtml[$subwidget] .= "\n\t\t\t\t" . '<option value="' . htmlspecialchars ($availableValue) . '"' . ($isSelected ? ' selected="selected"' : '') . $this->nameIdHtml ($subwidgetName, false, $availableValue, true, $idOnly = true) . $attributesHtml . '>' . str_replace ('  ', '&nbsp;&nbsp;', htmlspecialchars ($visible)) . '</option>';
 						}
 					} else {
 						
@@ -1952,12 +1954,14 @@ class form
 								$subwidgetHtml[$subwidget] .= "\n\t\t\t\t<optgroup label=\"{$key}\">";
 								foreach ($mainValue as $availableValue => $visible) {
 									$isSelected = $this->select_isSelected ($arguments['expandable'], $elementValue, $subwidget, $availableValue);
-									$subwidgetHtml[$subwidget] .= "\n\t\t\t\t\t" . '<option value="' . htmlspecialchars ($availableValue) . '"' . ($isSelected ? ' selected="selected"' : '') . '>' . str_replace ('  ', '&nbsp;&nbsp;', htmlspecialchars ($visible)) . '</option>';
+									$attributesHtml = $this->dataAttributes ($arguments['data'], $availableValue);
+									$subwidgetHtml[$subwidget] .= "\n\t\t\t\t\t" . '<option value="' . htmlspecialchars ($availableValue) . '"' . ($isSelected ? ' selected="selected"' : '') . $attributesHtml . '>' . str_replace ('  ', '&nbsp;&nbsp;', htmlspecialchars ($visible)) . '</option>';
 								}
 								$subwidgetHtml[$subwidget] .= "\n\t\t\t\t</optgroup>";
 							} else {
 								$isSelected = $this->select_isSelected ($arguments['expandable'], $elementValue, $subwidget, $key);
-								$subwidgetHtml[$subwidget] .= "\n\t\t\t\t" . '<option value="' . htmlspecialchars ($key) . '"' . ($isSelected ? ' selected="selected"' : '') . '>' . str_replace ('  ', '&nbsp;&nbsp;', htmlspecialchars ($mainValue)) . '</option>';
+								$attributesHtml = $this->dataAttributes ($arguments['data'], $key);
+								$subwidgetHtml[$subwidget] .= "\n\t\t\t\t" . '<option value="' . htmlspecialchars ($key) . '"' . ($isSelected ? ' selected="selected"' : '') . $attributesHtml . '>' . str_replace ('  ', '&nbsp;&nbsp;', htmlspecialchars ($mainValue)) . '</option>';
 							}
 						}
 					}
@@ -2074,6 +2078,26 @@ class form
 			'groupValidation' => 'compiled',
 			'after' => $arguments['after'],
 		);
+	}
+	
+	
+	# Helper function for generating data-* attributes HTML
+	private function dataAttributes ($data, $availableValue)
+	{
+		# If not present, end
+		if (!isSet ($data[$availableValue])) {return false;}
+		
+		# Loop through each attribute set
+		$attributesHtml = array ();
+		foreach ($data[$availableValue] as $key => $value) {
+			$attributesHtml[] = 'data-' . htmlspecialchars ($key) . '="' . htmlspecialchars ($value) . '"';
+		}
+		
+		# Compile the HTML
+		$html = ' ' . implode (' ', $attributesHtml);
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	

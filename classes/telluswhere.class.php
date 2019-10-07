@@ -2375,6 +2375,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			.smallmap {width: 100%; height: 100%;}
 			table.reviewmetadata {width: 200px;}
 			table.reviewmetadata tr td:first-child {width: 60%;}
+			.leaflet-marker-icon.deleted {opacity: 0.6;}
 			
 			/* Likes */
 			#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; border: 1px solid #eee; background-color: #fcfcfc; border-radius: 5px;}

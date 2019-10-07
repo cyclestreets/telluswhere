@@ -158,6 +158,13 @@ var telluswhere = (function ($) {
 							icon = _icons['_dynamic'];
 							icon.options.iconUrl = feature.properties.iconUrl;
 						}
+						
+						// Add class if required to enable opacity styling for deleted items
+						icon.options.className = null;
+						if (feature.properties._status == 'deleted') {
+							icon.options.className = 'deleted';
+						}
+						
 						return L.marker (latlng, {icon: icon});
 					},
 					
@@ -706,6 +713,8 @@ var telluswhere = (function ($) {
 						html += '<a id="auditunchanged" data-id="' + properties.id + '" href="' + editUrl + '#unchanged" class="btn waves-effect waves-light green modal-trigger" name="action"><span>Details</span> all OK <i class="material-icons right">check</i></a> &nbsp; ';
 						html += '<a href="' + editUrl + '#update" class="btn waves-effect waves-light" name="action">Edit <i class="material-icons right">build</i></a>';
 						html += '</p>';
+					} else if (properties._status == 'deleted') {
+						html += '<p style="color: green;">✓ This location has been reviewed as being no longer present.</p>';
 					} else {
 						html += '<p style="color: green;">✓ This location has been reviewed.</p>';
 					}

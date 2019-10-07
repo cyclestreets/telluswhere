@@ -1318,6 +1318,21 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			);
 		}
 		
+		# Assemble data-icon images for form
+		foreach ($schemaDatabinding as $fieldname => $field) {
+			$folder = '/images/dropdowns/' . $fieldname . '/';
+			$directory = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $folder;
+			if (is_dir ($directory)) {
+				$attributes[$fieldname]['data'] = array ();
+				foreach ($field['_values'] as $value) {
+					$file = $value . '.jpg';
+					if (is_file ($directory . $file)) {
+						$attributes[$fieldname]['data'][$value]['icon'] = $folder . $file;
+					}
+				}
+			}
+		}
+		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationDataOriginal);
@@ -1813,7 +1828,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'Default' => NULL,
 			'Extra' => false,
 			'Comment' => $comment,
-			'_values' => ($matches[1] == 'ENUM' ? str_getcsv ($matches[2], ',', "'"): NULL),
+			'_values' => (strtoupper ($matches[1]) == 'ENUM' ? str_getcsv ($matches[2], ',', "'"): NULL),
 		);
 		
 		# Return the field data

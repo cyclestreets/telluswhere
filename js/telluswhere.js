@@ -172,7 +172,7 @@ var telluswhere = (function ($) {
 						// For auditing, add class for reviewed/unreviewed
 						var className = null;
 						if (_action == 'audit') {
-							className = (typeof feature.properties.iconUrl == 'string' && feature.properties.iconUrl.match(/_bad/) ? 'unreviewed' : 'reviewed');
+							className = (feature.properties._status == 'initial' ? 'unreviewed' : 'reviewed');
 						}
 						
 						// Add popups

@@ -1257,6 +1257,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$this->auditStatusCommit ('infrastructure.delete', $id, $result['surveyDate']);
 			$this->template['deleteForm'] = $this->auditConfirmation ('marked as no longer present', false);
 		}
+		
+		# Create the maintenance form
+		if ($result = $this->auditStatusChangeForm ('needing maintenance', 'maintenanceForm')) {
+			$this->template['maintenanceForm'] = $this->auditConfirmation ('marked as needing maintenance', false);
+		}
 	}
 	
 	
@@ -1644,6 +1649,16 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		));
 		$form->heading ('p', "Or you can mark this location as {$label}:");
 		
+		# Add textarea for maintenance
+		if (substr_count ($label, 'maintenance')) {
+			$form->textarea (array (
+				'name'	=> 'comments',
+				'title'	=> 'Add any comments',
+				'rows'	=> 4,
+				'cols'	=> 50,
+			));
+		}
+		
 		# Add survey date
 		$form->datetime (array (
 			'name' => 'surveyDate',
@@ -1653,6 +1668,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'picker' => true,
 			'default' => date ('Y-m-d'),
 		));
+		
+		# For maintenance form, report directly via e-mail, pending API support
+		if (substr_count ($label, 'maintenance')) {
+			$form->setOutputEmail ($this->settings['feedbackRecipient'], $this->settings['administratorEmail'], $this->settings['applicationName'] . ' contact form: maintenance needed');
+		}
 		
 		# Process the form, and send to the template
 		$result = $form->process ($formHtml);

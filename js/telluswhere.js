@@ -291,7 +291,7 @@ var telluswhere = (function ($) {
 					}
 					
 					// Show confirmation first
-					if (confirm ('Confirm - all data correct?')) {
+					if (confirm ('Confirm - are all the details of this location, as shown above, correct?')) {
 						
 						// Send the AJAX request and handle the response
 						$.ajax({

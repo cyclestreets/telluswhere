@@ -182,8 +182,14 @@ var telluswhere = (function ($) {
 							className = (feature.properties._status == 'initial' ? 'unreviewed' : 'reviewed');
 						}
 						
+						// Determine the latlng of the centre
+						var centre = null;
+						if (feature.geometry.type == 'Polygon') {
+							centre = layer.getBounds().getCenter();
+						}
+						
 						// Add popups
-						layer.bindPopup (telluswhere.popupHtml (feature.properties, index), {className: className, autoPanPaddingTopLeft: [0, 70]});
+						layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {className: className, autoPanPaddingTopLeft: [0, 70]});
 						
 						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
 						layer.on ({
@@ -305,6 +311,15 @@ var telluswhere = (function ($) {
 						});
 					}
 					e.preventDefault ();	// Don't follow link
+				});
+			}
+			
+			// For priority areas polygons browsing in zoomed-out mode, enable zoom in
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+				$('#map').on ('click', 'a.priorityareaszoom', function (e) {
+					var centre = e.target.dataset;
+					map.setView([centre.lat, centre.lng], centre.zoom);
+					e.preventDefault ();
 				});
 			}
 			
@@ -619,10 +634,10 @@ var telluswhere = (function ($) {
 		
 		
 		// Define HTML to be used in the popup
-		popupHtml: function (properties, layerIndex)
+		popupHtml: function (properties, layerIndex, centre)
 		{
 			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation' || _action == 'priorityareas') {
-				return telluswhere.popupHtmlDynamic (properties, layerIndex);
+				return telluswhere.popupHtmlDynamic (properties, layerIndex, centre);
 			} else {
 				return telluswhere.popupHtmlFixed (properties);
 			}
@@ -630,7 +645,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Popup which creates a table with images (and images) dynamically
-		popupHtmlDynamic: function (properties, layerIndex)
+		popupHtmlDynamic: function (properties, layerIndex, centre)
 		{
 			// Create a variable to hold the editing URL
 			var editUrl = null;
@@ -743,8 +758,11 @@ var telluswhere = (function ($) {
 				html += '<h3>' + telluswhere.htmlspecialchars (properties.name) + '</h3>';
 				html += '<p>This area is a particular <strong>priority area</strong>.</p>';
 				if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
-					if (map.getZoom() < 17) {
+					var dataPointsMinZoom = 17;
+					if (map.getZoom() < dataPointsMinZoom) {
 						html += '<p>Please zoom in to review locations in this area.</p>';
+						html += '<br />';
+						html += '<p><a href="#" data-lat="' + centre.lat + '" data-lng="' + centre.lng + '" data-zoom="' + dataPointsMinZoom + '" class="priorityareaszoom btn waves-effect waves-light">Browse this area <i class="material-icons right">zoom_in</i></a></p>';
 					} else {
 						html += '<p>Please click on an icon or line to review that location in this area.</p>';
 						html += '<p>Thanks for your help!</p>';

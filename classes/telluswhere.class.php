@@ -1043,10 +1043,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Add core fields
+		$popupLabels['_type'] = 'Type';
 		$popupLabels['surveyDate'] = 'Survey date';
 		
 		# Hide internal fields
-		$popupLabels['_type'] = NULL;
 		$popupLabels['_status'] = NULL;
 		$popupLabels['iconUrl'] = NULL;
 		$popupLabels['road_name'] = NULL;

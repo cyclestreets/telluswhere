@@ -708,6 +708,13 @@ var telluswhere = (function ($) {
 			// For audit location, add link to editing page
 			if (_action == 'audit') {
 				if (editUrl) {
+					
+					// Hard-coded overrides
+					// #!# Need to be made generic
+					if (properties.trf_cushi == 'TRUE') {
+						html += '<p style="color: green;">✓ This location does not need to be reviewed.</p>';
+					} else
+					
 					if (properties._status == 'initial') {
 						html += '<p class="auditbuttons' + properties.id + '">';
 						html += '<a id="auditunchanged" data-id="' + properties.id + '" href="' + editUrl + '#unchanged" class="btn waves-effect waves-light green modal-trigger" name="action"><span>Details</span> all OK <i class="material-icons right">check</i></a> &nbsp; ';

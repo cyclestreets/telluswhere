@@ -166,6 +166,12 @@ var telluswhere = (function ($) {
 							icon.options.iconUrl = feature.properties.iconUrl;
 						}
 						
+						// Special case for trf_cushi
+						// #!# Need to be made generic
+						if (feature.properties.trf_cushi && feature.properties.trf_cushi == 'TRUE') {
+							icon.options.iconUrl = feature.properties.iconUrl.replace(/bad/g, 'good');
+						}
+						
 						// Add class if required to enable opacity styling for deleted items
 						icon.options.className = null;
 						if (feature.properties._status == 'deleted') {

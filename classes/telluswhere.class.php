@@ -436,6 +436,14 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
+		# If the user is an administrator, set the Admin links
+		$this->template['adminMenuLink'] = '';
+		$this->template['adminLink'] = '';
+		if ($this->userIsAdministrator) {
+			$this->template['adminMenuLink'] = '<li><a href="/admin/">Admin</a></li>';
+			$this->template['adminLink'] = '<a href="/admin/">Admin area</a>';
+		}
+		
 		# Require downloader privileges if specified
 		if (isSet ($this->actions[$this->action]['rightRequired'])) {
 			$property = 'userIs' . ucfirst ($this->actions[$this->action]['rightRequired']);

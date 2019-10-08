@@ -2351,6 +2351,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Define a second browsing layer if required
 		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
 		
+		# Load jQuery UI
+		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
+		
 		# Load Leaflet.js
 		$html .= "\n\n" . '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
 		$html .= "\n" . '<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>';
@@ -2471,7 +2474,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add autocomplete name search
 		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];
 		// Libraries available at: https://cdnjs.com/libraries/jqueryui/
-		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?4"></script>';

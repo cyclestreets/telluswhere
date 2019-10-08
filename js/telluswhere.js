@@ -81,6 +81,13 @@ var telluswhere = (function ($) {
 			_popupLabels = settings.popupLabels;
 			_popupLabelSubsetField = settings.popupLabelSubsetField;
 			
+			// Enable tooltips for titles
+			if (jQuery.ui) {	// If jQuery UI loaded
+				$(document).tooltip ({
+					track: true
+				});
+			}
+			
 			// Use cookie location if present
 			telluswhere.readMapLocationCookie ();
 			

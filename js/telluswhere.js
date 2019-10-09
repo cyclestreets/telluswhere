@@ -141,8 +141,15 @@ var telluswhere = (function ($) {
 			
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
+				
+				// Determine the icon to use
+				var useIcon = _useIcon;
+				if (settings.markerData.iconUrl) {
+					useIcon = '_dynamic';
+				}
+				
 				var latlng = L.latLng(_initialLatitude, _initialLongitude);
-				telluswhere.setMarker(latlng, _useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
+				telluswhere.setMarker(latlng, useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
 				map.setView(latlng, _markerSettingZoom);
 			}
 			
@@ -528,9 +535,18 @@ var telluswhere = (function ($) {
 				map.removeLayer(_marker);
 			}
 			
+			// Determine icon
+			var icon = _icons[useIcon];
+			if (useIcon == '_dynamic') {
+				if (data.iconUrl) {
+					icon.options.iconUrl = data.iconUrl;
+				}
+			}
+			
 			// Set marker position
-			_marker = new L.Marker(latlng, {icon: _icons[useIcon], draggable: markerIsDraggable, zIndexOffset: 1000});
+			_marker = new L.Marker(latlng, {icon: icon, draggable: markerIsDraggable, zIndexOffset: 1000});
 			map.addLayer(_marker);
+			
 			// #!# Need to show the category name
 			if (data) {
 				var markerHtml = telluswhere.popupHtmlDynamic (data);

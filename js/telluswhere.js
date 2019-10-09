@@ -88,11 +88,14 @@ var telluswhere = (function ($) {
 				});
 			}
 			
-			// Use cookie location if present
-			telluswhere.readMapLocationCookie ();
+			// Determine the initial map location, using cookie location if present
+			var initialMapLocation = telluswhere.getInitialLocation ();
+			
+			// Get hash before map loading, which will adjust the hash with lat/lon/zoom
+			_initialHash = window.location.hash.substr(1);	// substr(1) removes #
 			
 			// Set map centre location
-			map = L.map('map').setView([_initialLatitude, _initialLongitude], _initialZoom);
+			map = L.map('map').setView([initialMapLocation.latitude, initialMapLocation.longitude], initialMapLocation.zoom);
 			
 			// Set tile layer
 			var tileUrl = 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png';
@@ -1141,18 +1144,25 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to read map location cookie
-		readMapLocationCookie: function ()
+		// Function to detread map location cookie
+		getInitialLocation: function ()
 		{
-			// Read the cookie location
+			// Check for a cookie location
 			var location = telluswhere.readCookie ('location');
-			
-			// If set, parse out the location
 			if (location) {
 				var locationComponents = location.split ('/');
-				_initialZoom = locationComponents[0];
-				_initialLatitude = locationComponents[1];
-				_initialLongitude = locationComponents[2];
+				return {
+					latitude: locationComponents[1],
+					longitude: locationComponents[2],
+					zoom: locationComponents[0]
+				}
+			}
+			
+			// If not present, use the default initial location
+			return {
+				latitude: _initialLatitude,
+				longitude: _initialLongitude,
+				zoom: initialZoom
 			}
 		},
 		

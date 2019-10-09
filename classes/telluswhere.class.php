@@ -1249,6 +1249,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		</script>
 		";
 		
+		# Disable the creation of a dynamic map icon layer, as the icon will be explicitly supplied in auditFormPresent
+		$this->actions[__FUNCTION__]['apiUrl'] = false;
+		
 		# Create the audit location present form (with map)
 		if ($result = $this->auditFormPresent ($schema['fields'], $category, $data)) {
 			$this->template['presentForm'] = $this->auditPresentCommit ($result, $id, false);

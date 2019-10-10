@@ -1178,7 +1178,7 @@ var telluswhere = (function ($) {
 			return {
 				latitude: _initialLatitude,
 				longitude: _initialLongitude,
-				zoom: initialZoom
+				zoom: _initialZoom
 			}
 		},
 		

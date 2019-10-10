@@ -1269,9 +1269,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$this->template['deleteForm'] = $this->auditConfirmation ('marked as no longer present', false);
 		}
 		
-		# Create the maintenance form
-		if ($result = $this->auditStatusChangeForm ('needing maintenance', 'maintenanceForm')) {
-			$this->template['maintenanceForm'] = $this->auditConfirmation ('marked as needing maintenance', false);
+		# Create the problem form (e.g. needing maintenance)
+		if ($result = $this->auditStatusChangeForm ('having a problem', 'problemForm')) {
+			$this->template['problemForm'] = $this->auditConfirmation ('marked as having a problem', false);
 		}
 	}
 	
@@ -1660,8 +1660,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		));
 		$form->heading ('p', "Or you can mark this location as {$label}:");
 		
-		# Add textarea for maintenance
-		if (substr_count ($label, 'maintenance')) {
+		# Add textarea for problem (e.g. needing maintenance)
+		if (substr_count ($label, 'problem')) {
 			$form->textarea (array (
 				'name'	=> 'comments',
 				'title'	=> 'Add any comments',

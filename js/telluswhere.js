@@ -350,6 +350,7 @@ var telluswhere = (function ($) {
 				$('#map').on ('click', 'a.priorityareaszoom', function (e) {
 					var centre = e.target.dataset;
 					map.setView([centre.lat, centre.lng], centre.zoom);
+					map.closePopup ();
 					e.preventDefault ();
 				});
 			}

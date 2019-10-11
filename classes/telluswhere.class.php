@@ -2934,7 +2934,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'name'		=> 'email',
 			'title'		=> 'E-mail',
 			'required'	=> true,
-			'default'	=> ($data ? $data['email'] : false),
+			'default'	=> ($data ? str_replace ($this->settings['authNamespace'], '', $data['email']) : false),
 		));
 		
 		# Set the processing options

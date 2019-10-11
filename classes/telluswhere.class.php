@@ -1602,6 +1602,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'geometry'	=> $location,
 			'attributes'	=> json_encode ($result),
 			'surveydate'	=> $result['surveyDate'],
+			'email'		=> $this->user['email'],
 			'photo0'	=> $photo0,
 			'photo1'	=> $photo1,
 		);
@@ -1780,6 +1781,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'dataset'		=> $this->settings['auditDataset'],
 			'id'			=> $id,
 			'surveydate'	=> $surveyDate,
+			'email'			=> $this->user['email'],
 		);
 		
 		# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/

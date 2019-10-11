@@ -162,6 +162,12 @@ var telluswhere = (function ($) {
 			// Determine the minimum zoom level for marker setting
 			_minZoomLevelToSet = telluswhere.minZoomLevelToSet ();
 			
+			// If zoomed out, add a zoom-in cursor
+			telluswhere.cursorZoomin ();
+			map.on('zoomend', function() {
+				telluswhere.cursorZoomin ();
+			});
+			
 			// Register click handler
 			map.on('click', telluswhere.onMapClick);
 			
@@ -535,6 +541,17 @@ var telluswhere = (function ($) {
 			// Default minimum zoom level to set
 			return 18;
 			
+		},
+		
+		
+		// Function to set the cursor to zoom-in; see: https://stackoverflow.com/questions/14106687/
+		cursorZoomin: function ()
+		{
+			if (map.getZoom() < _minZoomLevelToSet) {
+				L.DomUtil.addClass (map._container, 'cursorzoomin');
+			} else {
+				L.DomUtil.removeClass (map._container, 'cursorzoomin');
+			}
 		},
 		
 		

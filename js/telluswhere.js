@@ -212,7 +212,11 @@ var telluswhere = (function ($) {
 						}
 						
 						// Add popups
-						layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {className: className, autoPanPaddingTopLeft: [0, 70]});
+						layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {
+							className: className,
+							autoPanPaddingTopLeft: [0, 50],			// 50px from top
+							autoPanPaddingBottomRight: [55, 0]		// 55px from right
+						});
 						
 						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
 						layer.on ({

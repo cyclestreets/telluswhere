@@ -3898,6 +3898,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		if ($userHadSessionData) {
 			$html .= "\n<p>You have been successfully logged out.</p>";
 			$html .= "\n<p>You can <a href=\"" . htmlspecialchars ($loginLocation) . '">log in again</a> if you wish.</p>';
+			$this->user = false;
+			$this->user = $this->getUser ();	// Hides the profile link
+			$this->template['adminMenuLink'] = '';
+			$this->template['adminLink'] = '';
 		} else {
 			header ('Location: https://' . $_SERVER['SERVER_NAME'] . $this->baseUrl . $loginLocation);
 			$html .= "\n<p>You are not logged in.</p>";

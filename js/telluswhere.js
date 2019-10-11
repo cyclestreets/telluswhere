@@ -14,6 +14,7 @@ var telluswhere = (function ($) {
 	var _geolocationData;
 	var _maxZoom;
 	var _minZoom;
+	var _minZoomLevelToSet;
 	var _viewOnlyMode;
 	var _enableDrawing;
 	
@@ -157,6 +158,9 @@ var telluswhere = (function ($) {
 			if (_enableDrawing) {
 				telluswhere.drawing ('#geometry', true, '');
 			}
+			
+			// Determine the minimum zoom level for marker setting
+			_minZoomLevelToSet = telluswhere.minZoomLevelToSet ();
 			
 			// Register click handler
 			map.on('click', telluswhere.onMapClick);
@@ -495,25 +499,11 @@ var telluswhere = (function ($) {
 				map.removeLayer(telluswhere._marker);
 			}
 			
-			// Define minimum zoom level to set
-			var minZoomLevelToSet = 18;
-			
-			// If drawing is enabled, reduce the zoom level
-			if (_enableDrawing) {
-				minZoomLevelToSet = 14;
-			}
-			
-			// For the audit layer, require a close zoom before loading due to the volume of data
-			// #!# Needs turning into a database setting if future datasets
-			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
-				minZoomLevelToSet = 16;
-			}
-			
 			// Zoom if too far out and end
-			if(map.getZoom() < minZoomLevelToSet){
+			if (map.getZoom() < _minZoomLevelToSet) {
 				telluswhere.setFormValues (null, null, null);	// Clear any saved values
 				var currentZoomLevel = map.getZoom();
-				var zoomBy = (((minZoomLevelToSet - currentZoomLevel) <= 2) ? 1 : 2);	// When very zoomed in, zoom in less far, to avoid disorientation
+				var zoomBy = (((_minZoomLevelToSet - currentZoomLevel) <= 2) ? 1 : 2);	// When very zoomed in, zoom in less far, to avoid disorientation
 				var newZoomLevel = currentZoomLevel + zoomBy;
 				// alert('Current zoom: ' + currentZoomLevel + '; zooming by: ' + zoomBy + ' to: ' + newZoomLevel);
 				map.setZoomAround(e.latlng, newZoomLevel);
@@ -525,6 +515,26 @@ var telluswhere = (function ($) {
 			
 			// Remove the help text
 			$('#helptext').removeClass('display').addClass('hide');
+		},
+		
+		
+		// Function to determine the minimum zoom level for marker setting
+		minZoomLevelToSet: function ()
+		{
+			// If drawing is enabled, reduce the zoom level
+			if (_enableDrawing) {
+				return 14;
+			}
+			
+			// For the audit layer, require a close zoom before loading due to the volume of data
+			// #!# Needs turning into a database setting if future datasets
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+				return 17;
+			}
+			
+			// Default minimum zoom level to set
+			return 18;
+			
 		},
 		
 		

@@ -165,6 +165,10 @@ class telluswhere
 				'description' => false,
 				'url' => '/register/',
 			),
+			'password' => array (
+				'description' => false,
+				'url' => '/password/',
+			),
 			'profile' => array (
 				'description' => false,
 				'url' => '/profile/',
@@ -4165,6 +4169,38 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Return the result
 		return $result;
+	}
+	
+	
+	# Password reset page
+	private function password ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'		=> false,
+			'formCompleteText'			=> false,
+			'requiredFieldIndicator'	=> false,
+			'display'					=> 'template',
+			'displayTemplate'			=> '{[[PROBLEMS]]}' . $this->placeholderHtmlToFormTemplate ('form', $this->action),
+			'submitButtonText'			=> 'Send me a reset link',
+			'submitButtonAccesskey'		=> false,
+			'autofocus'					=> true,
+		));
+		$form->email (array (
+			'name'		=> 'email',
+			'title'		=> 'E-mail address',
+			'required'	=> true,
+		));
+		
+		# Process the form
+		if (!$result = $form->process ($html)) {
+			$this->template['form'] = $html;
+			return;
+		}
 	}
 	
 	

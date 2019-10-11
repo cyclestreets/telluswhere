@@ -4270,20 +4270,56 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	private function smallMap ($geometry, $iconUrl, $index = 0)
 	{
 		# Determine the centre point
-		$centre = array (
-			'lat'	=> $geometry['coordinates'][1],
-			'lon'	=> $geometry['coordinates'][0],
-		);
+		switch ($geometry['type']) {
+			
+			case 'Point':
+				$centre = array (
+					'lat'	=> $geometry['coordinates'][1],
+					'lon'	=> $geometry['coordinates'][0]
+				);
+				break;
+				
+			case 'LineString':
+				$longitudes = array ();
+				$latitudes = array ();
+				foreach ($geometry['coordinates'] as $lonLat) {
+					$longitudes[] = $lonLat[0];
+					$latitudes[] = $lonLat[1];
+				}
+				$centre = array (
+					'lat'	=> ((max ($latitudes) + min ($latitudes)) / 2),
+					'lon'	=> ((max ($longitudes) + min ($longitudes)) / 2)
+				);
+				break;
+		}
+		
+		# Determine the map geometry JS
+		$mapId = 'smallmap' . $index;
+		switch ($geometry['type']) {
+			case 'Point':
+				$geometryJs = "
+				var icon = L.icon({iconUrl: '{$iconUrl}', shadowUrl: 'https://www.cyclestreets.net/images/categories/iconsets/cyclestreets/svg/shadow.svg', iconSize: [24, 40]});
+				L.marker([{$centre['lat']}, {$centre['lon']}], {icon: icon}).addTo({$mapId});
+				";
+				break;
+			case 'LineString':
+				$geojson = json_encode ($geometry);
+				$geometryJs = "
+				var geojson{$index} = {$geojson};
+				L.geoJSON (geojson{$index}, {
+					style: {color: 'red', weight: 8}
+				}).addTo({$mapId});
+				";
+				break;
+		}
 		
 		# Create the HTML; see: https://leafletjs.com/examples/quick-start/example.html
-		$mapId = 'smallmap' . $index;
 		$html  = "
 			<div id=\"{$mapId}\" class=\"smallmap\"></div>
 			<script>
 				var {$mapId} = L.map('{$mapId}').setView([{$centre['lat']}, {$centre['lon']}], 15);
-				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png').addTo({$mapId});
-				var icon = L.icon({iconUrl: '{$iconUrl}', shadowUrl: 'https://www.cyclestreets.net/images/categories/iconsets/cyclestreets/svg/shadow.svg', iconSize: [24, 40]});
-				L.marker([{$centre['lat']}, {$centre['lon']}], {icon: icon}).addTo({$mapId});
+				L.tileLayer('https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png', {opacity: 0.7}).addTo({$mapId});
+				{$geometryJs}
 			</script>
 		";
 		

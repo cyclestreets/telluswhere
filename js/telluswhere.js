@@ -217,8 +217,12 @@ var telluswhere = (function ($) {
 						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
 						layer.on ({
 							mouseover: function (e) {
+								var layer = e.target;
+								if (e.target.feature.geometry.type == 'Point') {
+									// #!# Change to making icon larger instead
+									layer.setOpacity (0.7);
+								}
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
-									var layer = e.target;
 									layer.setStyle({
 										color: telluswhere.lineColour (e.target.feature.properties),
 										weight: _lineSize.hover
@@ -226,8 +230,12 @@ var telluswhere = (function ($) {
 								}
 							},
 							mouseout: function (e) {
+								var layer = e.target;
+								if (e.target.feature.geometry.type == 'Point') {
+									// #!# Should actually reset rather than set to 1 - icons may already be grayed-out when gone
+									layer.setOpacity (1);
+								}
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
-									var layer = e.target;
 									layer.setStyle({
 										color: telluswhere.lineColour (e.target.feature.properties),
 										weight: _lineSize.initial

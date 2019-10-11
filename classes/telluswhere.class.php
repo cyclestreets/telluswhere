@@ -2311,7 +2311,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$mapLocation = array (
 			'latitude'	=> $this->settings['defaultLatitude'],
 			'longitude'	=> $this->settings['defaultLongitude'],
-			'zoom'		=> $this->settings['defaultZoom'],
+			'zoom'		=> (int) $this->settings['defaultZoom'],
 		);
 		
 		# If a selected ID was supplied, use that data

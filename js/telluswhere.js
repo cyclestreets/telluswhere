@@ -780,7 +780,7 @@ var telluswhere = (function ($) {
 			if (_action == 'priorityareas') {
 				priorityAreaPolygons = true;
 			}
-			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+			if (_action == 'audit' || _action == 'auditadd') {
 				if (layerIndex == 1) {
 					priorityAreaPolygons = true;
 				}
@@ -789,7 +789,7 @@ var telluswhere = (function ($) {
 				html  = '';		// Reset any current HTML
 				html += '<h3>' + telluswhere.htmlspecialchars (properties.name) + '</h3>';
 				html += '<p>This area is a particular <strong>priority area</strong>.</p>';
-				if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+				if (_action == 'audit' || _action == 'auditadd') {
 					var dataPointsMinZoom = 17;
 					if (map.getZoom() < dataPointsMinZoom) {
 						html += '<p>Please zoom in to review locations in this area.</p>';

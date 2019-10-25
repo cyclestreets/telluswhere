@@ -4263,6 +4263,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		$table = implode ("\n", $table);
 		$this->template['tableRows'] = $table;
+		
+		# Set the count
+		$this->template['count'] = count ($data['features']);
 	}
 	
 	

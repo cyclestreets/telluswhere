@@ -4364,7 +4364,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		foreach ($this->cityIds as $id => $name) {
 			$table[] = array (
 				'borough'	=> $name,
-				'progress'	=> (isSet ($data[$id]) ? $data[$id]['completionPercentage'] : '0%'),
+				'progress'	=> (isSet ($data[$id]) ? $data[$id]['completionPercentage'] : '0') . ' %',
 				'score'		=> (isSet ($data[$id]) ? number_format ($data[$id]['score']) : '0'),
 			);
 		}

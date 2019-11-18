@@ -30,6 +30,7 @@ var telluswhere = (function ($) {
 	// Initial map location
 	var _initialLatitude;
 	var _initialLongitude;
+	var _initialGeometry;
 	var _initialZoom;
 	
 	// The API endpoint(s) to use for browsing
@@ -67,6 +68,7 @@ var telluswhere = (function ($) {
 			_user = settings.user;
 			_initialLatitude = settings.initialLatitude;
 			_initialLongitude = settings.initialLongitude;
+			_initialGeometry = settings.initialGeometry;
 			_initialZoom = settings.initialZoom;
 			_maxZoom = settings.maxZoom || 21;
 			_minZoom = settings.minZoom || 7;

@@ -1339,6 +1339,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'id' => $data['properties']['id'],
 				'latitude' => $centre['lat'],
 				'longitude' => $centre['lon'],
+				'geometry' => $data['geometry'],
 				'zoom' => 16,
 			);
 		}
@@ -2330,6 +2331,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$mapLocation = array (
 				'latitude'	=> $selectedIdData['latitude'],
 				'longitude'	=> $selectedIdData['longitude'],
+				'geometry'	=> (isSet ($selectedIdData['geometry']) ? $selectedIdData['geometry'] : NULL),
 				'zoom'		=> $selectedIdData['zoom'],
 			);
 			$setMarkerInitially = true;
@@ -2462,6 +2464,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');
+		$initialGeometryJs = ($mapLocation['geometry'] ? json_encode ($mapLocation['geometry']) : 'false');
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? (ctype_digit ($selectedIdData['id']) ? $selectedIdData['id'] : "'{$selectedIdData['id']}'") : 'false');
@@ -2479,6 +2482,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
 				initialZoom: {$mapLocation['zoom']},
+				initialGeometry: {$initialGeometryJs},
 				browsingApiUrl: {$browsingApiUrlJs},
 				useIcon: '{$showLayer}',
 				setMarkerInitially: {$setMarkerInitiallyJs},

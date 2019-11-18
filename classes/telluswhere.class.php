@@ -4341,6 +4341,21 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 					'lon'	=> ((max ($longitudes) + min ($longitudes)) / 2)
 				);
 				break;
+				
+			case 'MultiLineString':
+				$longitudes = array ();
+				$latitudes = array ();
+				foreach ($geometry['coordinates'] as $line) {
+					foreach ($line as $lonLat) {
+						$longitudes[] = $lonLat[0];
+						$latitudes[] = $lonLat[1];
+					}
+				}
+				$centre = array (
+					'lat'	=> ((max ($latitudes) + min ($latitudes)) / 2),
+					'lon'	=> ((max ($longitudes) + min ($longitudes)) / 2)
+				);
+				break;
 		}
 		
 		# Return the centre

@@ -1334,10 +1334,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Assemble selected ID data
 		$selectedIdData = array ();
 		if ($data) {
+			$centre = $this->getCentre ($data['geometry']);
 			$selectedIdData = array (
 				'id' => $data['properties']['id'],
-				'latitude' => $data['geometry']['coordinates'][1],
-				'longitude' => $data['geometry']['coordinates'][0],
+				'latitude' => $centre['lat'],
+				'longitude' => $centre['lon'],
 				'zoom' => 16,
 			);
 		}

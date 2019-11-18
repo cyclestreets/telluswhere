@@ -195,6 +195,11 @@ class telluswhere
 				'url' => '/admin/boroughs/',
 				'administrator' => true,
 			),
+			'adminpriorityareas' => array (
+				'description' => 'Progress by priority area',
+				'url' => '/admin/priorityareas/',
+				'authentication' => true,
+			),
 			'ajax' => array (
 				'description' => false,
 				'url' => '/ajax',
@@ -4348,13 +4353,19 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	# Admin progress by borough
 	private function adminboroughs ()
 	{
-		# Obtain the data for this user from the API
-		$apiUrl = $this->settings['apiBase'] . '/v2/gamification.cities&key=' . $this->settings['apiKey'];
+		# Obtain the gamification data
+		$apiUrl = $this->settings['apiBase'] . '/v2/gamification.cities?key=' . $this->settings['apiKey'];
 		$data = file_get_contents ($apiUrl);
-		$data = json_decode ($data, true);
+		$scores = json_decode ($data, true);
+		if (isSet ($scores['error'])) {
+			return array ();
+		}
 		
-		# End if error
-		if (isSet ($data['error'])) {
+		# Obtain the progress review data for each boundary area
+		$apiUrl = $this->settings['apiBase'] . '/v2/infrastructure.reviewprogress?key=' . $this->settings['apiKey'] . '&dataset=' . $this->settings['auditDataset'] . '&aspect=boundaries';
+		$data = file_get_contents ($apiUrl);
+		$progress = json_decode ($data, true);
+		if (isSet ($progress['error'])) {
 			return array ();
 		}
 		
@@ -4364,13 +4375,43 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		foreach ($this->cityIds as $id => $name) {
 			$table[] = array (
 				'borough'	=> $name,
-				'progress'	=> (isSet ($data[$id]) ? $data[$id]['completionPercentage'] : '0') . ' %',
-				'score'		=> (isSet ($data[$id]) ? number_format ($data[$id]['score']) : '0'),
+				'progress'	=> (isSet ($progress[$id]) ? $progress[$id]['completionPercentage'] : '0') . ' %',
+				'score'		=> (isSet ($scores[$id]) ? number_format ($scores[$id]['score']) : '0'),
 			);
 		}
 		
 		# Send to the template
 		$this->template['table'] = application::htmlTable ($table, array (), $class = 'responsive-table', $keyAsFirstColumn = false, $uppercaseHeadings = true);
+	}
+	
+	
+	# Admin progress by priority areas
+	private function adminpriorityareas ()
+	{
+		# Obtain the progress review data for each priority area
+		$apiUrl = $this->settings['apiBase'] . '/v2/infrastructure.reviewprogress?key=' . $this->settings['apiKey'] . '&dataset=' . $this->settings['auditDataset'] . '&aspect=priorityareas';
+		$data = file_get_contents ($apiUrl);
+		$progress = json_decode ($data, true);
+		if (isSet ($progress['error'])) {
+			return array ();
+		}
+		
+		# End if error
+		if (isSet ($data['error'])) {
+			return array ();
+		}
+		
+		# Assemble the table data
+		$table = $progress;
+		foreach ($table as $id => $area) {
+			$table[$id]['name'] = "<a href=\"{$this->baseUrl}/audit/#17/{$area['lat']}/{$area['lon']}\">" . htmlspecialchars ($area['name']) . '</a>';
+			unset ($table[$id]['lon']);
+			unset ($table[$id]['lat']);
+			$table[$id]['completionPercentage'] .= ' %';
+		}
+		
+		# Send to the template
+		$this->template['table'] = application::htmlTable ($table, array (), $class = 'responsive-table', $keyAsFirstColumn = false, $uppercaseHeadings = true, $allowHtml = array ('name'));
 	}
 }
 

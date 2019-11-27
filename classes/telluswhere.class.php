@@ -4244,6 +4244,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$properties = $feature['properties'];
 			unset ($properties['id']);
 			unset ($properties['_type']);
+			unset ($properties['_status']);
+			unset ($properties['_version']);
 			unset ($properties['surveyDate']);
 			unset ($properties['images']);
 			unset ($properties['iconUrl']);
@@ -4252,15 +4254,15 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$substitutions = array (
 				'featureId'		=> $feature['properties']['id'],
 				'type'			=> $feature['properties']['_type'],
+				'status'		=> $feature['properties']['_status'],
+				'version'		=> $feature['properties']['_version'],
 				'borough'		=> $feature['properties']['_borough'],
 				'smallMap'		=> $this->smallMap ($feature['geometry'], $feature['properties']['iconUrl'], $index),
 				'photo1'		=> $feature['properties']['images'][0],
 				'photo2'		=> $feature['properties']['images'][1],
 				'metadata'		=> application::htmlTableKeyed ($properties, $labels, true, 'lines compressed reviewmetadata'),
 				'surveyDate'	=> $feature['properties']['surveyDate'],
-				'status'		=> $feature['properties'][''],
-				'version'		=> $feature['properties'][''],
-				'review'		=> $feature['properties'][''],
+				'review'		=> $widgetsHtml[$index],
 			);
 			
 			# Perform substitution

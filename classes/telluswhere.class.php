@@ -4224,6 +4224,36 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$data = json_decode ($data, true);
 		//application::dumpData ($data);
 		
+		# Slice to page
+		$perPage = 25;
+		$totalAssets = count ($data['features']);
+		$totalPages = ceil ($totalAssets / $perPage);
+		$page = 1;
+		if (isSet ($_GET['page'])) {
+			if (ctype_digit ($_GET['page']) && $_GET['page'] <= $totalPages) {
+				$page = $_GET['page'];
+			} else {	// Invalid page value, e.g. out of range
+				$html = $this->page404 ();
+				echo $html;
+				return false;
+			}
+		}
+		$startAt = (($page - 1) * $perPage);	// E.g. page 1 starts at 0 (first item), page 2 starts at 25 (i.e. 26th item)
+		$data['features'] = array_slice ($data['features'], $startAt, $perPage);
+		
+		# Set the pagination values for the template
+		$this->template['count'] = $totalAssets;
+		$this->template['page'] = $page;
+		$this->template['totalPages'] = $totalPages;
+		$this->template['perPage'] = $perPage;
+		
+		# Create a pagination list
+		$paginationLinks = array ();
+		for ($i = 1; $i <= $totalPages; $i++) {
+			$paginationLinks[] = "<a href=\"page{$i}.html\">{$i}</a>";
+		}
+		$this->template['paginationLinks'] = application::htmlUl ($paginationLinks, 0, 'pagination');
+		
 		# Create the map HTML
 		$html  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);

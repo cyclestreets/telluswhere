@@ -50,6 +50,7 @@ RewriteRule ^(news)/(20[0-9][0-9])/([0-1][0-9])/([0-3][0-9])/([^/]+)$ /$1/$2/$3/
 RewriteRule ^(batch)/cancel.html$ index.html?action=$1&do=cancel [L]
 RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas)/$ index.html?action=$1$2 [L,QSA]
 RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas)$ /$1/$2/ [L,R=301]
+RewriteRule ^(admin)/(review)/page([1-9][0-9]*).html$ index.html?action=$1$2&page=$3 [L,QSA]
 RewriteRule ^ajax/([a-z]+)$ index.html?action=ajax&call=$1 [L,QSA]
 
 # If no match above, serve files from the style folder directly, via the web application, for the configured style, other than specified static files

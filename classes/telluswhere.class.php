@@ -1324,11 +1324,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			if (isSet ($field['labels'])) {
 				$attributes[$fieldname]['values'] = $field['labels'];
 			}
-		}
-		
-		# Set combined fields to be required, as they indicate an overall type selection
-		foreach ($combinationValues as $combinedField => $values) {
-			$attributes[$combinedField]['required'] = true;
+			
+			# Handle combined fields as required or not required; the schema emits combineOptionalField which states whether the field is optional
+			if (isSet ($field['required'])) {
+				$attributes[$fieldname]['required'] = $field['required'];
+			}
 		}
 		
 		# Assemble selected ID data
@@ -1484,6 +1484,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 					'datatype'	=> NULL,	// Will be populated at the end from $combinationValues
 					'documentationUrl'	=> $field['documentationUrl'],
 					'labels'	=> NULL,	// Will be populated at the end from $combinationValues
+					'required'	=> (!$field['combineOptionalField']),
 				);
 				$combinationValues[$combinedFieldname][$fieldname] = $field['field'];
 				// Do not copy the original field across

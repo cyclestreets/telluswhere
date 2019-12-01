@@ -4265,6 +4265,32 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->auditSetPopupLabels ($schema, $flatten = true);
 		$labels = $this->popupLabels;
 		
+		# Create the form handler, and manually create each widget, which will be added to the template; the native ultimateForm HTML will be ignored, but the form processor will give the result as usual
+		require_once ('ultimateForm.php');
+		$form = new form (array ());
+		$widgetsHtml = array ();
+		$ids = array ();
+		$versions = array ();
+		foreach ($data['features'] as $index => $feature) {
+			$widgetName = "review_{$index}";
+			$ids[$widgetName] = $feature['properties']['id'];
+			$versions[$widgetName] = $feature['properties']['_version'];
+			$form->radiobuttons (array (
+				'name'		=> $widgetName,
+				'title'		=> false,
+				'values'	=> array ('approved' => 'Accept', 'rejected' => 'Reject'),
+				'nullText'	=> '[Leave for now]',
+				'required'	=> false,
+			));
+			$widgetsHtml[$index] = '
+				<p><label><input name="form[' . $widgetName . ']" type="radio" value="" checked="checked" /><span>[Leave]</span></label></p>
+				<p><label><input name="form[' . $widgetName . ']" type="radio" value="approved" /><span>Accept</span></label></p>
+				<p><label><input name="form[' . $widgetName . ']" type="radio" value="rejected" /><span>Reject</span></label></p>
+			';
+		}
+		$formHtml = '';
+		$result = $form->process ($formHtml);	// Result is used below
+		
 		# Add each row of data
 		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders /* returned by reference */);
 		$table = array ();
@@ -4307,8 +4333,36 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$table = implode ("\n", $table);
 		$this->template['tableRows'] = $table;
 		
-		# Set the count
-		$this->template['count'] = count ($data['features']);
+		# Process the form
+		$formHtml = '';
+		if (!$result = $form->process ($formHtml)) {return;}
+		
+		# Submit to the API
+		foreach ($result as $widgetName => $status) {
+			
+			# Skip if no approval action set
+			if (!$status) {continue;}
+			
+			
+			
+			# Assemble the data
+			$data = array (
+				'dataset'	=> $this->settings['auditDataset'],
+				'id'		=> $ids[$widgetName],
+				'version'	=> $versions[$widgetName],
+				'status'	=> $status,
+				'email'		=> $this->user['email'],
+			);
+			
+			# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
+			$schemaUrl = $this->settings['apiBase'] . '/v2/' . 'infrastructure.update' . '?key=' . $this->settings['apiKey'];
+			#!# Failure detection needed
+			//$result = application::file_post_contents ($schemaUrl, $data);
+			$result = json_decode ($result, true);
+			//application::dumpData ($result);
+		}
+		
+		
 	}
 	
 	

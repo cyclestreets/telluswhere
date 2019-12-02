@@ -178,7 +178,7 @@ class telluswhere
 				'description' => 'Review submissions',
 				'url' => '/admin/review/',
 				'administrator' => true,
-				'apiUrl' => '/v2/infrastructure.locations?dataset=tflcid&review=1',
+				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&review=1',
 			),
 			'adminsearch' => array (
 				'description' => 'Search locations',
@@ -4220,6 +4220,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	private function adminreview ()
 	{
 		# Get the data
+		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
 		$apiUrl = $this->settings['apiBase'] . $this->actions[__FUNCTION__]['apiUrl'] . '&key=' . $this->settings['apiKey'];
 		$data = file_get_contents ($apiUrl);
 		$data = json_decode ($data, true);

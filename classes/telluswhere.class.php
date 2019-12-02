@@ -4270,10 +4270,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$form = new form (array ());
 		$widgetsHtml = array ();
 		$ids = array ();
+		$rows = array ();
 		$versions = array ();
 		foreach ($data['features'] as $index => $feature) {
 			$widgetName = "review_{$index}";
 			$ids[$widgetName] = $feature['properties']['id'];
+			$rows[$widgetName] = $index;
 			$versions[$widgetName] = $feature['properties']['_version'];
 			$form->radiobuttons (array (
 				'name'		=> $widgetName,
@@ -4293,9 +4295,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Add each row of data
 		$template = templating::commentsToPlaceholders ($htmlBlock, $replacedPlaceholders /* returned by reference */);
-		$table = array ();
 		$rowTemplate = $this->placeholderHtmlToFormTemplate ('tableRows', $this->action, false, array (), $innerPlaceholders /* returned by reference */);
-		foreach ($data['features'] as $index => $feature) {
+		$replacements = array ();	// Replacements for each row
+		foreach ($data['features'] as $row => $feature) {
 			
 			# Prepare the properties table
 			$properties = $feature['properties'];
@@ -4314,55 +4316,63 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'status'		=> $feature['properties']['_status'],
 				'version'		=> $feature['properties']['_version'],
 				'borough'		=> $feature['properties']['_borough'],
-				'smallMap'		=> $this->smallMap ($feature['geometry'], $feature['properties']['iconUrl'], $index),
+				'smallMap'		=> $this->smallMap ($feature['geometry'], $feature['properties']['iconUrl'], $row),
 				'photo1'		=> $feature['properties']['images'][0],
 				'photo2'		=> $feature['properties']['images'][1],
 				'metadata'		=> application::htmlTableKeyed ($properties, $labels, true, 'lines compressed reviewmetadata'),
 				'surveyDate'	=> $feature['properties']['surveyDate'],
-				'review'		=> $widgetsHtml[$index],
+				'review'		=> $widgetsHtml[$row],
 			);
 			
 			# Perform substitution
-			$replacements = array ();
+			$replacements[$row] = array ();
 			foreach ($substitutions as $placeholder => $substitution) {
 				$key = '{' . $placeholder . '}';
-				$replacements[$key] = $substitution;
+				$replacements[$row][$key] = $substitution;
 			}
-			$table[] = strtr ($rowTemplate, $replacements);
 		}
-		$table = implode ("\n", $table);
-		$this->template['tableRows'] = $table;
 		
 		# Process the form
 		$formHtml = '';
-		if (!$result = $form->process ($formHtml)) {return;}
+		$result = $form->process ($formHtml);
 		
 		# Submit to the API
-		foreach ($result as $widgetName => $status) {
-			
-			# Skip if no approval action set
-			if (!$status) {continue;}
-			
-			
-			
-			# Assemble the data
-			$data = array (
-				'dataset'	=> $this->settings['auditDataset'],
-				'id'		=> $ids[$widgetName],
-				'version'	=> $versions[$widgetName],
-				'status'	=> $status,
-				'email'		=> $this->user['email'],
-			);
-			
-			# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.update/
-			$schemaUrl = $this->settings['apiBase'] . '/v2/' . 'infrastructure.update' . '?key=' . $this->settings['apiKey'];
-			#!# Failure detection needed
-			//$result = application::file_post_contents ($schemaUrl, $data);
-			$result = json_decode ($result, true);
-			//application::dumpData ($result);
+		if ($result) {
+			foreach ($result as $widgetName => $status) {
+				
+				# Skip if no approval action set, i.e. leave for now
+				if (!$status) {continue;}
+				
+				# Assemble the data
+				$data = array (
+					'dataset'	=> $this->settings['auditDataset'],
+					'id'		=> $ids[$widgetName],
+					'version'	=> $versions[$widgetName],
+					'status'	=> $status,
+					'email'		=> $this->user['email'],
+				);
+				
+				# Perform the commit; see: https://www.cyclestreets.net/api/v2/infrastructure.moderate/
+				$schemaUrl = $this->settings['apiBase'] . '/v2/' . 'infrastructure.moderate' . '?key=' . $this->settings['apiKey'];
+				#!# Failure detection needed
+				$result = application::file_post_contents ($schemaUrl, $data);
+				$result = json_decode ($result, true);
+				//application::dumpData ($result);
+				
+				# Update the template value for this row, replacing the widget rendering with the new status
+				$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
+				$row = $rows[$widgetName];
+				$replacements[$row]['{review}'] = '<p class="success">' . $unicodeTick . ' ' . ucfirst ($status) . '</p>';
+			}
 		}
 		
-		
+		# Construct the table for the template
+		$table = array ();
+		foreach ($replacements as $row => $values) {
+			$table[$row] = strtr ($rowTemplate, $values);
+		}
+		$table = implode ("\n", $table);
+		$this->template['tableRows'] = $table;
 	}
 	
 	

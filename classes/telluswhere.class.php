@@ -3620,6 +3620,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'current' => 'Current %categoryLabel &mdash; CSV export',
 		);
 		
+		# If using a dataset, show the unified download for this and end
+		if ($this->settings['auditDataset']) {
+			$html = "<p><a href=\"/data/audit.csv\">Audit data &mdash; CSV export</a></p>";
+			$this->template['links'] = $html;
+			return $html;
+		}
+		
 		# Create listing
 		$tableHtml  = "\n<table class=\"buttons\">";
 		foreach ($this->categories as $category) {
@@ -3643,6 +3650,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	{
 		# Ensure a dataset is specified, and that it is valid
 		$datasets = array ('suggest', 'current');
+		if ($this->settings['auditDataset']) {
+			$datasets[] = 'audit';
+		}
 		if (!isSet ($_GET['dataset']) || !in_array ($_GET['dataset'], $datasets)) {
 			$html = $this->page404 ();
 			echo $html;
@@ -3650,30 +3660,55 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		$dataset = $_GET['dataset'];
 		
-		# Get the category
-		#!# Does not yet support multiple categories
-		$category = $this->categories[0];
-		
-		# Define the parameters for the API call
-		$parameters = array (
-			'category'		=> $category,
-			'metacategory'	=> $this->actions[$dataset]['metacategory'],
-			'bbox'			=> $this->settings['bbox'],
-			'since'			=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
-			'thumbnailsize'	=> '640',
-			'limit'			=> '0',
-			'format'		=> 'csv',
-			'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata'][$category]}],datetime,hasPhoto,url,license" . ($dataset == 'suggest' ? ',likes' : ''),
-			'datetime'		=> 'sqldatetime',
-			'domain'		=> "https://{$_SERVER['SERVER_NAME']}",
-		);
-		
-		# Assemble the API call URL
-		$apiUrl = $this->settings['apiBase'] . '/v2/photomap.locations' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
-		
-		# Enable private submissions if required
-		if ($this->settings['privateSubmissions']) {
-			$apiUrl .= '&private=1';
+		# Get the data
+		switch ($dataset) {
+			
+			# Suggest/current
+			case 'sugggest':
+			case 'current':
+				
+				# Get the category
+				#!# Does not yet support multiple categories
+				$category = $this->categories[0];
+				
+				# Define the parameters for the API call
+				$parameters = array (
+					'category'		=> $category,
+					'metacategory'	=> $this->actions[$dataset]['metacategory'],
+					'bbox'			=> $this->settings['bbox'],
+					'since'			=> ($this->settings['earliestDate'] ? strtotime ($this->settings['earliestDate'] . ' 00:00:00') : 0),
+					'thumbnailsize'	=> '640',
+					'limit'			=> '0',
+					'format'		=> 'csv',
+					'fields'		=> "id,latitude,longitude,areaName,caption,additionalMetadata[{$this->actions[$dataset]['additionalMetadata'][$category]}],datetime,hasPhoto,url,license" . ($dataset == 'suggest' ? ',likes' : ''),
+					'datetime'		=> 'sqldatetime',
+					'domain'		=> "https://{$_SERVER['SERVER_NAME']}",
+				);
+				
+				# Assemble the API call URL
+				$apiUrl = $this->settings['apiBase'] . '/v2/photomap.locations' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
+				
+				# Enable private submissions if required
+				if ($this->settings['privateSubmissions']) {
+					$apiUrl .= '&private=1';
+				}
+				
+				break;
+				
+			# Audit
+			case 'audit':
+				
+				# Define the parameters for the API call
+				$parameters = array (
+					'dataset'	=> $this->settings['auditDataset'],
+					'approved'	=> '1',
+					'format'	=> 'csv',
+				);
+				
+				# Assemble the API call URL
+				$apiUrl = $this->settings['apiBase'] . '/v2/infrastructure.locations' . '?key=' . $this->settings['apiKey'] . '&' . http_build_query ($parameters);
+				
+				break;
 		}
 		
 		# Obtain the data

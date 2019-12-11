@@ -4291,6 +4291,17 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		$this->template['paginationLinks'] = application::htmlUl ($paginationLinks, 0, 'pagination');
 		
+		# Support form autofill values
+		$this->template['setallJs'] = "
+			<script>
+				$(function () {
+					$('#setall').change (function () {
+						$('form input[value=\"' + $(this).val() + '\"]').prop ('checked', true);
+					});
+				});
+			</script>
+		";
+		
 		# Create the map HTML
 		$html  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);

@@ -519,7 +519,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Set the marker
-			telluswhere.setMarker(e.latlng, _useIcon, true);
+			telluswhere.setMarker (e.latlng, _useIcon, true);
 			
 			// Remove the help text
 			$('#helptext').removeClass('display').addClass('hide');
@@ -560,9 +560,9 @@ var telluswhere = (function ($) {
 		// Wrapper function to set the marker by supplying raw latitude and longitude markers
 		setMarkerLatitudeLongitude: function (latitude, longitude)
 		{
-			var latlng = L.latLng(latitude, longitude);
+			var latlng = L.latLng (latitude, longitude);
 			map.setView(latlng, _maxZoom);
-			telluswhere.setMarker(latlng, _useIcon, true);
+			telluswhere.setMarker (latlng, _useIcon, true);
 		},
 		
 		
@@ -572,9 +572,12 @@ var telluswhere = (function ($) {
 			// In view-only mode, disable marker setting functionality
 			if (_viewOnlyMode) {return;}
 			
-			// Clear any previously-set marker
-			if(_marker){
-				map.removeLayer(_marker);
+			// If there is already a marker set, treat the click as a move (as per a drag)
+			if (_marker) {
+				_marker.setLatLng (latlng);
+				_marker.openPopup ();
+				telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom());
+				return;
 			}
 			
 			// Determine icon

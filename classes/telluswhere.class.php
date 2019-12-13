@@ -1182,7 +1182,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->auditSetPopupLabels ($schema[$category], $flatten = false);
 		
 		# Create the audit form (with map)
-		if ($result = $this->auditFormPresent ($schema[$category]['fields'], $category, array ())) {
+		if ($result = $this->auditFormPresent ($schema[$category]['fields'], $category, $schema[$category]['geometrytype'], array ())) {
 			$this->template['presentForm'] = $this->auditPresentCommit ($result, false, $category);
 		}
 	}
@@ -1260,7 +1260,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[__FUNCTION__]['apiUrl'] = false;
 		
 		# Create the audit location present form (with map)
-		if ($result = $this->auditFormPresent ($schema['fields'], $category, $data)) {
+		if ($result = $this->auditFormPresent ($schema['fields'], $category, $schema['geometrytype'], $data)) {
 			$this->template['presentForm'] = $this->auditPresentCommit ($result, $id, false);
 		}
 		
@@ -1284,7 +1284,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to create the audit form for infrastructure present, which includes the map
-	private function auditFormPresent ($fields /* for the current category */, $category, $data = array () /* or GeoJSON feature */)
+	private function auditFormPresent ($fields /* for the current category */, $category, $geometryType, $data = array () /* or GeoJSON feature */)
 	{
 		# Extract the properties for dataBinding and the map popup
 		$locationData = ($data ? $data['properties'] : array ());
@@ -1358,9 +1358,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
+		# Determine whether to enable drawing
+		$enableDrawing = ($geometryType == 'LineString');
+		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, false, $locationDataOriginal);
+		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
 		# Disable intelligence for colour fields, forcing ENUM

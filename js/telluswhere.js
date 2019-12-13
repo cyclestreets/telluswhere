@@ -153,14 +153,15 @@ var telluswhere = (function ($) {
 					useIcon = '_dynamic';
 				}
 				
-				var latlng = L.latLng(_initialLatitude, _initialLongitude);
-				telluswhere.setMarker(latlng, useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
-				map.setView(latlng, _markerSettingZoom);
-			}
-			
-			// Add drawing support if enabled
-			if (_enableDrawing) {
-				telluswhere.drawing ('#geometry', true, '');
+				var latlng = L.latLng (_initialLatitude, _initialLongitude);
+				map.setView (latlng, _markerSettingZoom);
+				
+				// If an initial geometry is set, prefer that
+				if (_initialGeometry && _initialGeometry.type == 'LineString') {
+					telluswhere.setGeometry (_initialGeometry, settings.markerSetInitiallyIsDraggable, settings.markerData);
+				} else {
+					telluswhere.setMarker (latlng, useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
+				}
 			}
 			
 			// Determine the minimum zoom level for marker setting
@@ -565,6 +566,14 @@ var telluswhere = (function ($) {
 			var latlng = L.latLng (latitude, longitude);
 			map.setView(latlng, _maxZoom);
 			telluswhere.setMarker (latlng, _useIcon, true);
+		},
+		
+		
+		// Function to set geometry, i.e. line rather than marker
+		setGeometry: function (_initialGeometry, markerIsDraggable, data)
+		{
+			// Add the feature
+			L.geoJSON (_initialGeometry).addTo (map);
 		},
 		
 		

@@ -1176,7 +1176,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Finalise the API URL
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl']);
-		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		$this->actions[$this->action]['apiUrl'] = str_replace ('%type', $category, $this->actions[$this->action]['apiUrl']);
 		
 		# Assign the popup labels

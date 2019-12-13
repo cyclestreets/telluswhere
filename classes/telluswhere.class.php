@@ -2365,11 +2365,18 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
+		# Determine whether a browsing API is to be shown
+		$useBrowsingApi = false;
+		if (in_array ($this->action, array ('suggest', 'current')) && $this->settings['showOthers']) {$useBrowsingApi = true;}
+		if (in_array ($this->action, array ('audit', 'auditadd', 'priorityareas'))) {$useBrowsingApi = true;}
+		
 		# Determine the URL for the browsing API; if a selected ID is requested, request that this always be included in the returned data
-		#!# Improve way key is added here
-		$browsingApiUrl = (($this->settings['showOthers'] || $this->userIsAdministrator || $this->action == 'audit' || $this->action == 'priorityareas') ? $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '') : false);
-		if ($this->settings['privateSubmissions']) {
-			$browsingApiUrl .= '&private=1';
+		$browsingApiUrl = false;
+		if ($useBrowsingApi) {
+			$browsingApiUrl = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl'] . '&key=' . $this->settings['apiKey'] . ($selectedIdData ? "&selectedid={$selectedIdData['id']}" : '');
+			if ($this->settings['privateSubmissions']) {
+				$browsingApiUrl .= '&private=1';
+			}
 		}
 		$browsingApiUrlJs = ($browsingApiUrl ? "'" . $browsingApiUrl . "'" : 'false');
 		

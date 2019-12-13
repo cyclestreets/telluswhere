@@ -72,7 +72,9 @@ var telluswhere = (function ($) {
 			_initialZoom = settings.initialZoom;
 			_maxZoom = settings.maxZoom || 21;
 			_minZoom = settings.minZoom || 7;
-			_browsingApiUrls[0] = settings.browsingApiUrl;
+			if (settings.browsingApiUrl) {
+				_browsingApiUrls[0] = settings.browsingApiUrl;
+			}
 			if (settings.browsingApiUrl2) {
 				_browsingApiUrls[1] = settings.browsingApiUrl2;
 			}

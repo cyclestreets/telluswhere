@@ -580,8 +580,8 @@ var telluswhere = (function ($) {
 			// If there is already a marker set, treat the click as a move (as per a drag)
 			if (_marker) {
 				_marker.setLatLng (latlng);
+				telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom ());
 				_marker.openPopup ();
-				telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom());
 				return;
 			}
 			
@@ -592,31 +592,27 @@ var telluswhere = (function ($) {
 				icon.options.iconUrl = data.iconUrl;
 			}
 			
-			// Set marker position
+			// Set initial marker position
 			_marker = new L.Marker (latlng, {icon: icon, draggable: markerIsDraggable, zIndexOffset: 1000});
 			map.addLayer(_marker);
 			
-			// #!# Need to show the category name
+			// Set the popup content
 			if (data) {
-				var markerHtml = telluswhere.popupHtmlDynamic (data);
+				var popupHtml = telluswhere.popupHtmlDynamic (data);
 			} else {
-				var markerHtml = (_action == 'suggest' ? 'Needed' : 'Present') + ' here';
+				// #!# Need to show the category name
+				var popupHtml = (_action == 'suggest' ? 'Needed' : 'Present') + ' here';
 			}
-			_marker.bindPopup(markerHtml).openPopup();
+			_marker.bindPopup (popupHtml).openPopup ();
 			
-			// Register dragend processing function
-			_marker.on('dragend', telluswhere.markerDrag);
+			// After dragging, transmit the value to the form, and reopen the popup
+			_marker.on ('dragend', function (e) {
+				telluswhere.setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom ());
+				_marker.openPopup();
+			});
 			
 			// Transmit the value to the form
-			telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom());
-		},
-		
-		
-		// After dragging, transmit the value to the form, and reopen the popup
-		markerDrag: function (e)
-		{
-			telluswhere.setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom());
-			_marker.openPopup();
+			telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom ());
 		},
 		
 		

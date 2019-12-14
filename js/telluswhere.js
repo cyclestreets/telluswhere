@@ -147,12 +147,6 @@ var telluswhere = (function ($) {
 			// Determine whether to set the marker initially
 			if(_setMarkerInitially){
 				
-				// Determine the icon to use
-				var useIcon = _useIcon;
-				if (settings.markerData.iconUrl) {
-					useIcon = '_dynamic';
-				}
-				
 				var latlng = L.latLng (_initialLatitude, _initialLongitude);
 				map.setView (latlng, _markerSettingZoom);
 				
@@ -160,7 +154,7 @@ var telluswhere = (function ($) {
 				if (_initialGeometry && _initialGeometry.type == 'LineString') {
 					telluswhere.setGeometry (_initialGeometry, settings.markerSetInitiallyIsDraggable, settings.markerData);
 				} else {
-					telluswhere.setMarker (latlng, useIcon, settings.markerSetInitiallyIsDraggable, settings.markerData);
+					telluswhere.setMarker (latlng, settings.markerSetInitiallyIsDraggable, settings.markerData);
 				}
 			}
 			
@@ -522,7 +516,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Set the marker
-			telluswhere.setMarker (e.latlng, _useIcon, true);
+			telluswhere.setMarker (e.latlng, true);
 			
 			// Remove the help text
 			$('#helptext').removeClass('display').addClass('hide');
@@ -565,7 +559,7 @@ var telluswhere = (function ($) {
 		{
 			var latlng = L.latLng (latitude, longitude);
 			map.setView(latlng, _maxZoom);
-			telluswhere.setMarker (latlng, _useIcon, true);
+			telluswhere.setMarker (latlng, true);
 		},
 		
 		
@@ -578,7 +572,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to set the marker
-		setMarker: function (latlng, useIcon, markerIsDraggable, data)
+		setMarker: function (latlng, markerIsDraggable, data)
 		{
 			// In view-only mode, disable marker setting functionality
 			if (_viewOnlyMode) {return;}
@@ -591,23 +585,22 @@ var telluswhere = (function ($) {
 				return;
 			}
 			
-			// Determine icon
-			var icon = _icons[useIcon];
-			if (useIcon == '_dynamic') {
-				if (data.iconUrl) {
-					icon.options.iconUrl = data.iconUrl;
-				}
+			// Set the icon to use; if an iconUrl is specified in data, use a dynamic icon instead
+			var icon = _icons[_useIcon];
+			if (data && data.iconUrl) {
+				icon = _icons['_dynamic'];
+				icon.options.iconUrl = data.iconUrl;
 			}
 			
 			// Set marker position
-			_marker = new L.Marker(latlng, {icon: icon, draggable: markerIsDraggable, zIndexOffset: 1000});
+			_marker = new L.Marker (latlng, {icon: icon, draggable: markerIsDraggable, zIndexOffset: 1000});
 			map.addLayer(_marker);
 			
 			// #!# Need to show the category name
 			if (data) {
 				var markerHtml = telluswhere.popupHtmlDynamic (data);
 			} else {
-				var markerHtml = (useIcon == 'suggest' ? 'Needed' : 'Present') + ' here';
+				var markerHtml = (_action == 'suggest' ? 'Needed' : 'Present') + ' here';
 			}
 			_marker.bindPopup(markerHtml).openPopup();
 			

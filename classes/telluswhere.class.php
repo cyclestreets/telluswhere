@@ -1350,7 +1350,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			if (is_dir ($directory)) {
 				$attributes[$fieldname]['data'] = array ();
 				foreach ($field['_values'] as $value) {
-					$file = $value . '.jpg';
+					$file = str_replace ('/', '_', strtolower ($value)) . '.jpg';
 					if (is_file ($directory . $file)) {
 						$attributes[$fieldname]['data'][$value]['icon'] = $folder . $file;
 					}
@@ -1864,7 +1864,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	private function sqlFieldnameToStructure ($sqlFieldname, $comment)
 	{
 		# Extract values
-		preg_match ('/^(varchar|integer|enum)\((.+)\)$/', strtolower ($sqlFieldname), $matches);
+		preg_match ('/^(VARCHAR|varchar|INTEGER|integer|ENUM|enum)\((.+)\)$/', $sqlFieldname, $matches);
 		
 		# Assemble the field
 		$field = array (

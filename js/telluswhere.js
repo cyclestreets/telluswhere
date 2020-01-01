@@ -506,7 +506,7 @@ var telluswhere = (function ($) {
 			
 			// Zoom if too far out and end
 			if (map.getZoom() < _minZoomLevelToSet) {
-				telluswhere.setFormValues (null, null, null);	// Clear any saved values
+				telluswhere.setPointFormValues (null, null, null);	// Clear any saved values
 				var currentZoomLevel = map.getZoom();
 				var zoomBy = (((_minZoomLevelToSet - currentZoomLevel) <= 2) ? 1 : 2);	// When very zoomed in, zoom in less far, to avoid disorientation
 				var newZoomLevel = currentZoomLevel + zoomBy;
@@ -580,7 +580,7 @@ var telluswhere = (function ($) {
 			// If there is already a marker set, treat the click as a move (as per a drag)
 			if (_marker) {
 				_marker.setLatLng (latlng);
-				telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom ());
+				telluswhere.setPointFormValues (latlng.lat, latlng.lng, map.getZoom ());
 				_marker.openPopup ();
 				return;
 			}
@@ -607,17 +607,17 @@ var telluswhere = (function ($) {
 			
 			// After dragging, transmit the value to the form, and reopen the popup
 			_marker.on ('dragend', function (e) {
-				telluswhere.setFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom ());
+				telluswhere.setPointFormValues (e.target._latlng.lat, e.target._latlng.lng, map.getZoom ());
 				_marker.openPopup();
 			});
 			
 			// Transmit the value to the form
-			telluswhere.setFormValues (latlng.lat, latlng.lng, map.getZoom ());
+			telluswhere.setPointFormValues (latlng.lat, latlng.lng, map.getZoom ());
 		},
 		
 		
-		// Function to transmit the location values to the form
-		setFormValues: function (lat, lng, zoom)
+		// Function to transmit the location values for a point location to the form
+		setPointFormValues: function (lat, lng, zoom)
 		{
 			// Legacy separate lat/lon/zoom values
 			if ($('#form_latitude').length > 0) {

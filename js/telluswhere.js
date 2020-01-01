@@ -141,11 +141,11 @@ var telluswhere = (function ($) {
 			// Transmit current location
 			telluswhere.transmitCurrentLocation();
 			
-			// Define the icon set; see: http://leafletjs.com/examples/custom-icons.html
+			// Define the icon set; see: https://leafletjs.com/examples/custom-icons/
 			_icons = telluswhere.getIcons();
 			
 			// Determine whether to set the marker initially
-			if(_setMarkerInitially){
+			if (_setMarkerInitially){
 				
 				var latlng = L.latLng (_initialLatitude, _initialLongitude);
 				map.setView (latlng, _markerSettingZoom);

@@ -619,10 +619,21 @@ var telluswhere = (function ($) {
 		// Function to transmit the location values to the form
 		setFormValues: function (lat, lng, zoom)
 		{
+			// Legacy separate lat/lon/zoom values
 			if ($('#form_latitude').length > 0) {
 				$('#form_latitude').val(lat);
 				$('#form_longitude').val(lng);
 				$('#form_zoom').val(zoom);
+			}
+			
+			// Geometry value
+			if ($('#form_location').length > 0) {
+				var geometry = {
+					type: 'Point',
+					coordinates: [parseFloat(lng.toFixed(6)), parseFloat(lat.toFixed(6))]
+				};
+				geometry = JSON.stringify (geometry);
+				$('#form_location').val (geometry);
 			}
 		},
 		

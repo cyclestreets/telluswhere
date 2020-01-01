@@ -1458,13 +1458,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$result['photo1'] = $this->prepareFile ($tempDir . $result['photos'][1]);
 		unset ($result['photos']);
 		
-		# Assemble the location field to a GeoJSON geometry
-		$geometry = array (
-			'type' => 'Point',
-			'coordinates' => array ((float) number_format ($result['longitude'], 6), (float) number_format ($result['latitude'], 6)),
-		);
+		# Remove legacy lat/lon/zoom fields, which are unused
 		unset ($result['latitude'], $result['longitude'], $result['zoom']);
-		$result['location'] = json_encode ($geometry);
 		
 		# Return the result
 		return $result;
@@ -1534,6 +1529,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$fields[] = 'latitude';
 		$fields[] = 'longitude';
 		$fields[] = 'zoom';
+		$fields[] = 'location';
 		$fields[] = 'photos';
 		$result = application::arrayFields ($result, $fields);
 		
@@ -2731,8 +2727,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	{
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS
 		$html .= "\n" . '<style type="text/css">
-			#form_latitude, #form_longitude, #form_zoom {display: none;}
-			form .latitude, form .longitude, form .zoom {display: none;}
+			#form_latitude, #form_longitude, #form_zoom, #form_location {display: none;}
+			form .latitude, form .longitude, form .zoom, form .location {display: none;}
 		</style>
 		';
 		$form->input (array (
@@ -2753,10 +2749,18 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
 			'default'		=> ($initialValue ? $initialValue['zoom'] : false),
 		));
+		$form->input (array (
+			'name'			=> 'location',
+			'title'			=> 'Location (set by clicking on map)',
+			'required'		=> false,	// Handled using unfinalisedData method instead, so that these can be treated as a collection
+			'default'		=> ($initialValue && array_key_exists ('location', $initialValue) ? $initialValue['location'] : false),
+		));
 		
 		# Validate
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
-			if (!strlen ($unfinalisedData['latitude']) || !strlen ($unfinalisedData['longitude']) || !strlen ($unfinalisedData['zoom']) || !preg_match ('/^[0-9-.]+$/', $unfinalisedData['latitude']) || !preg_match ('/^[0-9-.]+$/', $unfinalisedData['longitude']) || !preg_match ('/^[0-9]{1,2}$/', $unfinalisedData['zoom'])) {
+			$hasManualLocation = (strlen ($unfinalisedData['latitude']) && strlen ($unfinalisedData['longitude']) && strlen ($unfinalisedData['zoom']) && preg_match ('/^[0-9-.]+$/', $unfinalisedData['latitude']) && preg_match ('/^[0-9-.]+$/', $unfinalisedData['longitude']) && preg_match ('/^[0-9]{1,2}$/', $unfinalisedData['zoom']));
+			$hasGeometryLocation = strlen ($unfinalisedData['location']);
+			if (!$hasManualLocation && !$hasGeometryLocation) {
 				$form->registerProblem ('location', 'The map location needs to be set.');
 			}
 		}

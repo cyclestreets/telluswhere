@@ -1407,6 +1407,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$form->upload (array (
 			'name' => 'photos',
 			'title' => 'Two photos',
+			'required' => true,
 			'description' => 'Must be JPG format',
 			'directory' => $tempDir,
 			'allowedExtensions' => array ('jpg', 'jpeg'),	// 'jpeg' variant needed as iOS picker may supply as *.jpeg

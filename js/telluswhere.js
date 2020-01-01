@@ -1284,7 +1284,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Drawing functionality, wrapping Leaflet.draw
-		drawing: function (targetField, fragmentOnly, defaultValueString)
+		drawing: function (targetField, fragmentOnly, initialGeometry /* feature */)
 		{
 			// Options for polygon drawing
 			var polygon_options = {
@@ -1305,13 +1305,10 @@ var telluswhere = (function ($) {
 			var drawnItems = new L.FeatureGroup();
 			
 			// Add default value if supplied; currently only polygon type supplied
-			if (defaultValueString) {
-				
-				// Parse the geometry string
-				var polygonPoints = JSON.parse(defaultValueString)
+			if (initialGeometry) {
 				
 				// Create the polygon and style it
-				var defaultPolygonFeature = L.polygon (polygonPoints.coordinates, polygon_options.shapeOptions);
+				var defaultPolygonFeature = L.polygon (initialGeometry.coordinates, polygon_options.shapeOptions);
 				
 				// Create the layer and add the polygon to the layer
 				var defaultLayer = new L.layerGroup ();

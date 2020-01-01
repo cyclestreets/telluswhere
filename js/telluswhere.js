@@ -1307,27 +1307,18 @@ var telluswhere = (function ($) {
 			// Add default value if supplied; currently only polygon type supplied
 			if (defaultValueString) {
 				
-				// Convert the string to an array of L.latLng(lat,lon) values
-				var polygonPoints = JSON.parse(defaultValueString);
-				var defaultPolygon = [];
-				if (polygonPoints) {
-					var i;
-					var point;
-					for (i = 0; i < polygonPoints.length; i++) {
-						point = polygonPoints[i];
-						defaultPolygon.push (L.latLng(point[1], point[0]));
-					}
-				}
+				// Parse the geometry string
+				var polygonPoints = JSON.parse(defaultValueString)
 				
 				// Create the polygon and style it
-				var defaultPolygonFeature = L.polygon(defaultPolygon, polygon_options.shapeOptions);
+				var defaultPolygonFeature = L.polygon (polygonPoints.coordinates, polygon_options.shapeOptions);
 				
 				// Create the layer and add the polygon to the layer
-				var defaultLayer = new L.layerGroup();
-				defaultLayer.addLayer(defaultPolygonFeature);
+				var defaultLayer = new L.layerGroup ();
+				defaultLayer.addLayer (defaultPolygonFeature);
 				
 				// Add the layer to the drawing canvas
-				drawnItems.addLayer(defaultLayer);
+				drawnItems.addLayer (defaultLayer);
 			}
 			
 			// Add the drawing layer to the map

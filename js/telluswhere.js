@@ -167,8 +167,12 @@ var telluswhere = (function ($) {
 				telluswhere.cursorZoomin ();
 			});
 			
-			// Register click handler
-			map.on('click', telluswhere.onMapClick);
+			// Enable either drawing or map point setting
+			if (_enableDrawing) {
+				telluswhere.drawing ('#geometry', true, '');
+			} else {
+				map.on('click', telluswhere.onMapClick);
+			}
 			
 			// Add each data layer to the map, if enabled
 			$.each (_browsingApiUrls, function (index, url) {

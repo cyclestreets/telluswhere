@@ -1692,8 +1692,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		));
 		
 		# For maintenance form, report directly via e-mail, pending API support
-		if (substr_count ($label, 'maintenance')) {
-			$form->setOutputEmail ($this->settings['feedbackRecipient'], $this->settings['administratorEmail'], $this->settings['applicationName'] . ' contact form: maintenance needed');
+		if (substr_count ($label, 'problem')) {
+			$form->setOutputEmail ($this->settings['feedbackRecipient'], $this->settings['administratorEmail'], $this->settings['applicationName'] . ' contact form: problem');
 		}
 		
 		# Process the form, and send to the template

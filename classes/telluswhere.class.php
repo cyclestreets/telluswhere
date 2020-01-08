@@ -4366,6 +4366,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			unset ($properties['_type']);
 			unset ($properties['_status']);
 			unset ($properties['_version']);
+			unset ($properties['_username']);
 			unset ($properties['surveyDate']);
 			unset ($properties['images']);
 			unset ($properties['iconUrl']);
@@ -4376,6 +4377,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'type'			=> $feature['properties']['_type'],
 				'status'		=> $feature['properties']['_status'],
 				'version'		=> $feature['properties']['_version'],
+				'username'		=> str_replace ($this->settings['authNamespace'], '', $feature['properties']['_username']),
 				'borough'		=> $feature['properties']['_borough'],
 				'smallMap'		=> $this->smallMap ($feature['geometry'], $feature['properties']['iconUrl'], $row),
 				'photo1'		=> $feature['properties']['images'][0],

@@ -1017,6 +1017,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add areas drop-down if supported
 		$this->template['areas'] = $this->areasDropdown ();
 		$this->template['areasList'] = $this->areasDropdown ($asList = true);
+		
+		# Add jump to ID form
+		$this->template['idForm'] = $this->auditIdForm ();
 	}
 	
 	
@@ -1072,6 +1075,58 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->popupLabels = $popupLabels;
 		#!# Not yet working
 		$this->popupLabelSubsetField = false;
+	}
+	
+	
+	# Function to add Jump to audit ID form
+	private function auditIdForm ()
+	{
+		# Only appears for administrators
+		if (!$this->userIsAdministrator) {return false;}
+		
+		# Start the HTML
+		$html = '<h3><img src="/images/icons/shield.png" class="icon" /> Jump to asset ID</h3>';
+		
+		# Create the form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'name' => 'idform',
+			'requiredFieldIndicator' => false,
+			'formCompleteText' => false,
+		));
+		$form->input (array (
+			'name'		=> 'id',
+			'title'		=> 'Jump to asset ID',
+			'required'	=> true,
+		));
+		if ($unfinalisedData = $form->getUnfinalisedData ()) {
+			if ($unfinalisedData['id']) {
+				
+				# Obtain the data
+				$apiUrl = '/v2/infrastructure.location&dataset=%dataset&id=%id&latest=1';
+				$apiUrl = str_replace ('%dataset', $this->settings['auditDataset'], $apiUrl);
+				$apiUrl = str_replace ('%id', $unfinalisedData['id'], $apiUrl);
+				$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
+				
+				# Obtain the data
+				$data = file_get_contents ($apiUrl);
+				$data = json_decode ($data, true);
+				
+				# If error, throw error
+				if (isSet ($data['error'])) {
+					$form->registerProblem ('id', 'No such ID was found.');
+				}
+			}
+		}
+		
+		# Redirect on success
+		if ($result = $form->process ($html)) {
+			$redirectTo = $_SERVER['_SITE_URL'] . $this->baseUrl . '/audit/location/' . $result['id'] . '/';
+			$html = application::sendHeader (302, $redirectTo, true);
+		}
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	

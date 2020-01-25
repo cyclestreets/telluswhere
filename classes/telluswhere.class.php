@@ -4356,9 +4356,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Create a pagination list
 		$paginationLinks = array ();
 		for ($i = 1; $i <= $totalPages; $i++) {
-			$paginationLinks[] = "<a href=\"page{$i}.html\">{$i}</a>";
+			$paginationLinks[] = "<li" . ($i == $page ? ' class="active"' : '') . "><a href=\"page{$i}.html\">{$i}</a>";
 		}
-		$this->template['paginationLinks'] = application::htmlUl ($paginationLinks, 0, 'pagination');
+		$this->template['paginationLinks'] = "\n<ul class=\"pagination\">\n\t" . implode ("\n\t", $paginationLinks) . "\n</ul>";
 		
 		# Support form autofill values
 		$this->template['setallJs'] = "

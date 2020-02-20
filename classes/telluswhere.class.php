@@ -4348,7 +4348,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$data['features'] = array_slice ($data['features'], $startAt, $perPage);
 		
 		# Set the pagination values for the template
-		$this->template['count'] = $totalAssets;
+		$this->template['count'] = number_format ($totalAssets);
 		$this->template['page'] = $page;
 		$this->template['totalPages'] = $totalPages;
 		$this->template['perPage'] = $perPage;

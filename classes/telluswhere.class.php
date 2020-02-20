@@ -4648,12 +4648,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Assemble the table data
-		$table = $progress;
-		foreach ($table as $id => $area) {
-			$table[$id]['name'] = "<a href=\"{$this->baseUrl}/audit/#17/{$area['lat']}/{$area['lon']}\">" . htmlspecialchars ($area['name']) . '</a>';
-			unset ($table[$id]['lon']);
-			unset ($table[$id]['lat']);
-			$table[$id]['completionPercentage'] .= ' %';
+		$table = array ();
+		foreach ($progress['features'] as $index => $area) {
+			unset ($area['properties']['id']);
+			$table[$index] = $area['properties'];
+			$table[$index]['name'] = "<a href=\"{$this->baseUrl}/audit/#17/{$area['geometry']['coordinates'][1]}/{$area['geometry']['coordinates'][0]}\">" . htmlspecialchars ($area['properties']['name']) . '</a>';
+			$table[$index]['completionPercentage'] .= ' %';
 		}
 		
 		# Send to the template

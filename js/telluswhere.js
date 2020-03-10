@@ -169,7 +169,9 @@ var telluswhere = (function ($) {
 			
 			// Enable either drawing or map point setting
 			if (_enableDrawing) {
-				telluswhere.drawing ('#geometry', true, '');
+				var formElement = (_action == 'priorityareas' ? '#geometry' : '#form_location');
+				var fragmentOnly = (_action == 'priorityareas');	// #!# Aim to remove this legacy handling
+				telluswhere.drawing (formElement, _enableDrawing /* i.e. type */, _initialGeometry, true, fragmentOnly);
 			} else {
 				map.on('click', telluswhere.onMapClick);
 			}
@@ -621,6 +623,7 @@ var telluswhere = (function ($) {
 		
 		
 		// Function to transmit the location values for a point location to the form
+		// LineString features are handled by .drawing() with targetField also as #form_location
 		setPointFormValues: function (lat, lng, zoom)
 		{
 			// Legacy separate lat/lon/zoom values
@@ -1288,9 +1291,12 @@ var telluswhere = (function ($) {
 		
 		
 		// Drawing functionality, wrapping Leaflet.draw
-		drawing: function (targetField, fragmentOnly, initialGeometry /* feature */)
+		drawing: function (targetField, geometryType, initialGeometry /* feature */, enableInitially, fragmentOnly)
 		{
-			// Options for polygon drawing
+			// Set to show the drawing UI
+			$('#drawing').show ();
+			
+			// Options for drawing
 			var polygon_options = {
 				showArea: false,
 				shapeOptions: {
@@ -1298,7 +1304,7 @@ var telluswhere = (function ($) {
 					color: 'blue',
 					weight: 4,
 					opacity: 0.5,
-					fill: true,
+					fill: (geometryType == 'Polygon'),
 					fillColor: null, //same as color by default
 					fillOpacity: 0.2,
 					clickable: true
@@ -1325,8 +1331,21 @@ var telluswhere = (function ($) {
 			// Add the drawing layer to the map
 			map.addLayer(drawnItems);
 			
+			// Set the Draw object type
+			var drawMethod = geometryType;	// E.g. Polygon
+			if (geometryType == 'LineString') {
+				drawMethod = 'Polyline';
+			}
+			
+			// Initialise the draw control
+			var drawControl = new L.Draw[drawMethod] (map, polygon_options);
+			
+			// Enable initially if required
+			if (enableInitially) {
+				drawControl.enable ();
+			}
+			
 			// Enable the polygon drawing when the button is clicked
-			var drawControl = new L.Draw.Polygon(map, polygon_options);
 			$('.draw.area').click(function() {
 				drawControl.enable();
 				
@@ -1336,7 +1355,7 @@ var telluswhere = (function ($) {
 			});
 			
 			// Handle created polygons
-			map.on('draw:created', function (e) {
+			map.on ('draw:created', function (e) {
 				var layer = e.layer;
 				drawnItems.addLayer(layer);
 				
@@ -1348,21 +1367,33 @@ var telluswhere = (function ($) {
 				var coordinates = geojsonValue.features[0].geometry.coordinates[0];
 				var accuracy = 6;	// Decimal points; gives 0.1m accuracy; see: https://en.wikipedia.org/wiki/Decimal_degrees
 				var i;
-				var j;
-				for (i = 0; i < coordinates.length; i++) {
-					for (j = 0; j < coordinates[i].length; j++) {
-						coordinates[i][j] = +coordinates[i][j].toFixed(accuracy);
+				if (geometryType == 'LineString') {
+					for (i = 0; i < coordinates.length; i++) {
+						coordinates[i] = +coordinates[i].toFixed(accuracy);
+					}
+				}
+				if (geometryType == 'Polygon') {
+					var j;
+					for (i = 0; i < coordinates.length; i++) {
+						for (j = 0; j < coordinates[i].length; j++) {
+							coordinates[i][j] = +coordinates[i][j].toFixed(accuracy);
+						}
 					}
 				}
 				geojsonValue.features[0].geometry.coordinates[0] = coordinates;
 				
-				// If required, send only the coordinates fragment
-				if (fragmentOnly) {
+				// Send the geometry, except in legacy fragmentOnly mode which sends just the co-ordinates
+				geojsonValue = geojsonValue.features[0].geometry;
+				if (fragmentOnly) {		// Legacy
 					geojsonValue = coordinates;
 				}
 				
 				// Send to receiving input form
 				$(targetField).val(JSON.stringify(geojsonValue));
+				$('#form_zoom').val(map.getZoom ());
+				
+				// Set the map location cookie
+				telluswhere.setMapLocationCookie ();
 				
 				// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
 				// #!# Note that this fires twice for some reason - see notes to the answer in the above URL

@@ -375,7 +375,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '191001';
+		$this->template['revision'] = '200310';
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
@@ -1344,6 +1344,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Extract the properties for dataBinding and the map popup
 		$locationData = ($data ? $data['properties'] : array ());
 		
+		# Determine whether to enable drawing
+		$enableDrawing = ($geometryType == 'LineString' ? 'LineString' : false);
+		
 		# Combine mutually-exclusive boolean fields into a single drop-down
 		$fieldsOriginal = $fields;	// Cache for later use
 		$locationDataOriginal = $locationData;
@@ -1413,9 +1416,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
-		# Determine whether to enable drawing
-		$enableDrawing = ($geometryType == 'LineString');
-		
 		# Create the map HTML
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
@@ -1444,9 +1444,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'uploadThumbnailHeight'		=> 120,
 		));
 		if ($data) {
-			$form->heading ('p', 'Please check the map location to ensure it is correct. If not, you can drag the marker to give an accurate location.');
+			$form->heading ('p', 'Please check the map location to ensure it is correct. If not, you can ' . ($enableDrawing ? 'redraw the location' : 'drag the marker') . ' to give an accurate location.');
 		} else {
-			$form->heading ('p', 'Firstly, click on the map to set the location. You can then drag the marker to get an accurate location.');
+			if ($enableDrawing) {
+				$form->heading ('p', 'Firstly, draw on the map to set the location.');
+			} else {
+				$form->heading ('p', 'Firstly, click on the map to set the location. You can then drag the marker to get an accurate location.');
+			}
 		}
 		$form->dataBinding (array (
 			'schema' => $schemaDatabinding,
@@ -1872,7 +1876,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Create the map, in drawing mode
 		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = true);
+		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = 'Polygon');
 		$this->template['map'] = $mapHtml;
 		
 		# Handle posted data
@@ -2395,14 +2399,31 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# If the form is posted, and a map location was set, extract the map location
 		#!# This hack is only necessary until ultimateForm has built-in support for a native map widget, which means this whole method can then be replaced
 		if (isSet ($_POST['form'])) {
+			
+			# Lat/lon/zoom values implementation
 			if (isSet ($_POST['form']['latitude']) && isSet ($_POST['form']['longitude']) && isSet ($_POST['form']['zoom']) && preg_match ('/^[0-9-.]+$/', $_POST['form']['latitude']) && preg_match ('/^[0-9-.]+$/', $_POST['form']['longitude']) && preg_match ('/^[0-9]{1,2}$/', $_POST['form']['zoom'])) {
 				$mapLocation = array (
 					'latitude'	=> $_POST['form']['latitude'],
 					'longitude'	=> $_POST['form']['longitude'],
 					'zoom'		=> $_POST['form']['zoom'],
+					'location'	=> $_POST['form']['location'],
 				);
-				$setMarkerInitially = true;
 			}
+			
+			# Drawing mode implementation, which receives a posted GeoJSON location
+			if ($enableDrawing && isSet ($_POST['form']['location']) && isSet ($_POST['form']['zoom'])) {
+				$geometry = json_decode ($_POST['form']['location'], true);
+				$centre = $this->getCentre ($geometry);
+				$mapLocation = array (
+					'latitude'	=> $centre['lat'],
+					'longitude'	=> $centre['lon'],
+					'zoom'		=> $_POST['form']['zoom'],
+					'geometry'	=> $geometry,
+				);
+			}
+			
+			# Flag to set the marker
+			$setMarkerInitially = true;
 		}
 		
 		# In view-only mode, look for optional setting of location
@@ -2512,6 +2533,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			table.lines td:last-child ul:first-child {margin-top: 0;}
 			table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
 			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
+			
+			/* Drawing */
+			body.auditlocation #drawing, body.auditaddlocation #drawing {display: none;}	/* Hidden by default */
+			
 		</style>
 		';
 		if (!$viewOnlyMode) {
@@ -2531,7 +2556,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? (ctype_digit ($selectedIdData['id']) ? $selectedIdData['id'] : "'{$selectedIdData['id']}'") : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
-		$enableDrawingJs = ($enableDrawing ? 'true' : 'false');
+		$enableDrawingJs = ($enableDrawing ? "'{$enableDrawing}'" : 'false');	// Will be type, e.g. Polygon or LineString
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');

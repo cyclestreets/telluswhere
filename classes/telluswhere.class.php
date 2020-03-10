@@ -1452,6 +1452,18 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				$form->heading ('p', 'Firstly, click on the map to set the location. You can then drag the marker to get an accurate location.');
 			}
 		}
+		
+		# Add drawing instructions
+		if ($enableDrawing) {
+			$form->heading ('', '
+				<div id="formdrawing">
+					<p class="edit-instructions">Click on the map to draw the line.</p>
+					<p class="edit-clear"><strong class="success">✓ Line set.</strong><br /><a href="#">Re-draw</a> if you made a mistake.</p>
+				</div>
+			');
+		}
+		
+		# Main form
 		$form->dataBinding (array (
 			'schema' => $schemaDatabinding,
 			'intelligence' => true,
@@ -2536,7 +2548,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			
 			/* Drawing */
 			body.auditlocation #drawing, body.auditaddlocation #drawing {display: none;}	/* Hidden by default */
-			
+			body.auditlocation .edit-clear, body.auditaddlocation .edit-clear {display: none;}
+			strong.success {color: green;}
 		</style>
 		';
 		if (!$viewOnlyMode) {

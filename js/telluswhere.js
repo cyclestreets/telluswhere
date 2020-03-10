@@ -1398,15 +1398,31 @@ var telluswhere = (function ($) {
 				// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
 				// #!# Note that this fires twice for some reason - see notes to the answer in the above URL
 				$(targetField).trigger('change');
+				
+				// Show the link
+				$('.edit-instructions').hide ();
+				$('.edit-clear').show ();
 			});
 			
 			// Cancel button clears drawn polygon and clears the form value
-			$('.edit-clear').click(function() {
-				drawnItems.clearLayers();
-				$(targetField).val('');
-			
-				// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
-				$(targetField).trigger('change');
+			$(function() {		// on documentready
+				$('.edit-clear').click (function (e) {
+					drawnItems.clearLayers();
+					$(targetField).val('');
+					
+					// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
+					$(targetField).trigger('change');
+					
+					// Re-enable drawing
+					drawControl.enable();
+					
+					// Hide the link
+					$('.edit-instructions').show ();
+					$('.edit-clear').hide ();
+					
+					// Do not follow the link
+					e.preventDefault ();
+				});
 			});
 			
 			// Undo button

@@ -174,6 +174,11 @@ class telluswhere
 				'url' => '/profile/',
 				'authentication' => true,
 			),
+			'adminlogin' => array (
+				'description' => false,
+				'url' => '/admin/login/',
+				'apiUrl' => '/v2/user.authenticate',
+			),
 			'adminreview' => array (
 				'description' => 'Review submissions',
 				'url' => '/admin/review/',
@@ -4355,6 +4360,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$this->template['form'] = $html;
 			return;
 		}
+	}
+	
+	
+	# Login page
+	private function adminlogin ()
+	{
+		$this->login ();
 	}
 	
 	

@@ -4,21 +4,20 @@
 class telluswhere
 {
 	# Settings
-	function defaults ()
+	private function defaults ()
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
-			#!# These database parameters need to be renamed to remove the 'database' prefix
-			'databaseHostname'		=> 'localhost',
-			'databaseDatabase'		=> 'telluswhere',
-			'databaseUsername'		=> 'telluswhere',
-			'databasePassword'		=> NULL,
+			'hostname'				=> 'localhost',
+			'database'				=> 'telluswhere',
+			'username'				=> 'telluswhere',
+			'password'				=> NULL,
 			'style'					=> 'default',
 			'apiBase'				=> 'https://api.cyclestreets.net',
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
 			'apiKey'				=> false,
-			'username'				=> false,
-			'password'				=> false,
+			'submissionsUsername'	=> false,
+			'submissionsPassword'	=> false,
 			'cssFileLocation'		=> NULL,
 			'administratorEmail'	=> (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
 			'flashMessageName'		=> 'confirmation',
@@ -539,10 +538,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Connect to the database, or create it if it does not yet exist (for PDO SQLite, a connection will attempt to create the file if it does not exist)
 		require_once ('database.php');
-		$this->databaseConnection = new database ($settings['databaseHostname'], $settings['databaseUsername'], $settings['databasePassword'], $settings['databaseDatabase']);
+		$this->databaseConnection = new database ($settings['hostname'], $settings['username'], $settings['password'], $settings['database']);
 		
 		# Create the database structure if it does not already exist
-		if (!$tables = $this->databaseConnection->getTables ($settings['databaseDatabase'])) {
+		if (!$tables = $this->databaseConnection->getTables ($settings['database'])) {
 			$this->createDatabaseStructure ();
 		}
 		
@@ -550,7 +549,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->isFirstRun = false;
 		
 		# Obtain the settings
-		if (!$databaseSettings = $this->databaseConnection->selectOne ($settings['databaseDatabase'], 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
+		if (!$databaseSettings = $this->databaseConnection->selectOne ($settings['database'], 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
 			$this->isFirstRun = true;
 			$databaseSettings = array (	// $databaseSettings = false would crash array_merge below
 				'categories' => false,
@@ -579,8 +578,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `url` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'URL of site (match)',
 			  `applicationName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Site name',
 			  `apiKey` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'API key',
-			  `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Username for submissions',
-			  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Password for submissions',
+			  `submissionsUsername` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Username for submissions',
+			  `submissionsPassword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Password for submissions',
 			  `feedbackRecipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page form recipient',
 			  `categories` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Categories',
 			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
@@ -2310,8 +2309,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Map the fields to the API
 		$data = array (
 			#!# Currently a fixed username/password
-			'username'				=> $this->settings['username'],
-			'password'				=> $this->settings['password'],
+			'username'				=> $this->settings['submissionsUsername'],
+			'password'				=> $this->settings['submissionsPassword'],
 			'metacategory'			=> $this->actions[$action]['metacategory'],
 			'category'				=> $category,
 			'caption'				=> $rawdata['caption'],
@@ -3140,7 +3139,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');
 		}
 		$form->dataBinding (array (
-			'database' => $this->settings['databaseDatabase'],
+			'database' => $this->settings['database'],
 			'table' => 'settings',
 			'intelligence' => true,
 			'int1ToCheckbox' => true,
@@ -3168,9 +3167,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Insert/update the data
 		if ($this->isFirstRun) {
-			$this->databaseConnection->insert ($this->settings['databaseDatabase'], 'settings', $result);
+			$this->databaseConnection->insert ($this->settings['database'], 'settings', $result);
 		} else {
-			$this->databaseConnection->update ($this->settings['databaseDatabase'], 'settings', $result, array ('id' => $this->settings['id']));
+			$this->databaseConnection->update ($this->settings['database'], 'settings', $result, array ('id' => $this->settings['id']));
 		}
 		
 		# Confirm success

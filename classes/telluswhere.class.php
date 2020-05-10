@@ -344,7 +344,6 @@ class telluswhere
 	);
 	
 	
-	
 	# Constructor
 	public function __construct ($settings)
 	{
@@ -529,14 +528,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	# Function to add additional settings from the database, ensuring the database is set up
 	private function getSettings ($settings)
 	{
-		# Ensure the server has PDO SQLite support (usually enabled using "extension=php_pdo_sqlite.ext" in php.ini)
-		if (!extension_loaded ('pdo_sqlite')) {return false;}
-		
-		# Ensure the database directory exists and is writable
-		$databaseFolder = '/db/sqlite/';
-		if (!$databaseDirectory = $this->getWritableDirectory ($databaseFolder)) {return false;}
-		
-		# Connect to the database, or create it if it does not yet exist (for PDO SQLite, a connection will attempt to create the file if it does not exist)
+		# Connect to the database
 		require_once ('database.php');
 		$this->databaseConnection = new database ($settings['hostname'], $settings['username'], $settings['password'], $settings['database']);
 		

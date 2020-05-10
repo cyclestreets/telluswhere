@@ -3,6 +3,7 @@
 # Define the configuration for this installation; items marked NULL are mandatory
 $config = array (
 	'cssFileLocation'	=> '/css/style.css',
+	'databasePassword'	=> 'YOUR_DATABASE_PASSWORD',
 );
 
 ?>

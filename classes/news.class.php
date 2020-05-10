@@ -107,7 +107,7 @@ class news
 		}
 		
 		# Get articles
-		$data = $this->databaseConnection->select ('main', 'news', $conditions, array (), $associative = false, $orderBy = 'id DESC', $limit = 10);
+		$data = $this->databaseConnection->select ($this->settings['databaseDatabase'], 'news', $conditions, array (), $associative = false, $orderBy = 'id DESC', $limit = 10);
 		
 		# Add permalink data
 		foreach ($data as $index => $article) {
@@ -168,7 +168,7 @@ class news
 		if ($article = $this->form ($html, $article, $area)) {
 			
 			# Update the article
-			if (!$this->databaseConnection->{$do} ('main', 'news', $article, $constraint)) {
+			if (!$this->databaseConnection->{$do} ($this->settings['databaseDatabase'], 'news', $article, $constraint)) {
 				$html = "\n<p>The database operation failed.</p>";
 				$this->html = $html;
 				return true;
@@ -218,7 +218,7 @@ class news
 		}
 		
 		# Do deletion
-		if (!$this->databaseConnection->delete ('main', 'news', array ('id' => $article['id']))) {
+		if (!$this->databaseConnection->delete ($this->settings['databaseDatabase'], 'news', array ('id' => $article['id']))) {
 			$html = "\n<p class=\"warning\">There was a problem deleting the article.</p>";
 			$this->html = $html;
 			return true;
@@ -393,7 +393,7 @@ class news
 			// 'jQuery'					=> false,
 		));
 		$form->dataBinding (array (
-			'database' => 'main',
+			'database' => $this->settings['databaseDatabase'],
 			'table' => 'news',
 			'intelligence' => true,
 			'data' => $data,

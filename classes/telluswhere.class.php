@@ -8,6 +8,11 @@ class telluswhere
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
+			#!# These database parameters need to be renamed to remove the 'database' prefix
+			'databaseHostname'		=> 'localhost',
+			'databaseDatabase'		=> 'telluswhere',
+			'databaseUsername'		=> 'telluswhere',
+			'databasePassword'		=> NULL,
 			'style'					=> 'default',
 			'apiBase'				=> 'https://api.cyclestreets.net',
 			// NB: Obtain your own CycleStreets API key from: https://www.cyclestreets.net/api/apply/
@@ -533,24 +538,19 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		if (!$databaseDirectory = $this->getWritableDirectory ($databaseFolder)) {return false;}
 		
 		# Connect to the database, or create it if it does not yet exist (for PDO SQLite, a connection will attempt to create the file if it does not exist)
-		$databaseFile = $databaseDirectory . 'db.sqlite';
-		$databaseExists = is_readable ($databaseFile);
 		require_once ('database.php');
-		$this->databaseConnection = new database ('main', NULL, NULL, $databaseFile, $vendor = 'sqlite');
+		$this->databaseConnection = new database ($settings['databaseHostname'], $settings['databaseUsername'], $settings['databasePassword'], $settings['databaseDatabase']);
 		
-		# Create the structure if required
-		if (!$databaseExists) {
-			$this->createDatabaseStructure ($databaseFile);
+		# Create the database structure if it does not already exist
+		if (!$tables = $this->databaseConnection->getTables ($settings['databaseDatabase'])) {
+			$this->createDatabaseStructure ();
 		}
-		
-		# Ensure the database file itself is writable
-		if (!is_writable ($databaseFile)) {return false;}
 		
 		# Set a flag to indicate first-run mode
 		$this->isFirstRun = false;
 		
 		# Obtain the settings
-		if (!$databaseSettings = $this->databaseConnection->selectOne ('main', 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
+		if (!$databaseSettings = $this->databaseConnection->selectOne ($settings['databaseDatabase'], 'settings', array ('url' => $_SERVER['_SITE_URL']))) {
 			$this->isFirstRun = true;
 			$databaseSettings = array (	// $databaseSettings = false would crash array_merge below
 				'categories' => false,
@@ -569,52 +569,53 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
-	# Function to bootstrap the database structure; note the SQLite format comments: https://stackoverflow.com/questions/7426205/
-	private function createDatabaseStructure ($databaseFile)
+	# Function to bootstrap the database structure
+	private function createDatabaseStructure ()
 	{
 		# Settings table
 		$query = "
-			CREATE TABLE IF NOT EXISTS main.settings (
-			  `id` INTEGER PRIMARY KEY,						-- Site number
-			  `url` VARCHAR(255) NOT NULL,					-- URL of site (match)
-			  `applicationName` VARCHAR(255) NOT NULL,		-- Site name
-			  `apiKey` VARCHAR(255) NOT NULL,				-- API key
-			  `username` VARCHAR(255) NOT NULL,				-- Username for submissions
-			  `password` VARCHAR(255) NOT NULL,				-- Password for submissions
-			  `feedbackRecipient` VARCHAR(255) NOT NULL,	-- Contact page form recipient
-			  `categories` TEXT NOT NULL,					-- Categories
-			  `showOthers` INT(1) NULL,					-- Show submissions by others?
-			  `privateSubmissions` INT(1) NULL,					-- Make submissions private?
-			  `aboutPageHtml` TEXT NOT NULL,				-- About page text
-			  `contactsPageHtml` TEXT NOT NULL,				-- Contact page text
-			  `termsPageHtml` TEXT NOT NULL,				-- Terms page text
-			  `administrators` TEXT NOT NULL,				-- E-mail logins of administrators
-			  `downloaders` TEXT NOT NULL,					-- E-mail logins for access to downloads
-			  `batchUploaders` TEXT NULL,					-- E-mail logins for access to batch upload section
-			  `newsEditors` TEXT NULL,						-- E-mail logins for access to news editors
-			  `defaultLatitude` FLOAT NOT NULL,				-- Default latitude
-			  `defaultLongitude` FLOAT NOT NULL,			-- Default longitude
-			  `defaultZoom` FLOAT NOT NULL,					-- Default zoom
-			  `earliestDate` DATE,							-- Earliest date to appear in export
-			  `bbox` VARCHAR(225) NOT NULL,					-- Bounding box for export
-			  `trackingCode` TEXT NULL,						-- Analytics tracking code
-			  `areas` TEXT,									-- Area names
-			  `auditDataset` VARCHAR(255)					-- Audit dataset
-			);
+			CREATE TABLE `settings` (
+			  `id` int(11) NOT NULL PRIMARY KEY COMMENT 'Site number',
+			  `url` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'URL of site (match)',
+			  `applicationName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Site name',
+			  `apiKey` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'API key',
+			  `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Username for submissions',
+			  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Password for submissions',
+			  `feedbackRecipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page form recipient',
+			  `categories` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Categories',
+			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
+			  `privateSubmissions` int(1) DEFAULT NULL COMMENT 'Make submissions private?',
+			  `aboutPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'About page text',
+			  `contactsPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page text',
+			  `termsPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Terms page text',
+			  `administrators` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail logins of administrators',
+			  `downloaders` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail logins for access to downloads',
+			  `batchUploaders` text COLLATE utf8mb4_unicode_ci COMMENT 'E-mail logins for access to batch upload section',
+			  `newsEditors` text COLLATE utf8mb4_unicode_ci COMMENT 'E-mail logins for access to news editors',
+			  `defaultLatitude` float NOT NULL COMMENT 'Default latitude',
+			  `defaultLongitude` float NOT NULL COMMENT 'Default longitude',
+			  `defaultZoom` float NOT NULL COMMENT 'Default zoom',
+			  `earliestDate` date DEFAULT NULL COMMENT 'Earliest date to appear in export',
+			  `bbox` varchar(225) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Bounding box for export',
+			  `trackingCode` text COLLATE utf8mb4_unicode_ci COMMENT 'Analytics tracking code',
+			  `areas` text COLLATE utf8mb4_unicode_ci COMMENT 'Area names',
+			  `auditDataset` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Audit dataset moniker'
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 		";
 		$this->databaseConnection->query ($query);
 		
 		# News table
 		$query = "
-			CREATE TABLE IF NOT EXISTS main.news (
-			  `id` INTEGER PRIMARY KEY,						-- Article number
-			  `area` VARCHAR(255),							-- Area
-			  `title` VARCHAR(255) NOT NULL,				-- Title
-			  `urlMoniker` VARCHAR(255) NOT NULL UNIQUE,			-- Web address
-			  `articleRichtext` TEXT NOT NULL,				-- Text of article
-			  `name` VARCHAR(255) NOT NULL,					-- Your name
-			  `date` DATE									-- Date
-			);
+			CREATE TABLE `news` (
+			  `id` int(11) NOT NULL PRIMARY KEY,
+			  `area` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+			  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+			  `urlMoniker` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+			  `articleRichtext` text COLLATE utf8mb4_unicode_ci NOT NULL,
+			  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+			  `date` date DEFAULT NULL,
+			  UNIQUE KEY `urlMoniker` (`urlMoniker`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 		";
 		$this->databaseConnection->query ($query);
 	}
@@ -3139,7 +3140,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$form->heading ('', 'The site is ready for first-run. The administrator should add the settings.');
 		}
 		$form->dataBinding (array (
-			'database' => 'main',
+			'database' => $this->settings['databaseDatabase'],
 			'table' => 'settings',
 			'intelligence' => true,
 			'int1ToCheckbox' => true,
@@ -3167,9 +3168,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Insert/update the data
 		if ($this->isFirstRun) {
-			$this->databaseConnection->insert ('main', 'settings', $result);
+			$this->databaseConnection->insert ($this->settings['databaseDatabase'], 'settings', $result);
 		} else {
-			$this->databaseConnection->update ('main', 'settings', $result, array ('id' => $this->settings['id']));
+			$this->databaseConnection->update ($this->settings['databaseDatabase'], 'settings', $result, array ('id' => $this->settings['id']));
 		}
 		
 		# Confirm success

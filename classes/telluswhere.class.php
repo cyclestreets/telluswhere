@@ -47,7 +47,7 @@ class telluswhere
 			'suggest' => array (
 				'description' => 'Suggested %categoryLabel',
 				'url' => '/suggest/',
-				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=bad&limit=150&thumbnailsize=200&fields=id,caption,iconUrl,hasPhoto,thumbnailUrl,metacategoryId,likes,additionalMetadata',
 				'metacategory' => 'bad',
 				'additionalMetadata' => array (
 					'cycleparking' => 'landtype,capacity',
@@ -57,7 +57,7 @@ class telluswhere
 			'current' => array (
 				'description' => 'Current %categoryLabel',
 				'url' => '/current/',
-				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,hasPhoto,thumbnailUrl,likes,additionalMetadata',
+				'apiUrl' => '/v2/photomap.locations?category=%category&metacategory=other&limit=150&thumbnailsize=200&fields=id,caption,iconUrl,hasPhoto,thumbnailUrl,likes,additionalMetadata',
 				// 'apiUrl2' => '/v2/pois.locations?type=cycleparking&limit=40&fields=id,latitude,longitude,name,nodeId,osmTags',
 				'metacategory' => 'other',
 				'additionalMetadata' => array (

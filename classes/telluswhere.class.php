@@ -2576,10 +2576,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
 		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$html .= "\n<script type=\"text/javascript\">
-			var map = telluswhere.createMap ({
+			var settings = {
 				baseUrl: '{$this->baseUrl}',
-				action: '{$this->action}',
-				user: {$userJs},
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
 				initialZoom: {$mapLocation['zoom']},
@@ -2597,7 +2595,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				markerData: {$markerDataJs},
 				tileUrl: '{$this->settings['tileUrl']}',
 				tileOpacity: {$this->settings['tileOpacity']}
-			});
+			};
+			
+			var map = telluswhere.createMap (settings, '{$this->action}', {$userJs});
 		</script>
 		";
 		

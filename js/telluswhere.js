@@ -3,6 +3,56 @@ var telluswhere = (function ($) {
 	'use strict';
 	
 	
+	// Settings defaults
+	var _settings = {
+		
+		// baseUrl of application
+		baseUrl: false,
+		
+		// Initial map location
+		initialLatitude: false,
+		initialLongitude: false,
+		initialGeometry: false,
+		initialZoom: false,
+		
+		// Max/min zoom
+		maxZoom: 21,
+		minZoom: 7,
+		
+		// Data API endpoint(s)
+		browsingApiUrl: false,
+		browsingApiUrl2: false,
+		
+		// The icon to use
+		useIcon: false,
+		
+		// Whether to set a marker initially
+		setMarkerInitially: false,
+		markerSetInitiallyIsDraggable: false,
+		markerData: false,
+		markerSettingZoom: 19,
+		
+		// Selected ID, if any, and whether it is moveable
+		selectedId: false,
+		
+		// View-only mode
+		viewOnlyMode: false,
+		
+		// Drawing
+		enableDrawing: false,
+		
+		// Popup labelling
+		popupLabels: {},
+		
+		// Line styling
+		lineSize: {initial: 8, hover: 15},
+		lineColour: {initial: 'red', reviewed: 'green'},
+		
+		// Tiles
+		tileUrl: false,
+		tileOpacity: false,
+	};
+	
 	/* Class properties */
 	
 	// Internal class properties
@@ -12,14 +62,8 @@ var telluswhere = (function ($) {
 	var _useJsonpTransport;
 	var _currentDataLayers = {};
 	var _geolocationData;
-	var _maxZoom;
-	var _minZoom;
 	var _minZoomLevelToSet;
-	var _viewOnlyMode;
-	var _enableDrawing;
 	
-	// baseUrl of application
-	var _baseUrl;
 	
 	// Login status
 	var _user = false;
@@ -27,36 +71,8 @@ var telluswhere = (function ($) {
 	// GUI action
 	var _action;
 	
-	// Initial map location
-	var _initialLatitude;
-	var _initialLongitude;
-	var _initialGeometry;
-	var _initialZoom;
-	
 	// The API endpoint(s) to use for browsing
 	var _browsingApiUrls = {};
-	
-	// The icon to use
-	var _useIcon;
-	
-	// Whether to set a marker initially
-	var _setMarkerInitially;
-	var _markerSettingZoom = 19;
-	
-	// Selected ID, if any, and whether it is moveable
-	var _selectedId;
-	
-	// Popup labelling
-	var _popupLabels = {};
-	var _popupLabelSubsetField;
-	
-	// Line styling
-	var _lineSize = {initial: 8, hover: 15};
-	var _lineColour = {initial: 'red', reviewed: 'green'};
-	
-	// Tiles
-	var _tileUrl;
-	var _tileOpacity;
 	
 	
 	return {
@@ -64,33 +80,26 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function (settings)
+		createMap: function (config, action, user)
 		{
+			// Merge the configuration into the settings
+			$.each (_settings, function (setting, value) {
+				if (config.hasOwnProperty(setting)) {
+					_settings[setting] = config[setting];
+				}
+			});
+			
 			// Set class properties
-			_baseUrl = settings.baseUrl;
-			_action = settings.action;
-			_user = settings.user;
-			_initialLatitude = settings.initialLatitude;
-			_initialLongitude = settings.initialLongitude;
-			_initialGeometry = settings.initialGeometry;
-			_initialZoom = settings.initialZoom;
-			_maxZoom = settings.maxZoom || 21;
-			_minZoom = settings.minZoom || 7;
-			if (settings.browsingApiUrl) {
-				_browsingApiUrls[0] = settings.browsingApiUrl;
+			_action = action;
+			_user = user;
+			
+			// Set browsing API URLs
+			if (_settings.browsingApiUrl) {
+				_browsingApiUrls[0] = _settings.browsingApiUrl;
 			}
-			if (settings.browsingApiUrl2) {
-				_browsingApiUrls[1] = settings.browsingApiUrl2;
+			if (_settings.browsingApiUrl2) {
+				_browsingApiUrls[1] = _settings.browsingApiUrl2;
 			}
-			_useIcon = settings.useIcon;
-			_setMarkerInitially = settings.setMarkerInitially;
-			_selectedId = settings.selectedId;	// ID of selected item
-			_viewOnlyMode = settings.viewOnlyMode;
-			_enableDrawing = settings.enableDrawing;
-			_popupLabels = settings.popupLabels;
-			_popupLabelSubsetField = settings.popupLabelSubsetField;
-			_tileUrl = settings.tileUrl;
-			_tileOpacity = settings.tileOpacity;
 			
 			// Enable tooltips for titles
 			if (jQuery.ui) {	// If jQuery UI loaded
@@ -110,11 +119,11 @@ var telluswhere = (function ($) {
 			
 			// Set tile layer
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
-			L.tileLayer(_tileUrl, {
+			L.tileLayer (_settings.tileUrl, {
 				attribution: tileAttribution,
-				maxZoom: _maxZoom,
-				minZoom: _minZoom,
-				opacity: _tileOpacity,
+				maxZoom: _settings.maxZoom,
+				minZoom: _settings.minZoom,
+				opacity: _settings.tileOpacity,
 			}).addTo(map);
 			
 			// Add hash
@@ -150,16 +159,16 @@ var telluswhere = (function ($) {
 			_icons = telluswhere.getIcons();
 			
 			// Determine whether to set the marker initially
-			if (_setMarkerInitially){
+			if (_settings.setMarkerInitially){
 				
-				var latlng = L.latLng (_initialLatitude, _initialLongitude);
-				map.setView (latlng, _markerSettingZoom);
+				var latlng = L.latLng (_settings.initialLatitude, _settings.initialLongitude);
+				map.setView (latlng, _settings.markerSettingZoom);
 				
 				// If an initial geometry is set, prefer that
-				if (_initialGeometry && _initialGeometry.type == 'LineString') {
-					telluswhere.setGeometry (_initialGeometry, settings.markerSetInitiallyIsDraggable, settings.markerData);
+				if (_settings.initialGeometry && _settings.initialGeometry.type == 'LineString') {
+					telluswhere.setGeometry (_settings.initialGeometry, _settings.markerSetInitiallyIsDraggable, _settings.markerData);
 				} else {
-					telluswhere.setMarker (latlng, settings.markerSetInitiallyIsDraggable, settings.markerData);
+					telluswhere.setMarker (latlng, _settings.markerSetInitiallyIsDraggable, _settings.markerData);
 				}
 			}
 			
@@ -173,10 +182,10 @@ var telluswhere = (function ($) {
 			});
 			
 			// Enable either drawing or map point setting
-			if (_enableDrawing) {
+			if (_settings.enableDrawing) {
 				var formElement = (_action == 'priorityareas' ? '#geometry' : '#form_location');
 				var fragmentOnly = (_action == 'priorityareas');	// #!# Aim to remove this legacy handling
-				telluswhere.drawing (formElement, _enableDrawing /* i.e. type */, _initialGeometry, true, fragmentOnly);
+				telluswhere.drawing (formElement, _settings.enableDrawing /* i.e. type */, _settings.initialGeometry, true, fragmentOnly);
 			} else {
 				map.on('click', telluswhere.onMapClick);
 			}
@@ -249,7 +258,7 @@ var telluswhere = (function ($) {
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
 									layer.setStyle({
 										color: telluswhere.lineColour (e.target.feature.properties),
-										weight: _lineSize.hover
+										weight: _settings.lineSize.hover
 									});
 								}
 							},
@@ -262,7 +271,7 @@ var telluswhere = (function ($) {
 								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
 									layer.setStyle({
 										color: telluswhere.lineColour (e.target.feature.properties),
-										weight: _lineSize.initial
+										weight: _settings.lineSize.initial
 									});
 								}
 							}
@@ -276,7 +285,7 @@ var telluswhere = (function ($) {
 						// Lines
 						if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
 							styles.color = telluswhere.lineColour (feature.properties);
-							styles.weight = _lineSize.initial;
+							styles.weight = _settings.lineSize.initial;
 						}
 						
 						// Polygons
@@ -285,8 +294,8 @@ var telluswhere = (function ($) {
 								styles.color = feature.properties._colour;
 								styles.fillColor = feature.properties._colour;
 							} else {
-								styles.color = _lineColour.initial;
-								styles.fillColor = _lineColour.initial;
+								styles.color = _settings.lineColour.initial;
+								styles.fillColor = _settings.lineColour.initial;
 							}
 						}
 						
@@ -333,7 +342,7 @@ var telluswhere = (function ($) {
 					
 					// If not logged in, convert the button to a login requirement
 					if (!_user) {
-						$('p.auditbuttons' + data.id).html ('<p style="color: red;">Please <a href="' + _baseUrl + '/login/?/audit/">log in</a> or <a href="' + _baseUrl + '/register/">register</a> first.</p>');
+						$('p.auditbuttons' + data.id).html ('<p style="color: red;">Please <a href="' + _settings.baseUrl + '/login/?/audit/">log in</a> or <a href="' + _settings.baseUrl + '/register/">register</a> first.</p>');
 						e.preventDefault ();
 						return;		// End
 					}
@@ -344,7 +353,7 @@ var telluswhere = (function ($) {
 						// Send the AJAX request and handle the response
 						$.ajax({
 							type: 'POST',
-							url: _baseUrl + '/ajax/auditunchanged',
+							url: _settings.baseUrl + '/ajax/auditunchanged',
 							data: data,
 							dataType: 'json',
 							success: function (response) {
@@ -421,7 +430,7 @@ var telluswhere = (function ($) {
 			telluswhere.getData();
 			
 			// Register reporting link function
-			if (_useIcon == 'current') {
+			if (_settings.useIcon == 'current') {
 				map.on('popupopen', telluswhere.problemForm);
 			}
 			
@@ -450,12 +459,12 @@ var telluswhere = (function ($) {
 			// If there is a properties status field, and it is not initial, return the reviewed style
 			if (properties._status) {
 				if (properties._status != 'initial') {
-					return _lineColour.reviewed;
+					return _settings.lineColour.reviewed;
 				}
 			}
 			
 			// Otherwise return the default style
-			return _lineColour.initial;
+			return _settings.lineColour.initial;
 		},
 		
 		
@@ -538,7 +547,7 @@ var telluswhere = (function ($) {
 		minZoomLevelToSet: function ()
 		{
 			// If drawing is enabled, reduce the zoom level
-			if (_enableDrawing) {
+			if (_settings.enableDrawing) {
 				return 14;
 			}
 			
@@ -569,16 +578,16 @@ var telluswhere = (function ($) {
 		setMarkerLatitudeLongitude: function (latitude, longitude)
 		{
 			var latlng = L.latLng (latitude, longitude);
-			map.setView(latlng, _maxZoom);
+			map.setView(latlng, _settings.maxZoom);
 			telluswhere.setMarker (latlng, true);
 		},
 		
 		
 		// Function to set geometry, i.e. line rather than marker
-		setGeometry: function (_initialGeometry, markerIsDraggable, data)
+		setGeometry: function (initialGeometry, markerIsDraggable, data)
 		{
 			// Add the feature
-			L.geoJSON (_initialGeometry).addTo (map);
+			L.geoJSON (initialGeometry).addTo (map);
 		},
 		
 		
@@ -586,7 +595,7 @@ var telluswhere = (function ($) {
 		setMarker: function (latlng, markerIsDraggable, data)
 		{
 			// In view-only mode, disable marker setting functionality
-			if (_viewOnlyMode) {return;}
+			if (_settings.viewOnlyMode) {return;}
 			
 			// If there is already a marker set, treat the click as a move (as per a drag)
 			if (_marker) {
@@ -597,7 +606,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Set the icon to use; if an iconUrl is specified in data, use a dynamic icon instead
-			var icon = _icons[_useIcon];
+			var icon = _icons[_settings.useIcon];
 			if (data && data.iconUrl) {
 				icon = _icons['_dynamic'];
 				icon.options.iconUrl = data.iconUrl;
@@ -761,9 +770,9 @@ var telluswhere = (function ($) {
 				if ($.type (value) === 'object') {return; /* i.e. continue */}
 				
 				// If the label is null, hide the row
-				if (_popupLabels) {
-					if (key in _popupLabels) {
-						if (_popupLabels[key] == null) {
+				if (_settings.popupLabels) {
+					if (key in _settings.popupLabels) {
+						if (_settings.popupLabels[key] == null) {
 							return;	/* i.e. continue */
 						}
 					}
@@ -771,9 +780,9 @@ var telluswhere = (function ($) {
 				
 				// Key
 				fieldLabel = key;
-				if (_popupLabels) {
-					if (_popupLabels[key]) {
-						fieldLabel = _popupLabels[key];
+				if (_settings.popupLabels) {
+					if (_settings.popupLabels[key]) {
+						fieldLabel = _settings.popupLabels[key];
 					}
 				}
 				fieldLabel = telluswhere.htmlspecialchars (fieldLabel);
@@ -792,7 +801,7 @@ var telluswhere = (function ($) {
 					if (_action == 'auditlocation') {	// Do not link on edit page itself
 						value = telluswhere.htmlspecialchars (value);
 					} else {
-						editUrl = _baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/';
+						editUrl = _settings.baseUrl + '/audit/location/' + telluswhere.htmlspecialchars (value) + '/';
 						value = '<a href="' + editUrl + '">' + telluswhere.htmlspecialchars (value) + '</a>';
 					}
 				}
@@ -901,14 +910,14 @@ var telluswhere = (function ($) {
 			+ '<p class="id">'
 			+ (properties.nodeId
 				? '<a href="' + 'https://www.openstreetmap.org' + '/node/' + properties.nodeId + '/" target="_blank">' + '(From OpenStreetMap)' + '</a>'
-				: '<a href="' + _baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>'
+				: '<a href="' + _settings.baseUrl + '/location/' + properties.id + '/">#' + properties.id + '</a>'
 			)
 			+ '</p>'
 			
 			// Like button
 			+ (enableLike ? 
 				  '<div id="likes"' + (isLiked ? ' class="liked"' : '') + '><p>'
-				+ '	<a href="' + _baseUrl + '/location/' + properties.id + '/like/"><img src="/images/icons/thumb_up.png" class="icon" />'
+				+ '	<a href="' + _settings.baseUrl + '/location/' + properties.id + '/like/"><img src="/images/icons/thumb_up.png" class="icon" />'
 				+ ' <span id="likestext">' + (isLiked ? 'Agreed!' : 'Agree?') + '</span>'
 				+ '</a>'
 				+ '	<span id="likescurrent">' + (properties.likes > 0 ? properties.likes : '') + '</span>'
@@ -945,8 +954,8 @@ var telluswhere = (function ($) {
 			+ '</div>';
 			
 			// If on the current page, provide a link to report problems
-			if (!_viewOnlyMode) {
-				if(_useIcon == 'current') {
+			if (!_settings.viewOnlyMode) {
+				if (_settings.useIcon == 'current') {
 					html += '<p class="problem"><a href="#" data-id="' + (properties.nodeId ? properties.nodeId : properties.id) + '">Updates or repairs required?</a></p>';
 				}
 			}
@@ -989,9 +998,9 @@ var telluswhere = (function ($) {
 		setIconFilter: function (feature, layer)
 		{
 			// If an item is selected, skip, as this will already be on the map
-			if (_selectedId) {
+			if (_settings.selectedId) {
 				var id = parseInt(feature.properties.id, 10);	// base 10
-				if (id == _selectedId) {
+				if (id == _settings.selectedId) {
 					return false;
 				}
 			}
@@ -1083,7 +1092,7 @@ var telluswhere = (function ($) {
 			// Start spinner, initially adding it to the page
 			if (layerIndex == 0) {	// main
 				if (!$('#map #loading').length) {
-					$('#map').append('<img id="loading" src="' + _baseUrl + '/images/spinner.svg" />');
+					$('#map').append('<img id="loading" src="' + _settings.baseUrl + '/images/spinner.svg" />');
 				}
 				$('#map #loading').show();
 			}
@@ -1125,7 +1134,7 @@ var telluswhere = (function ($) {
 			$('p.problem a').click(function(e){
 				
 				// Create a form
-				var formHtml = $("<form />", {name: 'problem', id: 'problem', method: 'POST', action: _baseUrl + '/location/' + $('p.problem a').data('id') + '/problem/'});
+				var formHtml = $("<form />", {name: 'problem', id: 'problem', method: 'POST', action: _settings.baseUrl + '/location/' + $('p.problem a').data('id') + '/problem/'});
 				
 				// Add input fields to the form
 				var formContentHtml = '';
@@ -1244,9 +1253,9 @@ var telluswhere = (function ($) {
 			
 			// If not present, use the default initial location
 			return {
-				latitude: _initialLatitude,
-				longitude: _initialLongitude,
-				zoom: _initialZoom
+				latitude: _settings.initialLatitude,
+				longitude: _settings.initialLongitude,
+				zoom: _settings.initialZoom
 			}
 		},
 		

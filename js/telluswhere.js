@@ -54,6 +54,10 @@ var telluswhere = (function ($) {
 	var _lineSize = {initial: 8, hover: 15};
 	var _lineColour = {initial: 'red', reviewed: 'green'};
 	
+	// Tiles
+	var _tileUrl;
+	var _tileOpacity;
+	
 	
 	return {
 		
@@ -85,6 +89,8 @@ var telluswhere = (function ($) {
 			_enableDrawing = settings.enableDrawing;
 			_popupLabels = settings.popupLabels;
 			_popupLabelSubsetField = settings.popupLabelSubsetField;
+			_tileUrl = settings.tileUrl;
+			_tileOpacity = settings.tileOpacity;
 			
 			// Enable tooltips for titles
 			if (jQuery.ui) {	// If jQuery UI loaded
@@ -103,13 +109,12 @@ var telluswhere = (function ($) {
 			map = L.map('map').setView([initialMapLocation.latitude, initialMapLocation.longitude], initialMapLocation.zoom);
 			
 			// Set tile layer
-			var tileUrl = 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png';
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
-			L.tileLayer(tileUrl, {
+			L.tileLayer(_tileUrl, {
 				attribution: tileAttribution,
 				maxZoom: _maxZoom,
 				minZoom: _minZoom,
-				opacity: 0.7
+				opacity: _tileOpacity,
 			}).addTo(map);
 			
 			// Add hash

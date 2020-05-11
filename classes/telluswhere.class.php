@@ -27,6 +27,8 @@ class telluswhere
 			#!# Needs to be added to database settings
 			'geocoderBboxBounded'	=> '-6.6577,49.9370,1.7797,57.6924',	// English mainland
 			'authNamespace'			=> 'telluswhere\\',
+			'tileUrl'				=> 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png',
+			'tileOpacity'			=> 0.7,
 		);
 		
 		# Return the defaults
@@ -570,6 +572,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `url` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'URL of site (match)',
 			  `applicationName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Site name',
 			  `apiKey` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'API key',
+			  `tileUrl` VARCHAR(255) NOT NULL COMMENT 'Tileserver URL',
+			  `tileOpacity` DECIMAL(3,1) NOT NULL COMMENT 'Tile opacity',
 			  `submissionsUsername` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Username for submissions',
 			  `submissionsPassword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Password for submissions',
 			  `feedbackRecipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page form recipient',
@@ -2590,7 +2594,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				enableDrawing: {$enableDrawingJs},
 				popupLabels: {$popupLabelsJs},
 				popupLabelSubsetField: {$popupLabelSubsetFieldJs},
-				markerData: {$markerDataJs}
+				markerData: {$markerDataJs},
+				tileUrl: '{$this->settings['tileUrl']}',
+				tileOpacity: {$this->settings['tileOpacity']}
 			});
 		</script>
 		";

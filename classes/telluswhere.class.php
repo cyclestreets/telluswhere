@@ -263,6 +263,14 @@ class telluswhere
 			'plural'			=> 'Dutch-style cycleways',
 			'singular'			=> 'Dutch-style cycleway',
 		),
+		'track'		=> array (
+			'plural'			=> 'Pavements',
+			'singular'			=> 'Pavement',
+		),
+		'closure'		=> array (
+			'plural'			=> 'Closures',
+			'singular'			=> 'Closure',
+		),
 	);
 	
 	# Labels for metadata fields

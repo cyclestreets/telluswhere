@@ -103,7 +103,7 @@ var telluswhere = (function ($) {
 			
 			// Enable tooltips for titles
 			if (jQuery.ui) {	// If jQuery UI loaded
-				$(document).tooltip ({
+				$('#selectcategory').tooltip ({
 					track: true
 				});
 			}

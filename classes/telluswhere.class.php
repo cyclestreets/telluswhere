@@ -2774,7 +2774,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 					'default'		=> (isSet ($data['schemes']) ? $data['schemes'] : false),
 				));
 			}
-			if (in_array ('name', $formFieldsInTemplate)) {		// Templates can choose to require only e-mail
+			if (in_array ('name', $formFieldsInTemplate)) {
 				$form->input (array (
 					'name'			=> 'name',
 					'title'			=> 'Your name',
@@ -2784,13 +2784,15 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				));
 			}
 		}
-		$form->email (array (
-			'name'			=> 'email',
-			'title'			=> 'Your e-mail address',
-			'placeholder'	=> 'Your e-mail address',
-			'required'		=> true,
-			'default'		=> (isSet ($data['email']) ? $data['email'] : false),
-		));
+		if (in_array ('email', $formFieldsInTemplate)) {
+			$form->email (array (
+				'name'			=> 'email',
+				'title'			=> 'Your e-mail address',
+				'placeholder'	=> 'Your e-mail address',
+				'required'		=> true,
+				'default'		=> (isSet ($data['email']) ? $data['email'] : false),
+			));
+		}
 		if (in_array ('mailinglist', $formFieldsInTemplate)) {
 			$form->select (array (
 				'name'			=> 'mailinglist',
@@ -2800,14 +2802,16 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'default'		=> 'Yes',
 			));
 		}
-		$form->checkboxes (array (
-			'name'			=> 'terms',
-			'required'		=> true,
-			'values'		=> array ('Yes' => "I accept the <a target=\"_blank\" href=\"{$this->baseUrl}/terms/{$this->iframeSuffix}\">terms &amp; conditions</a>."),
-			'entities'		=> false,
-			'default'		=> 'Yes',
-			'discard'		=> true,
-		));
+		if (in_array ('terms', $formFieldsInTemplate)) {
+			$form->checkboxes (array (
+				'name'			=> 'terms',
+				'required'		=> true,
+				'values'		=> array ('Yes' => "I accept the <a target=\"_blank\" href=\"{$this->baseUrl}/terms/{$this->iframeSuffix}\">terms &amp; conditions</a>."),
+				'entities'		=> false,
+				'default'		=> 'Yes',
+				'discard'		=> true,
+			));
+		}
 		
 		# Location (hidden)
 		$this->addHiddenLocationFields ($form /* modified by reference */, $html /* modified by reference */);

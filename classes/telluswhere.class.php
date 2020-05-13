@@ -276,7 +276,7 @@ class telluswhere
 		'type'		=> 'Type of parking',
 		'capacity'	=> 'How many cycles can be parked?',
 		'landtype'	=> 'Land type',
-		'caption'	=> 'Additional info / comments',
+		'caption'	=> 'Comments',
 		'schemes'	=> 'Which scheme(s), if any, have you used, and how did you find them?',
 	);
 	
@@ -2304,11 +2304,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
 		$apiUrl = $this->settings['apiBase'] . '/v2/' . $apiCall . '?key=' . $this->settings['apiKey'];
 		
-		# If the message is empty, add a generic message as the API sets caption as a required field
-		if (empty ($rawdata['caption'])) {
-			$rawdata['caption'] = $this->categoryLabels[$category]['singular'] . ' ' . ($action == 'suggest' ? 'needed' : 'present') . ' here.';
-		}
-		
 		# Map the fields to the API
 		$data = array (
 			#!# Currently a fixed username/password
@@ -2759,7 +2754,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$form->textarea (array (
 				'name'			=> 'caption',
 				'title'			=> $this->metadataFieldLabels['caption'],
-				'required'		=> false,
+				'required'		=> true,
 				'rows'			=> 2,
 				'cols'			=> 20,
 				'default'		=> (isSet ($data['caption']) ? $data['caption'] : false),

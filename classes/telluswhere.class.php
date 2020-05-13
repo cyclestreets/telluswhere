@@ -27,8 +27,6 @@ class telluswhere
 			#!# Needs to be added to database settings
 			'geocoderBboxBounded'	=> '-6.6577,49.9370,1.7797,57.6924',	// English mainland
 			'authNamespace'			=> 'telluswhere\\',
-			'tileUrl'				=> 'https://{s}.tile.cyclestreets.net/opencyclemap/{z}/{x}/{y}@2x.png',
-			'tileOpacity'			=> 0.7,
 		);
 		
 		# Return the defaults

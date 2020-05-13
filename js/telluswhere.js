@@ -652,12 +652,16 @@ var telluswhere = (function ($) {
 			
 			// Geometry value
 			if ($('#form_location').length > 0) {
-				var geometry = {
-					type: 'Point',
-					coordinates: [parseFloat(lng.toFixed(6)), parseFloat(lat.toFixed(6))]
-				};
-				geometry = JSON.stringify (geometry);
-				$('#form_location').val (geometry);
+				if (lat == null && lng == null) {
+					$('#form_location').val ('');
+				} else {
+					var geometry = {
+						type: 'Point',
+						coordinates: [parseFloat(lng.toFixed(6)), parseFloat(lat.toFixed(6))]
+					};
+					geometry = JSON.stringify (geometry);
+					$('#form_location').val (geometry);
+				}
 			}
 		},
 		

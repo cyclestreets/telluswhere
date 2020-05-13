@@ -48,6 +48,9 @@ var telluswhere = (function ($) {
 		lineSize: {initial: 8, hover: 15},
 		lineColour: {initial: 'red', reviewed: 'green'},
 		
+		// Tags
+		limitToTag: false,
+		
 		// Tiles
 		tileUrl: false,
 		tileOpacity: false,
@@ -1089,6 +1092,17 @@ var telluswhere = (function ($) {
 				}
 			}
 			
+			// Add BBOX
+			var data = {};
+			data.bbox = map.getBounds().toBBoxString();
+			
+			// Limit to tag if required
+			if (_settings.limitToTag) {
+				if (_action == 'suggest') {
+					data.tags = _settings.limitToTag;	// NB API currently has "only a single tag is supported" limitation
+				}
+			}
+			
 			// Start spinner, initially adding it to the page
 			if (layerIndex == 0) {	// main
 				if (!$('#map #loading').length) {
@@ -1098,7 +1112,6 @@ var telluswhere = (function ($) {
 			}
 			
 			// Get the data
-			var data = 'bbox=' + map.getBounds().toBBoxString();
 			$.ajax ({
 				url: url,
 				dataType: (_useJsonpTransport ? 'jsonp' : 'json'),

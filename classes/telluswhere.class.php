@@ -584,6 +584,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `submissionsPassword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Password for submissions',
 			  `feedbackRecipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page form recipient',
 			  `categories` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Categories',
+			  `limitToTag` VARCHAR(255) NULL COMMENT 'Limit to tag',
 			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
 			  `privateSubmissions` int(1) DEFAULT NULL COMMENT 'Make submissions private?',
 			  `aboutPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'About page text',
@@ -2599,6 +2600,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				popupLabels: {$popupLabelsJs},
 				popupLabelSubsetField: {$popupLabelSubsetFieldJs},
 				markerData: {$markerDataJs},
+				limitToTag: '{$this->settings['limitToTag']}',
 				tileUrl: '{$this->settings['tileUrl']}',
 				tileOpacity: {$this->settings['tileOpacity']}
 			};

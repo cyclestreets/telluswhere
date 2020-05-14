@@ -584,6 +584,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `submissionsPassword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Password for submissions',
 			  `feedbackRecipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page form recipient',
 			  `categories` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Categories',
+			  `multiCategoryMode` INT(1) NULL COMMENT 'Multi-category mode? (Has multiple categories rather than up-front selection list)',
 			  `limitToTag` VARCHAR(255) NULL COMMENT 'Limit to tag',
 			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
 			  `privateSubmissions` int(1) DEFAULT NULL COMMENT 'Make submissions private?',
@@ -933,26 +934,30 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Start the HTML
 		$html = '';
 		
-		# If there are multiple categories, force selection
-		$category = $this->categories[0];
-		if (!$existingData) {
-			if (count ($this->categories) > 1) {
-				
-				# Force selection if not specified
-				if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
-					$this->template['form'] = $this->categorySelection ();
-					return true;
+		# If there are multiple categories, force selection, unless in multi-category mode
+		if ($this->settings['multiCategoryMode']) {
+			$category = implode (',', $this->categories);
+		} else {
+			$category = $this->categories[0];
+			if (!$existingData) {
+				if (count ($this->categories) > 1) {
+					
+					# Force selection if not specified
+					if (!isSet ($_GET['category']) || !strlen ($_GET['category'])) {
+						$this->template['form'] = $this->categorySelection ();
+						return true;
+					}
+					
+					# End if not valid
+					if (!in_array ($_GET['category'], $this->categories)) {
+						$html = $this->page404 ();
+						echo $html;
+						return false;
+					}
+					
+					# Register the category
+					$category = $_GET['category'];
 				}
-				
-				# End if not valid
-				if (!in_array ($_GET['category'], $this->categories)) {
-					$html = $this->page404 ();
-					echo $html;
-					return false;
-				}
-				
-				# Register the category
-				$category = $_GET['category'];
 			}
 		}
 		
@@ -2239,7 +2244,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html = '';
 		
 		# Create the form and process the data
-		if (!$data = $this->locationSubmissionForm ($action, $existingData, $schema, $html)) {		// &html written into by reference
+		if (!$data = $this->locationSubmissionForm ($action, $existingData, $schema, $category /* written into by reference */, $html /* &html written into by reference */)) {
 			return $html;
 		}
 		
@@ -2653,7 +2658,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Location submission form
-	private function locationSubmissionForm ($action, $existingData, $schema = array (), &$html = '')
+	private function locationSubmissionForm ($action, $existingData, $schema = array (), &$category, &$html = '')
 	{
 		# Start the HTML
 		$html = '';
@@ -2751,6 +2756,21 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 					'default'		=> (isSet ($data['landtype']) ? $data['landtype'] : false),
 				));
 			}
+			if ($this->settings['multiCategoryMode']) {
+				if (in_array ('category', $formFieldsInTemplate)) {
+					$categoriesList = preg_split ('/[\s,]+/', trim ($this->settings['categories']));
+					$categories = array ();
+					foreach ($categoriesList as $category) {
+						$categories[$category] = $this->categoryLabels[$category]['singular'];
+					}
+					$form->radiobuttons (array (
+						'name'			=> 'category',
+						'title'			=> 'Which type of change is needed?',
+						'required'		=> true,
+						'values'		=> $categories,
+					));
+				}
+			}
 			$form->textarea (array (
 				'name'			=> 'caption',
 				'title'			=> $this->metadataFieldLabels['caption'],
@@ -2818,6 +2838,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		if ($result) {
 			$name = (isSet ($result['name']) ? $result['name'] : false);
 			$this->setCourtesyUserdetails ($name, $result['email']);
+			if ($this->settings['multiCategoryMode']) {
+				$category = $result['category'];
+			}
 		}
 		
 		# Return the result

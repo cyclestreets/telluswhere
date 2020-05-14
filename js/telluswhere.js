@@ -358,6 +358,15 @@ var telluswhere = (function ($) {
 				});
 			});
 			
+			// If setting a category is supported, move to the caption box on setting
+			$(function() {		// on documentready
+				if ($('form input[name="form\\[category\\]"]').length && $('form #form_caption').length) {
+					$('form input[name="form\\[category\\]"]').on ('click', function () {
+						$('form #form_caption').focus ();
+					});
+				}
+			});
+			
 			// For audit location, add link to editing page
 			if (_action == 'audit') {
 				$('#map').on('click', 'a#auditunchanged', function (e) {

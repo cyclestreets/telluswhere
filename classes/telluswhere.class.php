@@ -2501,7 +2501,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Create the map application HTML
-		$html .= "\n<link rel=\"stylesheet\" href=\"/css/telluswhere.css\" />";
+		$html .= "\n" . '<link rel="stylesheet" href="/css/telluswhere.css" />';
 		
 		if (!$viewOnlyMode) {
 			if (!$selectedIdData) {
@@ -2770,11 +2770,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	private function addHiddenLocationFields (&$form, &$html, $initialValue = array ())
 	{
 		#!# ultimateForm has multiple bugs for hidden fields when using templating; for now, standard input widgets are used and then hidden using CSS
-		$html .= "\n" . '<style type="text/css">
-			#form_latitude, #form_longitude, #form_zoom, #form_location {display: none;}
-			form .latitude, form .longitude, form .zoom, form .location {display: none;}
-		</style>
-		';
 		$form->input (array (
 			'name'			=> 'latitude',
 			'title'			=> 'Latitude (set by clicking on map)',

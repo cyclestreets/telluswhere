@@ -58,3 +58,7 @@ table.compressed td {padding-top: 1px; padding-bottom: 1px;}
 body.auditlocation #drawing, body.auditaddlocation #drawing {display: none;}	/* Hidden by default */
 body.auditlocation .edit-clear, body.auditaddlocation .edit-clear {display: none;}
 strong.success {color: green;}
+
+/* #!# Form workarounds */
+#form_latitude, #form_longitude, #form_zoom, #form_location {display: none;}
+form .latitude, form .longitude, form .zoom, form .location {display: none;}

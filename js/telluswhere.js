@@ -56,8 +56,9 @@ var telluswhere = (function ($) {
 			[20, 2.5],
 		],
 		
-		// Tags
+		// Browse request limitations
 		limitToTag: false,
+		since: false,
 		
 		// Tiles
 		tileUrl: false,
@@ -1144,6 +1145,13 @@ var telluswhere = (function ($) {
 			if (_settings.limitToTag) {
 				if (_action == 'suggest') {
 					data.tags = _settings.limitToTag;	// NB API currently has "only a single tag is supported" limitation
+				}
+			}
+			
+			// Limit to date since
+			if (_settings.since) {
+				if (_action == 'suggest') {
+					data.since = (new Date (_settings.since).getTime ())/1000;
 				}
 			}
 			

@@ -914,7 +914,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 			$html .= "\n</select>";
 			$html .= "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-			$html .= "\n<script type=\"text/javascript\">
+			$html .= "\n<script>
 				$('#regionswitcher').change (function () {
 					if (this.value) {
 						window.location = $(this).val();
@@ -2480,7 +2480,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
 		
 		# Load jQuery UI
-		$html .= "\n" . '<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
+		$html .= "\n" . '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		
 		# Load Leaflet.js
 		$html .= "\n\n" . '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
@@ -2496,7 +2496,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Drawing mode
 		if ($enableDrawing) {
-			$html .= "\n\n" . '<script type="text/javascript" src="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.js"></script>';
+			$html .= "\n\n" . '<script src="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.js"></script>';
 			$html .= "\n" . '<link rel="stylesheet" href="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.css" rel="stylesheet" />';
 		}
 		
@@ -2511,7 +2511,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html .= "\n" . '<div id="map"></div>';
 		
 		# Load EXIF Filereader support
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/lib/jquery.exif.js\"></script>";
+		$html .= "\n<script src=\"/js/lib/jquery.exif.js\"></script>";
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');
@@ -2524,8 +2524,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
-		$html .= "\n<script type=\"text/javascript\" src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
-		$html .= "\n<script type=\"text/javascript\">
+		$html .= "\n<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
+		$html .= "\n<script>
 			var settings = {
 				baseUrl: '{$this->baseUrl}',
 				initialLatitude: {$mapLocation['latitude']},
@@ -2558,8 +2558,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		// Libraries available at: https://cdnjs.com/libraries/jqueryui/
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$html .= "\n" . '<script type="text/javascript" src="/js/autocomplete.js?4"></script>';
-		$html .= "\n" . "<script type=\"text/javascript\">
+		$html .= "\n" . '<script src="/js/autocomplete.js?4"></script>';
+		$html .= "\n" . "<script>
 			autocomplete.addTo (\"input[name='location']\", {
 				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=' + '{$this->settings['geocoderBboxBounded']}',
 				select: function (event, ui) {
@@ -3419,7 +3419,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html .= "
 			<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.5.1/dist/leaflet.css\" />
 			<script src=\"https://unpkg.com/leaflet@1.5.1/dist/leaflet.js\"></script>
-			<script type=\"text/javascript\">
+			<script>
 				var osmLayer = 'https://{s}.tile.osm.org/{z}/{x}/{y}.png';
 				var osmAttribution = '&copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors'
 			</script>
@@ -3482,7 +3482,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			# Define the map JS
 			$mapJsHtml = "
 				<div id=\"map{$index}\" class=\"confirmationmap\" style=\"width: 250px; height: 120px; border: 1px solid gray;\"></div>
-				<script type=\"text/javascript\">
+				<script>
 					var map{$index} = L.map('map{$index}', {
 						center: [{$location['latitude']}, {$location['longitude']}],
 						zoom: {$defaultZoom},

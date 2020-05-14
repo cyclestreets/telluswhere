@@ -586,7 +586,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `categories` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Categories',
 			  `multiCategoryMode` INT(1) NULL COMMENT 'Multi-category mode? (Has multiple categories rather than up-front selection list)',
 			  `limitToTag` VARCHAR(255) NULL COMMENT 'Limit to tag',
-			  `since` DATE NOT NULL COMMENT 'Limit to locations since time',
+			  `since` DATE NULL DEFAULT NULL COMMENT 'Limit to locations since time',
 			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
 			  `privateSubmissions` int(1) DEFAULT NULL COMMENT 'Make submissions private?',
 			  `aboutPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'About page text',

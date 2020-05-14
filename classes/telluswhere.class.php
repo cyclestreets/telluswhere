@@ -2501,66 +2501,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Create the map application HTML
-		$html .= "\n" . '
-		<style type="text/css">
-			#helptext {margin: 0;}
-			#helptext.display {background-color: yellow;}
-			#helptext.hide {background-color: transparent;}
-			input.ui-autocomplete-loading {background: white url(\'/images/ui-anim_basic_16x16.gif\') right center no-repeat;}
-			body .ui-front {z-index: 500;}
-			ul.ui-autocomplete li a {color: #ed1c24;}
-			ul.ui-autocomplete li span {color: #333; font-size: smaller;}
-			.leaflet-popup-content-wrapper {width: 250px; min-height: 80px;}
-			.bubble p {margin: 0 0 5px;}
-			.bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}
-			.bubble p.id a {color: #bbb;}
-			.bubble p.caption:before {color: #900; content: "\201C"; /* https://monc.se/kitchen/129/rendering-quotes-with-css/ */ font-family: Arial, Helvetica, sans-serif; font-size: 4.5em; font-weight: bold; line-height: 0; margin: 0 5px 0 -5px; vertical-align: bottom;}
-			p.problem {text-align: right; margin: 4px 0 0; padding: 0; font-size: 0.92em;}
-			p.problem a {color: #898989;}
-			.leaflet-popup-content form#problem p {margin-bottom: 5px; padding-bottom: 0;}
-			.leaflet-popup-content form#problem input, .leaflet-popup-content form#problem textarea {margin-top: 0; padding-top: 0;}
-			p#formwarning {color: red;}
-			table.metadatatable td.value, p.metadata {font-weight: bold;}
-			p.metadata {margin-bottom: 2em;}
-			table.popupproperties tr td:first-child {width: 60%;}
-			.smallmap {width: 100%; height: 100%;}
-			table.reviewmetadata {width: 200px;}
-			table.reviewmetadata tr td:first-child {width: 60%;}
-			.leaflet-marker-icon.deleted {opacity: 0.6;}
-			.leaflet-container.cursorzoomin {cursor: zoom-in;}
-			
-			/* Likes */
-			#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; border: 1px solid #eee; background-color: #fcfcfc; border-radius: 5px;}
-			#likes {transition: background-color .5s ease-in-out; transition: border-color .5s ease-in-out;}
-			#likes:hover {background-color: #eee; border-color: gray;}
-			#likes.liked {border: 1px solid #999;}
-			#likes p {margin: 0; padding: 0; line-height: 16px;}
-			#likes p img, #likes p span {vertical-align: middle;}
-			#likes p span, #likes a {color: gray; text-decoration: none;}
-			#likes span {padding-left: 2px;}
-			#likes.liked #likestext {color: #603;}
-			#likes.changed {animation: yellow-fade 2s ease-in 1;}
-			@keyframes yellow-fade {
-				0% {background-color: yellow;}
-				100% {background-color: none;}
-			}
-			
-			/* \'Lines\' table style */
-			table.lines {border-collapse: collapse; /* width: 95%; */}
-			.lines td, .lines th {border-bottom: 1px solid #e9e9e9; padding: 6px 8px 2px 1px; vertical-align: top; text-align: left;}
-			.lines tr:first-child {border-top: 1px solid #e9e9e9;}
-			table.lines td.value p:first-child {margin-top: 0;}
-			table.lines td.value p:last-child {margin-bottom: 0;}
-			table.lines td:last-child ul:first-child {margin-top: 0;}
-			table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
-			table.compressed td {padding-top: 1px; padding-bottom: 1px;}
-			
-			/* Drawing */
-			body.auditlocation #drawing, body.auditaddlocation #drawing {display: none;}	/* Hidden by default */
-			body.auditlocation .edit-clear, body.auditaddlocation .edit-clear {display: none;}
-			strong.success {color: green;}
-		</style>
-		';
+		$html .= "\n<link rel=\"stylesheet\" href=\"/css/telluswhere.css\" />";
+		
 		if (!$viewOnlyMode) {
 			if (!$selectedIdData) {
 				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';

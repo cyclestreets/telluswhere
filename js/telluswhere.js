@@ -648,7 +648,7 @@ var telluswhere = (function ($) {
 				var popupHtml = telluswhere.popupHtmlDynamic (data);
 			} else {
 				// #!# Need to show the category name
-				var popupHtml = (_action == 'suggest' ? 'Needed' : 'Present') + ' here';
+				var popupHtml = (_action == 'suggest' ? 'Improvement needed' : 'Present') + ' here';
 			}
 			_marker.bindPopup (popupHtml).openPopup ();
 			

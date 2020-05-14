@@ -624,6 +624,13 @@ var telluswhere = (function ($) {
 			// In view-only mode, disable marker setting functionality
 			if (_settings.viewOnlyMode) {return;}
 			
+			// If the interface provides a space for a tick box, set this
+			$(function() {		// on documentready
+				if ($('.mapsetting span').length) {
+					$('.mapsetting span').text('✓');
+				}
+			});
+			
 			// If there is already a marker set, treat the click as a move (as per a drag)
 			if (_marker) {
 				_marker.setLatLng (latlng);

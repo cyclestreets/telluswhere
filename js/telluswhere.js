@@ -48,6 +48,14 @@ var telluswhere = (function ($) {
 		lineSize: {initial: 8, hover: 15},
 		lineColour: {initial: 'red', reviewed: 'green'},
 		
+		// Icon sizing based on Likes
+		iconSizeLikesScaling: [
+			[2, 1.1],
+			[5, 1.3],
+			[10, 1.6],
+			[20, 2.5],
+		],
+		
 		// Tags
 		limitToTag: false,
 		
@@ -201,7 +209,7 @@ var telluswhere = (function ($) {
 					filter: telluswhere.setIconFilter,
 					
 					// Style points - create a marker
-					pointToLayer: function (feature,latlng) {
+					pointToLayer: function (feature, latlng) {
 						var icon = _icons['already'];
 						if (feature.properties.iconUrl) {
 							icon = _icons['_dynamic'];
@@ -220,7 +228,23 @@ var telluswhere = (function ($) {
 							icon.options.className = 'deleted';
 						}
 						
-						return L.marker (latlng, {icon: icon});
+						// If there are likes, make the icon larger progressively
+						var thisIcon = $.extend (true, {}, icon);
+						if (feature.properties.likes) {
+							var scale = 1;
+							$.each (_settings.iconSizeLikesScaling, function (index, scaleFactor) {
+								if (feature.properties.likes >= scaleFactor[0]) {
+									scale = scaleFactor[1];
+								} // continue until end
+							});
+							if (scale) {
+								// #!# Need to find the correct way to do this, rather than using the internal prototype property
+								thisIcon.options.iconSize = [icon.options.__proto__.iconSize[0] * scale, icon.options.__proto__.iconSize[1] * scale];
+							}
+						}
+						
+						// Return the marker
+						return L.marker (latlng, {icon: thisIcon});
 					},
 					
 					// Add interactions

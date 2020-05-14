@@ -951,7 +951,7 @@ var telluswhere = (function ($) {
 			}
 			
 			var html = ''
-			+ '<div class="bubble">'
+			+ '<div class="bubble' + (properties.hasPhoto ? ' hasphoto' : '') + '">'
 			
 			// Caption and ID; if nodeId exists then this is a location from OSM and so is fixed, read-only data
 			+ '<p class="id">'

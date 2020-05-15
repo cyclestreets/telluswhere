@@ -5,10 +5,7 @@
 #helptext {margin: 0;}
 #helptext.display {background-color: yellow;}
 #helptext.hide {background-color: transparent;}
-input.ui-autocomplete-loading {background: white url('/images/ui-anim_basic_16x16.gif') right center no-repeat;}
 body .ui-front {z-index: 500;}
-ul.ui-autocomplete li a {color: #ed1c24;}
-ul.ui-autocomplete li span {color: #333; font-size: smaller;}
 .leaflet-popup-content-wrapper {width: 250px; min-height: 80px;}
 .bubble p {margin: 0 0 5px;}
 .bubble p.id {text-align: right; font-size: 0.83em; margin: 0; padding: 0 0 3px;}
@@ -62,3 +59,12 @@ strong.success {color: green;}
 /* #!# Form workarounds */
 #form_latitude, #form_longitude, #form_zoom, #form_location {display: none;}
 form .latitude, form .longitude, form .zoom, form .location {display: none;}
+
+/* Geocoder autocomplete */
+.ui-autocomplete-loading {background: white url('/images/ui-anim_basic_16x16.gif') right center no-repeat;}
+.ui-autocomplete {background-color: white; z-index: 1000; width: 200px; list-style: none; margin-left: 0; padding-left: 0;}
+.ui-autocomplete li {list-style: none; margin-left: 0; padding-left: 0; font: inherit;}
+.ui-autocomplete li:first-child a {padding-top: 9px;}
+.ui-autocomplete li a {padding: 5px 15px 3px; display: block; color: #603;}
+.ui-autocomplete li a span {color: gray; font-size: 0.81em;}
+.ui-autocomplete li a.ui-state-active {cursor: pointer; background-color: #f7f7f7; color: inherit;}

@@ -527,7 +527,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
 		
 		# Always load jQuery
-		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>';
 		
 		# Inject assets into the head, ensuring jQuery is at the start, and the application at the end
 		if (isSet ($this->headContent['jquery'])) {
@@ -1322,7 +1322,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
 		# Add memory support for tabs to avoid loss of correct tab on POST; see: https://stackoverflow.com/a/18602487
-		$this->headContent['jquery-ui'] = '<script src=\"https://code.jquery.com/ui/1.12.1/jquery-ui.js\"></script>';
 		$this->headContent['tabs-js'] = '<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>';
 		$this->headContent['tabs-js'] = "
 		<script>
@@ -2563,8 +2562,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html = '';
 		
 		# Add geocoder
-		$this->headContent['jquery-ui']  = '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
-		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
+		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
 		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
 		$html .= "\n\t" . '<div id="geocoder">';
 		$html .= "\n\t\t" . '<input type="text" name="location" placeholder="Search locations" />';

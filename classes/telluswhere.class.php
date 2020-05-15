@@ -2529,7 +2529,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$selectedIdJs = ($selectedIdData ? (ctype_digit ($selectedIdData['id']) ? $selectedIdData['id'] : "'{$selectedIdData['id']}'") : 'false');
 		$viewOnlyModeJs = ($viewOnlyMode ? 'true' : 'false');
 		$enableDrawingJs = ($enableDrawing ? "'{$enableDrawing}'" : 'false');	// Will be type, e.g. Polygon or LineString
-		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
+		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
 		$this->headContent['telluswhere-js'] = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";

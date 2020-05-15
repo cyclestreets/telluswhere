@@ -2580,6 +2580,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Create the map itself
 		$html .= "\n\n\t" . '<div id="map"></div>';
 		
+		# Wrap the map HTML in a container, to ensure the geocoder can be positioned
+		$html = "\n" . '<div id="mapcontainer">' . "\n" . $html . "\n\n</div>";
+		
 		# Return the HTML
 		return $html;
 	}

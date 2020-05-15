@@ -526,6 +526,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
 		
+		# Always load jQuery
+		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+		
 		# Inject assets into the head, ensuring jQuery then jQuery UI are at the start, and the application at the end
 		if (isSet ($this->headContent['jquery'])) {
 			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery-ui');
@@ -926,13 +929,14 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				$html .= "\n\t<option value=\"{$this->baseUrl}/audit/#16/{$area['longitude']}/{$area['latitude']}\">" . htmlspecialchars ($area['name']) . '</option>';
 			}
 			$html .= "\n</select>";
-			$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 			$this->headContent['telluswhere-regionswitcher'] = "<script>
+			$(function() {
 				$('#regionswitcher').change (function () {
 					if (this.value) {
 						window.location = $(this).val();
 					}
 				});
+			});
 			</script>
 			";
 		}
@@ -1061,7 +1065,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		
 		# Create the map HTML
-		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
@@ -1444,7 +1447,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Create the map HTML
-		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$mapHtml = $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
@@ -1915,7 +1917,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map, in drawing mode
-		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$mapHtml = $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = 'Polygon');
 		$this->template['map'] = $mapHtml;
 		
@@ -2492,9 +2493,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Define a second browsing layer if required
 		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
-		
-		# Load jQuery
-		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		
 		# Load Leaflet.js
 		$this->headContent['leaflet']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
@@ -4359,9 +4357,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		";
 		
 		# Create the map HTML
-		$html  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
-		$this->template['map'] = $html;
+		$this->template['map'] = $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Obtain schema labels
 		$schema = $this->getAuditSchema ();

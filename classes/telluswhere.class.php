@@ -2565,7 +2565,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add geocoder
 		$this->headContent['jquery-ui']  = '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
-		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
 		$html .= "\n\t" . '<div id="geocoder">';
 		$html .= "\n\t\t" . '<input type="text" name="location" placeholder="Search locations" />';

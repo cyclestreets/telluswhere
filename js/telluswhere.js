@@ -132,7 +132,8 @@ var telluswhere = (function ($) {
 			_initialHash = window.location.hash.substr(1);	// substr(1) removes #
 			
 			// Set map centre location
-			map = L.map('map').setView([initialMapLocation.latitude, initialMapLocation.longitude], initialMapLocation.zoom);
+			map = L.map('map', {maxBounds: [[61, 9],[49, -11]]});
+			map.setView([initialMapLocation.latitude, initialMapLocation.longitude], initialMapLocation.zoom);
 			
 			// Set tile layer
 			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';

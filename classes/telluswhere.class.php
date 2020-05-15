@@ -228,6 +228,7 @@ class telluswhere
 	public $user;
 	public $userIsAdministrator = false;
 	private $html = '';
+	private $headContent = array ();
 	private $forcedAction = false;
 	private $template = array ();	// Associative array of fragments to be replaced
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
@@ -524,6 +525,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
+		
+		# Inject assets into the head, ensuring jQuery then jQuery UI are at the start
+		if (isSet ($this->headContent['jquery'])) {
+			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery-ui');
+			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery');
+		}
+		$html = str_replace ('</head>', str_replace ("\n", "\n\t", "\n\n" . implode ("\n\n", $this->headContent)) . "\n\n</head>", $html);
 		
 		# Add stats tracking code if required
 		$html = $this->analyticsTrackingCode ($html);
@@ -913,8 +921,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				$html .= "\n\t<option value=\"{$this->baseUrl}/audit/#16/{$area['longitude']}/{$area['latitude']}\">" . htmlspecialchars ($area['name']) . '</option>';
 			}
 			$html .= "\n</select>";
-			$html .= "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-			$html .= "\n<script>
+			$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+			$this->headContent['telluswhere-regionswitcher'] = "<script>
 				$('#regionswitcher').change (function () {
 					if (this.value) {
 						window.location = $(this).val();
@@ -1048,7 +1056,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		
 		# Create the map HTML
-		$html  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
@@ -1307,9 +1315,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->auditSetPopupLabels ($schema, $flatten = false);
 		
 		# Add memory support for tabs to avoid loss of correct tab on POST; see: https://stackoverflow.com/a/18602487
-		$this->template['tabsJs'] = "
-		<script src=\"https://code.jquery.com/ui/1.12.1/jquery-ui.js\"></script>
-		<script src=\"https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js\"></script>
+		$this->headContent['jquery-ui'] = '<script src=\"https://code.jquery.com/ui/1.12.1/jquery-ui.js\"></script>';
+		$this->headContent['tabs-js'] = '<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>';
+		$this->headContent['tabs-js'] = "
 		<script>
 			$(function() {
 				var cookieName = 'location{$id}-activetab';	// Namespaced by location
@@ -1431,8 +1439,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Create the map HTML
-		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-		$mapHtml .= $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
+		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+		$mapHtml = $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
 		# Disable intelligence for colour fields, forcing ENUM
@@ -1901,8 +1909,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map, in drawing mode
-		$mapHtml  = "\n" . '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
-		$mapHtml .= $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = 'Polygon');
+		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
+		$mapHtml = $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = 'Polygon');
 		$this->template['map'] = $mapHtml;
 		
 		# Handle posted data
@@ -2479,29 +2487,29 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Define a second browsing layer if required
 		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
 		
-		# Load jQuery UI
-		$html .= "\n" . '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
+		# Load jQuery
+		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		
 		# Load Leaflet.js
-		$html .= "\n\n" . '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
-		$html .= "\n" . '<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>';
+		$this->headContent['leaflet']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
+		$this->headContent['leaflet'] .= "\n" . '<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>';
 		
 		# Load leaflet-hash
-		$html .= "\n\n" . '<script src="/js/lib/leaflet-hash/leaflet-hash.js"></script>';
+		$this->headContent['leaflet-hash'] = '<script src="/js/lib/leaflet-hash/leaflet-hash.js"></script>';
 		
 		# Load Geolocation control; see: https://github.com/domoritz/leaflet-locatecontrol
-		$html .= "\n\n" . '<script src="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.js"></script>';
-		$html .= "\n" . '<link rel="stylesheet" href="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />';
-		$html .= "\n" . '<link rel="stylesheet" href="/js/lib/font-awesome/4.7.0/css/font-awesome.min.css" />';
+		$this->headContent['leaflet-locatecontrol']  = '<script src="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.js"></script>';
+		$this->headContent['leaflet-locateControl'] .= "\n" . '<link rel="stylesheet" href="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />';
+		$this->headContent['leaflet-locateControl'] .= "\n" . '<link rel="stylesheet" href="/js/lib/font-awesome/4.7.0/css/font-awesome.min.css" />';
 		
 		# Drawing mode
 		if ($enableDrawing) {
-			$html .= "\n\n" . '<script src="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.js"></script>';
-			$html .= "\n" . '<link rel="stylesheet" href="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.css" rel="stylesheet" />';
+			$this->headContent['leaflet-draw']  = '<script src="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.js"></script>';
+			$this->headContent['leaflet-draw'] .= "\n" . '<link rel="stylesheet" href="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.css" rel="stylesheet" />';
 		}
 		
-		# Create the map application HTML
-		$html .= "\n" . '<link rel="stylesheet" href="/css/telluswhere.css" />';
+		# Create the map application CSS
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
 		
 		if (!$viewOnlyMode) {
 			if (!$selectedIdData) {
@@ -2511,7 +2519,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html .= "\n" . '<div id="map"></div>';
 		
 		# Load EXIF Filereader support
-		$html .= "\n<script src=\"/js/lib/jquery.exif.js\"></script>";
+		$this->headContent['jquery-exif'] = '<script src="/js/lib/jquery.exif.js"></script>';
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');
@@ -2524,7 +2532,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
-		$html .= "\n<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
+		$this->headContent['telluswhere-js'] = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$html .= "\n<script>
 			var settings = {
 				baseUrl: '{$this->baseUrl}',
@@ -2555,11 +2563,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Add autocomplete name search
 		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];
-		// Libraries available at: https://cdnjs.com/libraries/jqueryui/
-		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
-		$html .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$html .= "\n" . '<script src="/js/autocomplete.js?4"></script>';
-		$html .= "\n" . "<script>
+		$this->headContent['jquery-ui']  = '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
+		$this->headContent['cyclestreets-autocomplete']  = "\n" . '<script src="/js/autocomplete.js?4"></script>';
+		$this->headContent['cyclestreets-autocomplete'] .= "\n" . "<script>
 			autocomplete.addTo (\"input[name='location']\", {
 				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=' + '{$this->settings['geocoderBboxBounded']}',
 				select: function (event, ui) {
@@ -3057,7 +3065,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Add form styles
-		$html .= "\n<link rel=\"stylesheet\" href=\"/css/generic.css\" />";
+		$this->headContent['generic-css'] = '<link rel="stylesheet" href="/css/generic.css" />';
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -3268,19 +3276,15 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$metacategories[$metacategory] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
 		}
 		
-		#!# Fix styles in london
-		$html .= "\n<style type=\"text/css\">
+		#!# Fix styles in UCP
+		$this->headContent['fix-ucp'] = '<style type="text/css">
 			input[type=checkbox] {width: auto; margin-right: 10px;}
 			label {display: inline;}
-		</style>";
+		</style>';
 		
-		# Instruction text
-		$instructionBoxHtml  = "\n<style type=\"text/css\">
-			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see https://gtwebdev.com/workshop/floats/enclosing-floats.php */}
-			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
-			div.graybox p {text-align: left; margin-top: 10px;}
-		</style>";
-		$instructionBoxHtml .= "\n<div class=\"graybox\">";
+		# Add instructions
+		$this->headContent['generic-css'] = '<link rel="stylesheet" href="/css/generic.css" />';
+		$instructionBoxHtml  = "\n<div class=\"graybox\">";
 		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations (either {$requiredLocationFieldsHtml}) in a spreadsheet.</p>";
 		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row, as shown in this example:</p>";
 		$instructionBoxHtml .= "\n\t<p><img src=\"{$this->baseUrl}/images/multipleupload.png\" alt=\"Multiple upload example\" width=\"606\" height=\"172\" /></p>";
@@ -3415,31 +3419,20 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Start the HTML
 		$html = '';
 		
+		# Load Leaflet.js
+		$this->headContent['leaflet']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
+		$this->headContent['leaflet'] .= "\n" . '<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>';
+		
 		# Define standard map JS
-		$html .= "
-			<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.5.1/dist/leaflet.css\" />
-			<script src=\"https://unpkg.com/leaflet@1.5.1/dist/leaflet.js\"></script>
-			<script>
-				var osmLayer = 'https://{s}.tile.osm.org/{z}/{x}/{y}.png';
-				var osmAttribution = '&copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors'
-			</script>
+		$this->headContent['leaflet-html'] = "
+		<script>
+			var osmLayer = 'https://{s}.tile.osm.org/{z}/{x}/{y}.png';
+			var osmAttribution = '&copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors'
+		</script>
 		";
 		
-		# Add CSS
-		$html .= '
-			<style type="text/css">
-				/* \'Lines\' table style */
-				table.lines {border-collapse: collapse; /* width: 95%; */}
-				.lines td, .lines th {border-bottom: 1px solid #e9e9e9; padding: 6px 8px 2px 1px; vertical-align: top; text-align: left;}
-				.lines tr:first-child {border-top: 1px solid #e9e9e9;}
-				table.lines td.value p:first-child {margin-top: 0;}
-				table.lines td.value p:last-child {margin-bottom: 0;}
-				table.lines td:last-child ul:first-child {margin-top: 0;}
-				table.lines td:last-child ul:first-child li:first-child {margin-top: 0;}
-				
-				p.right {float: right;}
-			</style>
-		';
+		# Add form and graybox styles
+		$this->headContent['generic-css'] = '<link rel="stylesheet" href="/css/generic.css" />';
 		
 		# Define default zoom
 		$defaultZoom = 15;
@@ -3518,12 +3511,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$template = application::htmlTable ($table, $tableHeadingSubstitutions = array (), 'lines', $keyAsFirstColumn = false, $uppercaseHeadings = true, $allowHtml = true);
 		
 		# Define instruction text
-		$instructionBoxHtml  = "\n<style type=\"text/css\">
-			div.graybox {border: 1px solid #ddd; padding: 10px 15px; margin: 0 10px 10px 0; background-color: #fcfcfc; overflow: hidden; /* overflow prevents floats not being enclosed - see https://gtwebdev.com/workshop/floats/enclosing-floats.php */}
-			div.graybox:hover {background-color: #fafafa; border-color: #aaa;}
-			div.graybox p {text-align: left; margin-top: 10px;}
-		</style>";
-		$instructionBoxHtml .= "\n<div class=\"graybox\">";
+		$instructionBoxHtml  = "\n<div class=\"graybox\">";
 		$instructionBoxHtml .= "\n<p>Please now <strong>check the locations</strong>, adjusting them on the map if necessary.</p>";
 		$instructionBoxHtml .= "\n<p><strong>Then press the submit button</strong> at the end.</p>";
 		$instructionBoxHtml .= "\n</div>";

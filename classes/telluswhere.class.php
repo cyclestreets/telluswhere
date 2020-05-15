@@ -2571,8 +2571,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add autocomplete name search
 		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];
 		$this->headContent['jquery-ui']  = '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
-		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
-		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$this->headContent['cyclestreets-autocomplete']  = "\n" . '<script src="/js/autocomplete.js?4"></script>';
 		$this->headContent['cyclestreets-autocomplete'] .= "\n" . "<script>
 			autocomplete.addTo (\"input[name='location']\", {

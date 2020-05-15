@@ -2504,8 +2504,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Load Geolocation control; see: https://github.com/domoritz/leaflet-locatecontrol
 		$this->headContent['leaflet-locatecontrol']  = '<script src="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.js"></script>';
-		$this->headContent['leaflet-locateControl'] .= "\n" . '<link rel="stylesheet" href="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />';
-		$this->headContent['leaflet-locateControl'] .= "\n" . '<link rel="stylesheet" href="/js/lib/font-awesome/4.7.0/css/font-awesome.min.css" />';
+		$this->headContent['leaflet-locatecontrol'] .= "\n" . '<link rel="stylesheet" href="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />';
+		$this->headContent['leaflet-locatecontrol'] .= "\n" . '<link rel="stylesheet" href="/js/lib/font-awesome/4.7.0/css/font-awesome.min.css" />';
 		
 		# Drawing mode
 		if ($enableDrawing) {

@@ -63,6 +63,11 @@ var telluswhere = (function ($) {
 		// Tiles
 		tileUrl: false,
 		tileOpacity: false,
+		
+		// Geocoder
+		apiBaseUrl: false,
+		apiKey: false,
+		geocoderBboxBounded: false,
 	};
 	
 	/* Class properties */
@@ -147,6 +152,9 @@ var telluswhere = (function ($) {
 				setView: 'once',	// The default, 'untilPanOrZoom', can reduce battery heavily
 				locateOptions: {maxZoom: 16}
 			}));
+			
+			// Add geocoder
+			telluswhere.geocoder ();
 			
 			// If there is a custom button, pass the click on to the main button; see: https://stackoverflow.com/questions/23016863/ and https://github.com/domoritz/leaflet-locatecontrol/issues/205#issuecomment-530096560
 			$(function() {		// #!# This should be surrounding the whole application
@@ -1318,6 +1326,21 @@ var telluswhere = (function ($) {
 				longitude: _settings.initialLongitude,
 				zoom: _settings.initialZoom
 			}
+		},
+		
+		
+		// Function to provide a geocoder, using the CycleStreet API and autocomplete library
+		geocoder: function ()
+		{
+			// Attach the autocomplete library
+			autocomplete.addTo ("input[name='location']", {
+				sourceUrl: _settings.apiBaseUrl + '/v2/geocoder?key=' + _settings.apiKey + '&bounded=1&bbox=' + _settings.geocoderBboxBounded,
+				select: function (event, ui) {
+					var bbox = ui.item.feature.properties.bbox.split(',');
+					map.fitBounds([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ], {maxZoom: 19});	// See: https://leafletjs.com/reference.html#latlngbounds
+					event.preventDefault();
+				}
+			});
 		},
 		
 		

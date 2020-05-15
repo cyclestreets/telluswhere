@@ -529,9 +529,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Always load jQuery
 		$this->headContent['jquery'] = '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>';
 		
-		# Inject assets into the head, ensuring jQuery then jQuery UI are at the start, and the application at the end
+		# Inject assets into the head, ensuring jQuery is at the start, and the application at the end
 		if (isSet ($this->headContent['jquery'])) {
-			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery-ui');
 			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery');
 		}
 		if (isSet ($this->headContent['application'])) {
@@ -2559,7 +2558,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				limitToTag: '{$this->settings['limitToTag']}',
 				since: '{$this->settings['since']}',
 				tileUrl: '{$this->settings['tileUrl']}',
-				tileOpacity: {$this->settings['tileOpacity']}
+				tileOpacity: {$this->settings['tileOpacity']},
+				apiBaseUrl: '{$this->settings['apiBase']}',
+				apiKey: '{$this->settings['apiKey']}',
+				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}'
 			};
 			
 			var map = telluswhere.createMap (config, '{$this->action}', {$userJs});
@@ -2567,22 +2569,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		</script>
 		";
 		
-		# Add autocomplete name search
-		$geocoderApiUrl = $this->settings['apiBase'] . '/v2/geocoder' . '?key=' . $this->settings['apiKey'];
+		# Add geocoder support
 		$this->headContent['jquery-ui']  = '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
-		$this->headContent['cyclestreets-autocomplete']  = "\n" . '<script src="/js/autocomplete.js?4"></script>';
-		$this->headContent['cyclestreets-autocomplete'] .= "\n" . "<script>
-			autocomplete.addTo (\"input[name='location']\", {
-				sourceUrl: '{$geocoderApiUrl}&bounded=1&bbox=' + '{$this->settings['geocoderBboxBounded']}',
-				select: function (event, ui) {
-					var bbox = ui.item.feature.properties.bbox.split(',');
-					map.fitBounds([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ], {maxZoom: 19});	// See: https://leafletjs.com/reference.html#latlngbounds
-					event.preventDefault();
-				}
-			});
-		</script>";
+		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
 		
 		# Return the HTML
 		return $html;

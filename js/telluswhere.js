@@ -360,13 +360,11 @@ var telluswhere = (function ($) {
 			});
 			
 			// If setting a category is supported, move to the caption box on setting
-			$(function() {		// on documentready
-				if ($('form input[name="form\\[category\\]"]').length && $('form #form_caption').length) {
-					$('form input[name="form\\[category\\]"]').on ('click', function () {
-						$('form #form_caption').focus ();
-					});
-				}
-			});
+			if ($('form input[name="form\\[category\\]"]').length && $('form #form_caption').length) {
+				$('form input[name="form\\[category\\]"]').on ('click', function () {
+					$('form #form_caption').focus ();
+				});
+			}
 			
 			// For audit location, add link to editing page
 			if (_action == 'audit') {
@@ -635,11 +633,9 @@ var telluswhere = (function ($) {
 			if (_settings.viewOnlyMode) {return;}
 			
 			// If the interface provides a space for a tick box, set this
-			$(function() {		// on documentready
-				if ($('.mapsetting span').length) {
-					$('.mapsetting span').text('✓');
-				}
-			});
+			if ($('.mapsetting span').length) {
+				$('.mapsetting span').text('✓');
+			}
 			
 			// If there is already a marker set, treat the click as a move (as per a drag)
 			if (_marker) {
@@ -1484,24 +1480,23 @@ var telluswhere = (function ($) {
 			});
 			
 			// Cancel button clears drawn polygon and clears the form value
-			$(function() {		// on documentready
-				$('.edit-clear').click (function (e) {
-					drawnItems.clearLayers();
-					$(targetField).val('');
+			$('.edit-clear').click (function (e) {
+				drawnItems.clearLayers();
+				$(targetField).val('');
 					
-					// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
-					$(targetField).trigger('change');
-					
-					// Re-enable drawing
-					drawControl.enable();
-					
-					// Hide the link
-					$('.edit-instructions').show ();
-					$('.edit-clear').hide ();
-					
-					// Do not follow the link
-					e.preventDefault ();
-				});
+				
+				// Trigger jQuery change event, so that .change() behaves as expected for the hidden field; see: https://stackoverflow.com/a/8965804
+				$(targetField).trigger('change');
+				
+				// Re-enable drawing
+				drawControl.enable();
+				
+				// Hide the link
+				$('.edit-instructions').show ();
+				$('.edit-clear').hide ();
+				
+				// Do not follow the link
+				e.preventDefault ();
 			});
 			
 			// Undo button

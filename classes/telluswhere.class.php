@@ -526,10 +526,15 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
 		
-		# Inject assets into the head, ensuring jQuery then jQuery UI are at the start
+		# Inject assets into the head, ensuring jQuery then jQuery UI are at the start, and the application at the end
 		if (isSet ($this->headContent['jquery'])) {
 			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery-ui');
 			$this->headContent = application::array_move_to_start ($this->headContent, 'jquery');
+		}
+		if (isSet ($this->headContent['application'])) {
+			$applicationJs = $this->headContent['application'];
+			unset ($this->headContent['application']);
+			$this->headContent['application'] = $applicationJs;
 		}
 		$html = str_replace ('</head>', str_replace ("\n", "\n\t", "\n\n" . implode ("\n\n", $this->headContent)) . "\n\n</head>", $html);
 		
@@ -2532,9 +2537,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
-		$this->headContent['telluswhere-js'] = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
-		$html .= "\n<script>
-			var settings = {
+		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
+		$this->headContent['application'] .= "\n" . "<script>
+		$(function() {
+			var config = {
 				baseUrl: '{$this->baseUrl}',
 				initialLatitude: {$mapLocation['latitude']},
 				initialLongitude: {$mapLocation['longitude']},
@@ -2557,7 +2563,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				tileOpacity: {$this->settings['tileOpacity']}
 			};
 			
-			var map = telluswhere.createMap (settings, '{$this->action}', {$userJs});
+			var map = telluswhere.createMap (config, '{$this->action}', {$userJs});
+		});
 		</script>
 		";
 		

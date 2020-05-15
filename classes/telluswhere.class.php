@@ -2561,27 +2561,30 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Start the HTML
 		$html = '';
 		
-		# Add geocoder
-		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
-		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
-		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
-		$html .= "\n\t" . '<div id="geocoder">';
-		$html .= "\n\t\t" . '<input type="text" name="location" placeholder="Search locations" />';
-		$html .= "\n\t" . '</div>';
-		
 		# Zoom warning
 		#!# This is a poor UI and should be replaced in older UI designs
 		if (!$viewOnlyMode) {
 			if (!$selectedIdData) {
-				$html .= "\n\n\t" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
+				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
 			}
 		}
+		
+		# Start a container
+		$html .= "\n\n" . '<div id="mapcontainer">';
+		
+		# Add geocoder
+		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
+		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
+		$html .= "\n\n\t" . '<div id="geocoder">';
+		$html .= "\n\t\t" . '<input type="text" name="location" placeholder="Search locations" />';
+		$html .= "\n\t" . '</div>';
 		
 		# Create the map itself
 		$html .= "\n\n\t" . '<div id="map"></div>';
 		
-		# Wrap the map HTML in a container, to ensure the geocoder can be positioned
-		$html = "\n" . '<div id="mapcontainer">' . "\n" . $html . "\n\n</div>";
+		# End the container
+		$html .= "\n\n" . '</div>';
 		
 		# Return the HTML
 		return $html;

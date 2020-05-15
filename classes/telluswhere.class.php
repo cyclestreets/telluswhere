@@ -2618,6 +2618,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Determine the form template
 		$displayTemplate = $this->placeholderHtmlToFormTemplate ('form', $action, false, $data, $formFieldsInTemplate);
 		
+		# Create the map; alternatively, placeholderHtmlToFormTemplate may have already done this if the <!-- {$map} --> placeholder is within the form layout
+		$mapLocation = (isSet ($data['latitude']) ? $data : array ());
+		$this->template['map'] = $this->mapPanel ($action, $mapLocation, true);
+		
 		# Determine whether an existing photo already exists
 		$existingPhoto = ($existingData && $existingData['hasPhoto'] ? $existingData['thumbnailUrl'] : false);
 		if ($existingPhoto) {

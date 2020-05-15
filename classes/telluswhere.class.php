@@ -2407,9 +2407,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	# Map of locations
 	private function locationsMap ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
 	{
-		# Start the HTML
-		$html = '';
-		
 		# By default, no marker is shown
 		$setMarkerInitially = false;
 		
@@ -2514,13 +2511,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
 		
-		if (!$viewOnlyMode) {
-			if (!$selectedIdData) {
-				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
-			}
-		}
-		$html .= "\n" . '<div id="map"></div>';
-		
 		# Load EXIF Filereader support
 		$this->headContent['jquery-exif'] = '<script src="/js/lib/jquery.exif.js"></script>';
 		
@@ -2569,11 +2559,28 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		</script>
 		";
 		
-		# Add geocoder support
+		# Start the HTML
+		$html = '';
+		
+		# Add geocoder
 		$this->headContent['jquery-ui']  = '<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>';
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />';
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery.ui.autocomplete.css" />';
 		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
+		$html .= "\n\t" . '<div id="geocoder">';
+		$html .= "\n\t\t" . '<input type="text" name="location" placeholder="Search locations" />';
+		$html .= "\n\t" . '</div>';
+		
+		# Zoom warning
+		#!# This is a poor UI and should be replaced in older UI designs
+		if (!$viewOnlyMode) {
+			if (!$selectedIdData) {
+				$html .= "\n\n\t" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
+			}
+		}
+		
+		# Create the map itself
+		$html .= "\n\n\t" . '<div id="map"></div>';
 		
 		# Return the HTML
 		return $html;

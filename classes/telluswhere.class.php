@@ -1469,6 +1469,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'labelsSurround'		=> true,
 			'uploadThumbnailWidth'		=> 160,
 			'uploadThumbnailHeight'		=> 120,
+			'jQuery'					=> false,	// Already loaded
+			'jQueryUi'					=> false,	// Already loaded
 		));
 		if ($data) {
 			$form->heading ('p', 'Please check the map location to ensure it is correct. If not, you can ' . ($enableDrawing ? 'redraw the location' : 'drag the marker') . ' to give an accurate location.');
@@ -1767,6 +1769,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'name' => str_replace ('Form', '', $placeholder),
 			'submitButtonText'		=> "Mark as {$label} &nbsp; &gt;",
 			'submitButtonAccesskey'		=> false,
+			'jQuery'					=> false,	// Already loaded
+			'jQueryUi'					=> false,	// Already loaded
 		));
 		$form->heading ('p', "Or you can mark this location as {$label}:");
 		

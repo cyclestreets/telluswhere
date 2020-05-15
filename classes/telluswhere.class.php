@@ -766,7 +766,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 			if ($placeholder == 'map') {
 				$mapLocation = (isSet ($selectedIdData['latitude']) ? $selectedIdData : array ());
-				$replacements[$placeholder] = $this->locationsMap ($action, $mapLocation, true);
+				$replacements[$placeholder] = $this->mapPanel ($action, $mapLocation, true);
 			}
 		}
 		
@@ -1064,7 +1064,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		
 		# Create the map HTML
-		$html .= $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
+		$html .= $this->mapPanel ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
 		$this->template['map'] = $html;
@@ -1445,7 +1445,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Create the map HTML
-		$mapHtml = $this->locationsMap ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
+		$mapHtml = $this->mapPanel ($this->action, $selectedIdData, $markerSetInitiallyIsDraggable = true, false, $selectedIdData, $enableDrawing, $locationDataOriginal);
 		$this->template['map'] = $mapHtml;
 		
 		# Disable intelligence for colour fields, forcing ENUM
@@ -1919,7 +1919,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Create the map, in drawing mode
-		$mapHtml = $this->locationsMap (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = 'Polygon');
+		$mapHtml = $this->mapPanel (__FUNCTION__, false, false, $viewOnlyMode = true, array (), $enableDrawing = 'Polygon');
 		$this->template['map'] = $mapHtml;
 		
 		# Handle posted data
@@ -2031,7 +2031,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Define the map HTML
-		$mapHtml = $this->locationsMap ($type, false, false, $viewOnlyMode = true, $_GET);
+		$mapHtml = $this->mapPanel ($type, false, false, $viewOnlyMode = true, $_GET);
 		
 		# Show the customisation page if required
 		if ($showCustomisationPage) {
@@ -2239,7 +2239,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->template['id'] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']) . ' &mdash; #' . $id;
 		$this->template['message'] = $flashMessage . $userEditMessage;
 		$this->template['editlink'] = $editlink;
-		$this->template['map'] = $this->locationsMap ($action, $data, false);
+		$this->template['map'] = $this->mapPanel ($action, $data, false);
 		$this->template['metadata'] = $metadataHtml;
 	}
 	
@@ -2407,8 +2407,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
-	# Map of locations
-	private function locationsMap ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
+	# Map panel, for setting a location and/or showing others
+	private function mapPanel ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
 	{
 		# By default, no marker is shown
 		$setMarkerInitially = false;
@@ -3198,7 +3198,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$locationsCentrepoint = $this->locationsCentrepoint ($data);
 		
 		# Create the map HTML
-		$html .= $this->locationsMap ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
+		$html .= $this->mapPanel ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
 		
 		# Register the HTML
 		$this->template['contents'] = $html;
@@ -4363,7 +4363,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		";
 		
 		# Create the map HTML
-		$this->template['map'] = $this->locationsMap ($this->action, false, false, $viewOnlyMode = true);
+		$this->template['map'] = $this->mapPanel ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Obtain schema labels
 		$schema = $this->getAuditSchema ();

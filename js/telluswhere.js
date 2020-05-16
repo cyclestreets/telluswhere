@@ -682,7 +682,7 @@ var telluswhere = (function ($) {
 				// #!# Need to show the category name
 				var popupHtml = (_action == 'suggest' ? 'Improvement needed' : 'Present') + ' here';
 			}
-			_marker.bindPopup (popupHtml).openPopup ();
+			_marker.bindPopup (popupHtml, {className: _action}).openPopup ();
 			
 			// After dragging, transmit the value to the form, and reopen the popup
 			_marker.on ('dragend', function (e) {

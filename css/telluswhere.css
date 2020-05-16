@@ -75,3 +75,7 @@ form .latitude, form .longitude, form .zoom, form .location {display: none;}
 .ui-autocomplete li a {padding: 5px 15px 3px; display: block; color: #603;}
 .ui-autocomplete li a span {color: gray; font-size: 0.81em;}
 .ui-autocomplete li a.ui-state-active {cursor: pointer; background-color: #f7f7f7; color: inherit;}
+
+/* Export */
+p#export {display: none; /* Hidden by default, shown by JS */}
+p#export, p#export a {opacity: 0.6;}

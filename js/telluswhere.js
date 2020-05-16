@@ -64,9 +64,11 @@ var telluswhere = (function ($) {
 		tileUrl: false,
 		tileOpacity: false,
 		
+		// CycleStreets API key
+		apiKey: false,
+		
 		// Geocoder
 		apiBaseUrl: false,
-		apiKey: false,
 		geocoderBboxBounded: false,
 	};
 	
@@ -502,6 +504,9 @@ var telluswhere = (function ($) {
 			catch (e) {
 				alert(e);
 			}
+			
+			// Export
+			telluswhere.export ();
 			
 			// Return map
 			return map;
@@ -1536,6 +1541,82 @@ var telluswhere = (function ($) {
 			// Undo button
 			$('.edit-undo').click(function() {
 				drawnItems.revertLayers();
+			});
+		},
+		
+		
+		// Function to enable export
+		export: function ()
+		{
+			// Enable if the UI provides export links
+			if (!$('#export').length) {return;}
+			
+			// Get the link targes, whose class states the format
+			var linkTargets = $('#export a');
+			
+			// Define the link help texts
+			var helpTexts = {
+				csv:		'Data for the visible map area, as a CSV file, which will open in Excel/OpenOffice, and for analysis in programming languages.',
+				geojson:	'Data for the visible map area, as a GeoJSON file, suitable for use in a GIS program like QGIS, ArcGIS or MapInfo, or for analysis in R.'
+			};
+			$.each (linkTargets, function (index, linkTarget) {
+				$(linkTarget).attr ('title', helpTexts[linkTarget.className]);
+			});
+			
+			// Adjust links on map move
+			map.on ('moveend', function (e) {
+				
+				// Avoid ever showing the export links on mobile
+				var browserWidth = $(window).width ();
+				if (browserWidth < 768) {
+					return false;
+				}
+				
+				// Limit visibility of link to Local Authority area size, as API export at country-wide scale will give a misleading selection
+				if (map.getZoom() >= 13) {
+					$('#export').fadeIn (2000);
+				} else {
+					$('#export').fadeOut (1000);
+				}
+				
+				// Add the link for each format
+				$.each (linkTargets, function (index, linkTarget) {
+					
+					// Set the BBOX
+					var parameters = {};
+					parameters.bbox = map.getBounds().toBBoxString();
+					
+					// Limit to date since (using since, as that matches the icons, not earliestDate, which needs to be deprecated)
+					if (_settings.since) {
+						parameters.since = (new Date (_settings.since).getTime ())/1000;
+					}
+					
+					// Determine export type
+					parameters.format = linkTarget.className;
+					
+					// Assemble the link
+					var url = _settings.browsingApiUrl + '&' + $.param (parameters);
+					
+					// Use default limit
+					url = url.replace (/&limit=[0-9]+/, '');
+					
+					// Remove unnecessary fields from export
+					url = url.replace (',iconUrl', '');
+					url = url.replace (',metacategoryId', '');
+					url = url.replace (',hasPhoto', '');
+					
+					// Do not request additionalMetadata
+					url = url.replace (',additionalMetadata', '');
+					
+					// Use larger thumbnails
+					url = url.replace (/&thumbnailsize=[0-9]+/, '&thumbnailsize=1000');
+					
+					// Set the href value
+					$(linkTarget).attr ('href', url);
+					
+					// Set to open in a new window, which for CSV will be temporary
+					$(linkTarget).attr ('target', '_blank');
+				});
 			});
 		},
 		

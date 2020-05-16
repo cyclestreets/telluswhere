@@ -2637,7 +2637,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'display'					=> 'template',
 			'displayTemplate'			=> '{[[PROBLEMS]]}' . "\n{latitude}\n{longitude}\n{zoom}\n{location}" . $displayTemplate,
 			'requiredFieldIndicator'	=> false,
-			'submitButtonText'			=> 'Submit',
+			'submitButtonText'			=> ($action == 'suggest' ? 'Add my idea' : 'Submit'),
 			'submitButtonAccesskey'		=> false,
 			'nullText'					=> false,
 			'errorsCssClass'			=> 'notification error',

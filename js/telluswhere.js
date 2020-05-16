@@ -366,6 +366,18 @@ var telluswhere = (function ($) {
 				});
 			});
 			
+			// If a map setting indicator is present, on click, scroll to the map on mobile
+			if ($('.mapsetting').length) {
+				var browserWidth = $(window).width ();
+				if (browserWidth < 768) {
+					$('.mapsetting').on ('click', function () {
+						$('html, body').animate ({
+							scrollTop: 0
+						}, 400);
+					});
+				}
+			}
+			
 			// If setting a category is supported, move to the caption box on setting
 			if ($('form input[name="form\\[category\\]"]').length && $('form #form_caption').length) {
 				$('form input[name="form\\[category\\]"]').on ('click', function () {

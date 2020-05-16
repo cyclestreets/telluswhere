@@ -432,6 +432,7 @@ class telluswhere
 			echo $html;
 			return false;
 		}
+		$this->template['_action'] = $this->action;
 		
 		# Set the login link for the template
 		$this->template['loginLink'] = $this->baseUrl . '/login/';

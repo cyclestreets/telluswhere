@@ -157,16 +157,14 @@ var telluswhere = (function ($) {
 			// Add geocoder
 			telluswhere.geocoder ();
 			
-			// If there is a custom button, pass the click on to the main button; see: https://stackoverflow.com/questions/23016863/ and https://github.com/domoritz/leaflet-locatecontrol/issues/205#issuecomment-530096560
-			$(function() {		// #!# This should be surrounding the whole application
-				if ($('div.geolocate-button').length) {
-					// $('.leaflet-control-locate').hide();		// Done in the CSS instead, as enables mobile/desktop differences
-					$('.geolocate-button a').click( function(e) {
-						$('.fa-location-arrow').click();	// Simulate click of icon
-						e.preventDefault();
-					});
-				}
-			});
+			// If there is a custom geolocate button, pass the click on to the main button; see: https://stackoverflow.com/questions/23016863/ and https://github.com/domoritz/leaflet-locatecontrol/issues/205#issuecomment-530096560
+			if ($('div.geolocate-button').length) {
+				// $('.leaflet-control-locate').hide();		// Done in the CSS instead, as enables mobile/desktop differences
+				$('.geolocate-button a').click( function(e) {
+					$('.fa-location-arrow').click();	// Simulate click of icon
+					e.preventDefault();
+				});
+			}
 			
 			// Set cookie on map move
 			map.on ('moveend', function (e) {

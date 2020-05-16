@@ -2581,7 +2581,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
 		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
 		$html .= "\n\n\t" . '<div id="geocoder">';
-		$html .= "\n\t\t" . '<input type="text" name="location" placeholder="Search locations" />';
+		$html .= "\n\t\t" . '<input type="search" name="location" placeholder="Search locations" />';
 		$html .= "\n\t" . '</div>';
 		
 		# Create the map itself

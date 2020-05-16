@@ -2314,7 +2314,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	private function confirmationMessage ($id, $isUpdate, $action)
 	{
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
-		$html  = "\n<p>{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number {$id}.") . '</p>';
+		$html  = "\n<p id=\"thankyou\">{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number " . number_format ($id) . '.') . '</p>';
 		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}{$this->iframeSuffix}\">Add another?</a></p>";
 		return $html;
 	}

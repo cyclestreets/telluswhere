@@ -612,7 +612,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// Default minimum zoom level to set
-			return 18;
+			return 16;
 			
 		},
 		

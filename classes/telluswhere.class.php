@@ -912,6 +912,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
 		
 		# Load the application, to enable the geocoder
+		$userJs = ($this->user ? 'true' : 'false');
 		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$this->headContent['application'] .= "\n" . "<script>
 		$(function() {

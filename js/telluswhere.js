@@ -1,4 +1,8 @@
 // Telluswhere javascript module
+
+/*jslint browser: true, white: true, single: true, for: true */
+/*global $, jQuery, L, autocomplete, alert, confirm, console, window */
+
 var telluswhere = (function ($) {
 	'use strict';
 	
@@ -54,7 +58,7 @@ var telluswhere = (function ($) {
 			[2, 1.1],
 			[5, 1.3],
 			[10, 1.6],
-			[20, 2.5],
+			[20, 2.5]
 		],
 		
 		// Browse request limitations
@@ -70,7 +74,7 @@ var telluswhere = (function ($) {
 		
 		// Geocoder
 		apiBaseUrl: false,
-		geocoderBboxBounded: false,
+		geocoderBboxBounded: false
 	};
 	
 	/* Class properties */
@@ -147,12 +151,12 @@ var telluswhere = (function ($) {
 			map.setView([initialMapLocation.latitude, initialMapLocation.longitude], initialMapLocation.zoom);
 			
 			// Set tile layer
-			var tileAttribution = 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors (<a href=\"https://www.openstreetmap.org/copyright\">ODbL</a>)';
+			var tileAttribution = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors (<a href="https://www.openstreetmap.org/copyright">ODbL</a>)';
 			L.tileLayer (_settings.tileUrl, {
 				attribution: tileAttribution,
 				maxZoom: _settings.maxZoom,
 				minZoom: _settings.minZoom,
-				opacity: _settings.tileOpacity,
+				opacity: _settings.tileOpacity
 			}).addTo(map);
 			
 			// Add hash
@@ -288,7 +292,7 @@ var telluswhere = (function ($) {
 						
 						// Add popups
 						layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {
-							className: className,
+							'className': className,
 							autoPanPaddingTopLeft: [0, 50],			// 50px from top
 							autoPanPaddingBottomRight: [55, 0]		// 55px from right
 						});
@@ -416,7 +420,7 @@ var telluswhere = (function ($) {
 					if (confirm ('Confirm - are all the details of this location, as shown above, correct?')) {
 						
 						// Send the AJAX request and handle the response
-						$.ajax({
+						$.ajax ({
 							type: 'POST',
 							url: _settings.baseUrl + '/ajax/auditunchanged',
 							data: data,
@@ -461,7 +465,7 @@ var telluswhere = (function ($) {
 						// Asssemble the data
 						var data = {
 							id: $(this).data('id')
-						}
+						};
 						
 						// Send the AJAX request and handle the response
 						$.ajax({
@@ -690,11 +694,12 @@ var telluswhere = (function ($) {
 			map.addLayer(_marker);
 			
 			// Set the popup content
+			var popupHtml;
 			if (data) {
-				var popupHtml = telluswhere.popupHtmlDynamic (data);
+				popupHtml = telluswhere.popupHtmlDynamic (data);
 			} else {
 				// #!# Need to show the category name
-				var popupHtml = (_action == 'suggest' ? 'Improvement needed' : 'Present') + ' here';
+				popupHtml = (_action == 'suggest' ? 'Improvement needed' : 'Present') + ' here';
 			}
 			_marker.bindPopup (popupHtml, {className: _action}).openPopup ();
 			
@@ -791,7 +796,7 @@ var telluswhere = (function ($) {
 			var longitude = (aLon[0] + aLon[1]/60 + aLon[2]/3600) * (strLongRef == 'W' ? -1 : 1);
 			
 			// Assemble the object to be returned
-			var geolocationData = new Array;
+			var geolocationData = [];
 			geolocationData['latitude'] = latitude;
 			geolocationData['longitude'] = longitude;
 			
@@ -807,7 +812,7 @@ var telluswhere = (function ($) {
 		// Newline-to-breaks helper function
 		nl2br: function (str, is_xhtml)
 		{
-			var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
+			var breakTag = ((is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>');
 			return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
 		},
 		
@@ -848,7 +853,7 @@ var telluswhere = (function ($) {
 				
 				// If the label is null, hide the row
 				if (_settings.popupLabels) {
-					if (key in _settings.popupLabels) {
+					if (_settings.popupLabels.hasOwnProperty ('key')) {
 						if (_settings.popupLabels[key] == null) {
 							return;	/* i.e. continue */
 						}
@@ -1127,9 +1132,10 @@ var telluswhere = (function ($) {
 				Navigator: navigator.appVersion,
 					Version: function() {
 					var version = 999; // we assume a sane browser
-					if (navigator.appVersion.indexOf('MSIE') != -1)
-					// bah, IE again, lets downgrade version number
-					version = parseFloat(navigator.appVersion.split('MSIE')[1]);
+					if (navigator.appVersion.indexOf('MSIE') != -1) {
+						// bah, IE again, lets downgrade version number
+						version = parseFloat(navigator.appVersion.split('MSIE')[1]);
+					}
 					return version;
 				}
 			};
@@ -1343,7 +1349,7 @@ var telluswhere = (function ($) {
 						latitude: locationComponents[1],
 						longitude: locationComponents[2],
 						zoom: locationComponents[0]
-					}
+					};
 				}
 			}
 			
@@ -1352,7 +1358,7 @@ var telluswhere = (function ($) {
 				latitude: _settings.initialLatitude,
 				longitude: _settings.initialLongitude,
 				zoom: _settings.initialZoom
-			}
+			};
 		},
 		
 		
@@ -1439,10 +1445,16 @@ var telluswhere = (function ($) {
 		{
 		    var nameEQ = name + "=";
 		    var ca = document.cookie.split(';');
-		    for(var i=0;i < ca.length;i++) {
-		        var c = ca[i];
-		        while (c.charAt(0)==' ') c = c.substring(1,c.length);
-		        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+			var i;
+			var c;
+		    for (i = 0; i < ca.length; i++) {
+		        c = ca[i];
+		        while (c.charAt(0) == ' ') {
+					c = c.substring (1, c.length);
+				}
+		        if (c.indexOf(nameEQ) == 0) {
+					return c.substring(nameEQ.length,c.length);
+				}
 		    }
 		    return null;
 		},

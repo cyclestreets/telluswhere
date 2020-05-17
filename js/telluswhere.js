@@ -341,33 +341,12 @@ var telluswhere = (function ($) {
 						return styles;
 					}
 				});
+				
 				_currentDataLayers[index].addTo(map);
 			});
 			
 			// Add support for Like clicks
-			$('body').on('click','#likes a', function(event){	// https://stackoverflow.com/a/19133666/180733
-				event.preventDefault();
-				$.ajax({
-					url: $(this).attr('href'),
-					success: function(data) {
-						var totalLikes = (data.total > 0 ? data.total : '');
-						$('#likescurrent').text(totalLikes);
-						if(data.liked) {
-							$('#likes').addClass('liked');
-							$('#likestext').text('Agreed!');
-						} else {
-							$('#likes').removeClass('liked');
-							$('#likestext').text('Agree?');
-						}
-						$('#likes').removeClass('changed');
-						$('#likes').addClass('changed');
-					},
-					error: function (xhr, status, error) {
-						var data = $.parseJSON(xhr.responseText);
-						alert(data.error);
-					}
-				});
-			});
+			telluswhere.liking ();
 			
 			// If a map setting indicator is present, on click, scroll to the map on mobile
 			if ($('.mapsetting').length) {
@@ -511,6 +490,35 @@ var telluswhere = (function ($) {
 			
 			// Return map
 			return map;
+		},
+		
+		
+		// Liking
+		liking: function ()
+		{
+			$('body').on('click','#likes a', function(event){	// https://stackoverflow.com/a/19133666/180733
+				event.preventDefault();
+				$.ajax({
+					url: $(this).attr('href'),
+					success: function(data) {
+						var totalLikes = (data.total > 0 ? data.total : '');
+						$('#likescurrent').text(totalLikes);
+						if(data.liked) {
+							$('#likes').addClass('liked');
+							$('#likestext').text('Agreed!');
+						} else {
+							$('#likes').removeClass('liked');
+							$('#likestext').text('Agree?');
+						}
+						$('#likes').removeClass('changed');
+						$('#likes').addClass('changed');
+					},
+					error: function (xhr, status, error) {
+						var data = $.parseJSON(xhr.responseText);
+						alert(data.error);
+					}
+				});
+			});
 		},
 		
 		

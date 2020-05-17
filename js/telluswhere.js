@@ -387,14 +387,7 @@ var telluswhere = (function ($) {
 			});
 			
 			// EXIF callback for file upload
-			try {
-				$('#form_filename_0').change(function() {
-					$(this).fileExif(telluswhere.exifCallback);
-				});
-			}
-			catch (e) {
-				alert(e);
-			}
+			telluswhere.fileUploadExif ()
 			
 			// Export
 			telluswhere.export ();
@@ -819,6 +812,19 @@ var telluswhere = (function ($) {
 		
 		
 		/* EXIF image marker setting functions */
+		
+		// EXIF callback for file upload
+		fileUploadExif: function ()
+		{
+			try {
+				$('#form_filename_0').change (function () {
+					$(this).fileExif (telluswhere.exifCallback);
+				});
+			} catch (e) {
+				alert (e);
+			}
+		},
+		
 		
 		// Register function for adding to map
 		exifCallback: function (exifObject)

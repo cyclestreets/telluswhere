@@ -899,6 +899,28 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add areas drop-down if supported
 		$this->template['areas'] = $this->areasDropdown ();
 		
+		# Create the map application CSS
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
+		
+		# Load the application, to enable the geocoder
+		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
+		$this->headContent['application'] .= "\n" . "<script>
+		$(function() {
+			var config = {
+				baseUrl: '{$this->baseUrl}',
+				apiKey: '{$this->settings['apiKey']}',
+				apiBaseUrl: '{$this->settings['apiBase']}',
+				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}'
+			};
+			
+			telluswhere.initialise (config, 'geocoderRedirect', '{$this->action}', {$userJs});
+		});
+		</script>
+		";
+		
+		# Add geocoder
+		$html .= $this->geocoder ();
+		
 		# Return the HTML
 		return $html;
 	}
@@ -2601,7 +2623,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Create the HTML
 		$html .= "\n\n\t" . '<div id="geocoder">';
-		$html .= "\n\t\t" . '<input type="search" name="location" placeholder="Search locations" />';
+		$html .= "\n\t\t" . '<input type="search" name="location" autocomplete="off" placeholder="Search locations" spellcheck="false" />';
 		$html .= "\n\t" . '</div>';
 		
 		# Return the HTML

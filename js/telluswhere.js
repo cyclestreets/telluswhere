@@ -1353,6 +1353,23 @@ var telluswhere = (function ($) {
 		},
 		
 		
+		// Function to provide a geocoder with redirection to the suggest page
+		geocoderRedirect: function ()
+		{
+			// Attach the autocomplete library
+			autocomplete.addTo ("input[name='location']", {
+				sourceUrl: _settings.apiBaseUrl + '/v2/geocoder?key=' + _settings.apiKey + '&bounded=1&bbox=' + _settings.geocoderBboxBounded,
+				select: function (event, ui) {
+					var latitude = ui.item.feature.geometry.coordinates[1];
+					var longitude = ui.item.feature.geometry.coordinates[0];
+					var zoom = 16;		// Acceptable for most types of searches
+					var url = '/suggest/#' + zoom + '/' + latitude + '/' + longitude;
+					window.location.href = url;
+				}
+			});
+		},
+		
+		
 		// Function to provide a geocoder, using the CycleStreet API and autocomplete library
 		geocoder: function ()
 		{

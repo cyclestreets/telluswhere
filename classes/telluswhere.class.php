@@ -918,13 +918,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}'
 			};
 			
-			telluswhere.initialise (config, 'geocoderRedirect', '{$this->action}', {$userJs});
+			telluswhere.initialise (config, 'home', '{$this->action}', {$userJs});
 		});
 		</script>
 		";
 		
 		# Add geocoder
-		$html .= $this->geocoder ();
+		$html .= $this->geocoder ($withGeolocation = true);
 		
 		# Return the HTML
 		return $html;
@@ -2658,7 +2658,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to create a geocoder
-	private function geocoder ()
+	private function geocoder ($withGeolocation = false)
 	{
 		# Register assets
 		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
@@ -2667,6 +2667,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Create the HTML
 		$html .= "\n\n\t" . '<div id="geocoder">';
+		if ($withGeolocation) {
+			$html .= "\n\t\t" . '<img class="geolocation" src="/images/gps.png" />';
+		}
 		$html .= "\n\t\t" . '<input type="search" name="location" autocomplete="off" placeholder="Search locations" spellcheck="false" />';
 		$html .= "\n\t" . '</div>';
 		

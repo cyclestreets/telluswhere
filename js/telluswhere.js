@@ -1356,8 +1356,8 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// Function to provide a geocoder with redirection to the suggest page
-		geocoderRedirect: function ()
+		// Home page functions, including geocoder with redirection to the suggest page
+		home: function ()
 		{
 			// Attach the autocomplete library
 			autocomplete.addTo ("input[name='location']", {
@@ -1369,6 +1369,22 @@ var telluswhere = (function ($) {
 					var url = '/suggest/#' + zoom + '/' + latitude + '/' + longitude;
 					window.location.href = url;
 				}
+			});
+			
+			// Add support for geolocation button
+			$('.geolocation').click (function () {
+				
+				// If not supported, treat as link to the map page
+				if (!navigator.geolocation) {
+					window.location.href = '/map/';
+					return;
+				}
+				
+				// Locate the user
+				navigator.geolocation.getCurrentPosition (function (position) {
+					var targetUrl = '/suggest/#' + '16' + '/' + position.coords.latitude.toFixed(6) + '/' + position.coords.longitude.toFixed(6);
+					window.location.href = targetUrl;
+				});
 			});
 		},
 		

@@ -426,34 +426,7 @@ var telluswhere = (function ($) {
 			
 			// On priority areas page, enable deletion
 			if (_action == 'priorityareas') {
-				$('#map').on ('click', 'a.priorityareasdelete', function (e) {
-					if (confirm ('Are you sure?')) {
-						
-						// Asssemble the data
-						var data = {
-							id: $(this).data('id')
-						};
-						
-						// Send the AJAX request and handle the response
-						$.ajax({
-							type: 'POST',
-							url: '/ajax/priorityareasdelete',
-							data: data,
-							dataType: 'json',
-							success: function (response) {
-								
-								// Move the map to delete the polygon and refresh state
-								map.closePopup();
-								map.panTo (map.getCenter());
-							},
-							error: function (xhr, status, error) {
-								var data = $.parseJSON(xhr.responseText);
-								/*vex.dialog.*/alert (data.error);
-							}
-						});
-						e.preventDefault ();
-					}
-				});
+				telluswhere.priorityareasDeletion ();
 			}
 			
 			// Determine whether to use JSONP transport instead of JSON for the marker layer calls (for older browsers)
@@ -518,6 +491,40 @@ var telluswhere = (function ($) {
 						alert(data.error);
 					}
 				});
+			});
+		},
+		
+		
+		// On priority areas page, enable deletion
+		priorityareasDeletion: function ()
+		{
+			$('#map').on ('click', 'a.priorityareasdelete', function (e) {
+				if (confirm ('Are you sure?')) {
+					
+					// Asssemble the data
+					var data = {
+						id: $(this).data('id')
+					};
+					
+					// Send the AJAX request and handle the response
+					$.ajax({
+						type: 'POST',
+						url: '/ajax/priorityareasdelete',
+						data: data,
+						dataType: 'json',
+						success: function (response) {
+							
+							// Move the map to delete the polygon and refresh state
+							map.closePopup();
+							map.panTo (map.getCenter());
+						},
+						error: function (xhr, status, error) {
+							var data = $.parseJSON(xhr.responseText);
+							/*vex.dialog.*/alert (data.error);
+						}
+					});
+					e.preventDefault ();
+				}
 			});
 		},
 		

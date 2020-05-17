@@ -360,14 +360,7 @@ var telluswhere = (function ($) {
 			}
 			
 			// For priority areas polygons browsing in zoomed-out mode, enable zoom in
-			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
-				$('#map').on ('click', 'a.priorityareaszoom', function (e) {
-					var centre = e.target.dataset;
-					map.setView([centre.lat, centre.lng], centre.zoom);
-					map.closePopup ();
-					e.preventDefault ();
-				});
-			}
+			telluswhere.priorityareasZoomIn ();
 			
 			// On priority areas page, enable deletion
 			if (_action == 'priorityareas') {
@@ -462,6 +455,20 @@ var telluswhere = (function ($) {
 			if ($('form input[name="form\\[category\\]"]').length && $('form #form_caption').length) {
 				$('form input[name="form\\[category\\]"]').on ('click', function () {
 					$('form #form_caption').focus ();
+				});
+			}
+		},
+		
+		
+		// For priority areas polygons browsing in zoomed-out mode, enable zoom in
+		priorityareasZoomIn: function ()
+		{
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation') {
+				$('#map').on ('click', 'a.priorityareaszoom', function (e) {
+					var centre = e.target.dataset;
+					map.setView([centre.lat, centre.lng], centre.zoom);
+					map.closePopup ();
+					e.preventDefault ();
 				});
 			}
 		},

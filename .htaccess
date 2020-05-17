@@ -17,8 +17,8 @@ php_flag output_buffering Off
 # Run application pages
 RewriteEngine On
 RewriteRule ^$ index.html?action=home [L,QSA]
-RewriteRule ^(suggest|current|audit|embed|news|about|privacy|programme|terms|contacts|data|settings|admin|batch|login|logout|register|password|profile)/$ index.html?action=$1 [L,QSA]
-RewriteRule ^(suggest|current|audit|embed|news|about|privacy|programme|terms|contacts|data|settings|admin|login|batch|logout|register|password|profile)$ /$1/ [L,R=301]
+RewriteRule ^(suggest|current|audit|areas|embed|news|about|privacy|programme|terms|contacts|data|settings|admin|batch|login|logout|register|password|profile)/$ index.html?action=$1 [L,QSA]
+RewriteRule ^(suggest|current|audit|areas|embed|news|about|privacy|programme|terms|contacts|data|settings|admin|login|batch|logout|register|password|profile)$ /$1/ [L,R=301]
 RewriteRule ^(suggest|current|audit|terms)/iframe.html$ index.html?action=$1&iframe=1 [L,QSA]
 RewriteRule ^(register)/([a-f0-9]{24})/?$ /index.html?action=$1&token=$2 [L]
 RewriteRule ^(location)/([1-9][0-9]*)/$ index.html?action=$1&id=$2 [L,QSA]

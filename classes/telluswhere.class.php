@@ -63,6 +63,10 @@ class telluswhere
 					'bikeshare' => 'schemes',
 				),
 			),
+			'areas' => array (		// Basically a wrapper to current
+				'description' => 'Homepages for every area',
+				'url' => '/areas/',
+			),
 			'city' => array (		// Basically a wrapper to current
 				'description' => 'Homepage for city',
 				'url' => '/suggest/',	// Template location; URL will be /%id
@@ -970,6 +974,71 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Areas listing page
+	private function areas ()
+	{
+		# Create the map application CSS
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
+		
+		# Get the areas list from the API
+		$apiUrl = '/v2/localareas.list';
+		$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
+		$data = file_get_contents ($apiUrl);
+		$data = json_decode ($data, true);
+		
+		# Convert from GeoJSON to a flat array
+		$areas = array ();
+		foreach ($data['features'] as $area) {
+			$areas[] = array (
+				'country'	=> $area['properties']['country'],
+				'name'		=> $area['properties']['name'],
+				'url'		=> $_SERVER['_SITE_URL'] . '/' . $area['properties']['id'] . '/',
+				'link'		=> $_SERVER['SERVER_NAME'] . '/' . $area['properties']['id'],
+			);
+		}
+		
+		# Regroup by region
+		$areasByRegion = application::regroup ($areas, 'country');
+		
+		# Filter to wanted regions only
+		$filterToRegions = array (
+			'England: London Boroughs',
+			'England',
+			'Wales',
+			'Scotland',
+			'Northern Ireland',
+		);
+		$areasByRegion = application::arrayFields ($areasByRegion, $filterToRegions);
+		
+		# Create a listing
+		$html = '';
+		$regionsList = array ('Jump to:');
+		foreach ($areasByRegion as $region => $areas) {
+			
+			# Register the jump link
+			$region = str_replace ('England: ', '', $region);
+			$regionId = strtolower (str_replace (array (' ', ':'), '', $region));
+			$regionsList[] = '<a href="#' . htmlspecialchars ($regionId) . '">' . htmlspecialchars ($region) . '</a>';
+			
+			# Add the heading
+			$html .= "\n\n<h3 id=\"{$regionId}\">" . htmlspecialchars ($region) . '</h3>';
+			
+			# Add each region
+			$list = array ();
+			foreach ($areas as $area) {
+				$list[] = "<li><a href=\"{$area['url']}\">" . htmlspecialchars ($area['name']) . '</a></li>';
+			}
+			$html .= "\n" . application::splitListItems ($list, $columns = 3);
+		}
+		
+		# Add the regions jumplist
+		$html = application::htmlUl ($regionsList, 0, 'inline') . $html;
+		
+		# Register the list
+		$this->template['list'] = $html;
 	}
 	
 	

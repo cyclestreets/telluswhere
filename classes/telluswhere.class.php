@@ -2512,11 +2512,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$this->headContent['leaflet-draw'] .= "\n" . '<link rel="stylesheet" href="/js/lib/Leaflet.draw-0.4.14/dist/leaflet.draw.css" rel="stylesheet" />';
 		}
 		
-		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
-		
 		# Load EXIF Filereader support
 		$this->headContent['jquery-exif'] = '<script src="/js/lib/jquery.exif.js"></script>';
+		
+		# Create the map application CSS
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');
@@ -2558,7 +2558,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}'
 			};
 			
-			var map = telluswhere.createMap (config, '{$this->action}', {$userJs});
+			telluswhere.initialise (config, 'createMap', '{$this->action}', {$userJs});
 		});
 		</script>
 		";

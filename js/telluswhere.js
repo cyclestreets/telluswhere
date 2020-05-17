@@ -99,7 +99,7 @@ var telluswhere = (function ($) {
 // Public functions
 		
 		// Main function
-		createMap: function (config, action, user)
+		initialise: function (config, run, action, user)
 		{
 			// Merge the configuration into the settings
 			$.each (_settings, function (setting, value) {
@@ -107,10 +107,6 @@ var telluswhere = (function ($) {
 					_settings[setting] = config[setting];
 				}
 			});
-			
-			// Set class properties
-			_action = action;
-			_user = user;
 			
 			// Set browsing API URLs
 			if (_settings.browsingApiUrl) {
@@ -120,6 +116,18 @@ var telluswhere = (function ($) {
 				_browsingApiUrls[1] = _settings.browsingApiUrl2;
 			}
 			
+			// Set class properties
+			_action = action;
+			_user = user;
+			
+			// Start map creation
+			telluswhere[run] (config, action, user);
+		},
+		
+		
+		// Main function
+		createMap: function (config, action, user)
+		{
 			// Enable tooltips for titles
 			if (jQuery.ui) {	// If jQuery UI loaded
 				$('#selectcategory').tooltip ({

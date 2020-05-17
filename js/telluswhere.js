@@ -252,22 +252,10 @@ var telluswhere = (function ($) {
 						}
 						
 						// If there are likes, make the icon larger progressively
-						var thisIcon = $.extend (true, {}, icon);
-						if (feature.properties.likes) {
-							var scale = 1;
-							$.each (_settings.iconSizeLikesScaling, function (index, scaleFactor) {
-								if (feature.properties.likes >= scaleFactor[0]) {
-									scale = scaleFactor[1];
-								} // continue until end
-							});
-							if (scale) {
-								// #!# Need to find the correct way to do this, rather than using the internal prototype property
-								thisIcon.options.iconSize = [icon.options.__proto__.iconSize[0] * scale, icon.options.__proto__.iconSize[1] * scale];
-							}
-						}
+						icon = telluswhere.iconSizeLikes (icon, feature.properties.likes);
 						
 						// Return the marker
-						return L.marker (latlng, {icon: thisIcon});
+						return L.marker (latlng, {icon: icon});
 					},
 					
 					// Add interactions
@@ -523,6 +511,30 @@ var telluswhere = (function ($) {
 			
 			// Return map
 			return map;
+		},
+		
+		
+		// Function to set the icon size, as adjusted by likes
+		iconSizeLikes: function (icon, likes)
+		{
+			// Determine scale
+			var scale = 1;
+			if (likes) {
+				$.each (_settings.iconSizeLikesScaling, function (index, scaleFactor) {
+					if (likes >= scaleFactor[0]) {
+						scale = scaleFactor[1];
+					} // continue until end
+				});
+			}
+			
+			// Set the icon size; this must be done for every icon, even if not scaling
+			icon.options.iconSize = [
+				icon.options.__proto__.iconSize[0] * scale,
+				icon.options.__proto__.iconSize[1] * scale
+			];
+			
+			// Return the icon
+			return icon;
 		},
 		
 		

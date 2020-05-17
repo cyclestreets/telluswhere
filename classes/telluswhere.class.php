@@ -2578,18 +2578,31 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html .= "\n\n" . '<div id="mapcontainer">';
 		
 		# Add geocoder
-		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
-		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
-		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
-		$html .= "\n\n\t" . '<div id="geocoder">';
-		$html .= "\n\t\t" . '<input type="search" name="location" placeholder="Search locations" />';
-		$html .= "\n\t" . '</div>';
+		$html .= $this->geocoder ();
 		
 		# Create the map itself
 		$html .= "\n\n\t" . '<div id="map"></div>';
 		
 		# End the container
 		$html .= "\n\n" . '</div>';
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to create a geocoder
+	private function geocoder ()
+	{
+		# Register assets
+		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
+		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
+		
+		# Create the HTML
+		$html .= "\n\n\t" . '<div id="geocoder">';
+		$html .= "\n\t\t" . '<input type="search" name="location" placeholder="Search locations" />';
+		$html .= "\n\t" . '</div>';
 		
 		# Return the HTML
 		return $html;

@@ -982,26 +982,26 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			echo $html;
 			return false;
 		}
-		$city = $_GET['id'];
+		$id = $_GET['id'];
 		
-		# Set the starting point
-		switch ($city) {
-			case 'cambridge':
-				$this->settings['defaultLatitude'] = 52.205276;
-				$this->settings['defaultLongitude'] = 0.119167;
-				$this->settings['defaultZoom'] = 14;
-				break;
-			case 'ely':
-				$this->settings['defaultLatitude'] = 52.3995;
-				$this->settings['defaultLongitude'] = 0.2624;
-				$this->settings['defaultZoom'] = 17;
-				break;
-			case 'camden':
-				$this->settings['defaultLatitude'] = 51.5455;
-				$this->settings['defaultLongitude'] = 0.1628;
-				$this->settings['defaultZoom'] = 15;
-				break;
+		# Request the data from the API
+		$apiUrl = '/v2/localareas.show&id=' . $id;
+		$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
+		$data = file_get_contents ($apiUrl);
+		$data = json_decode ($data, true);
+		
+		# End if no match
+		if (isSet ($data['error'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
 		}
+		
+		# Assign the start point
+		$feature = $data['features'][0];
+		$this->settings['defaultLatitude'] = $feature['geometry']['coordinates'][1];
+		$this->settings['defaultLongitude'] = $feature['geometry']['coordinates'][0];
+		$this->settings['defaultZoom'] = ($feature['properties']['radius'] > 5 ? 12 : 14);
 		
 		# Run suggest
 		$this->suggest (array (), $enableInitialCookieLocation = false);

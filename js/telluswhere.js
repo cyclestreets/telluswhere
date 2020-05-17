@@ -369,49 +369,7 @@ var telluswhere = (function ($) {
 			
 			// For audit location, add link to editing page
 			if (_action == 'audit') {
-				$('#map').on('click', 'a#auditunchanged', function (e) {
-					
-					// Assemble the data, obtaining the ID
-					var data = {
-						id: $(this).data('id')
-					};
-					
-					// If not logged in, convert the button to a login requirement
-					if (!_user) {
-						$('p.auditbuttons' + data.id).html ('<p style="color: red;">Please <a href="' + _settings.baseUrl + '/login/?/audit/">log in</a> or <a href="' + _settings.baseUrl + '/register/">register</a> first.</p>');
-						e.preventDefault ();
-						return;		// End
-					}
-					
-					// Show confirmation first
-					if (confirm ('Confirm - are all the details of this location, as shown above, correct?')) {
-						
-						// Send the AJAX request and handle the response
-						$.ajax ({
-							type: 'POST',
-							url: _settings.baseUrl + '/ajax/auditunchanged',
-							data: data,
-							dataType: 'json',
-							success: function (response) {
-								
-								// Hide the popup button for this ID
-								$('p.auditbuttons' + data.id).html ('<p style="color: green;">✓ This location has now been reviewed - thank you!</p>');
-								
-								// Update the points
-								$('span.badge, span.profile a').text (response.points + ' points');
-								$('span.badge, span.profile a').fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);	// https://stackoverflow.com/questions/275931/
-								
-								// Update the icon/line to green, by forcing map move of zero position change to result in new AJAX request
-								map.panTo (map.getCenter());
-							},
-							error: function (xhr, status, error) {
-								var data = $.parseJSON(xhr.responseText);
-								/*vex.dialog.*/alert (data.error);
-							}
-						});
-					}
-					e.preventDefault ();	// Don't follow link
-				});
+				telluswhere.auditUnchanged ();
 			}
 			
 			// For priority areas polygons browsing in zoomed-out mode, enable zoom in
@@ -491,6 +449,55 @@ var telluswhere = (function ($) {
 						alert(data.error);
 					}
 				});
+			});
+		},
+		
+		
+		// Audit page unchanged location handler
+		auditUnchanged: function ()
+		{
+			$('#map').on('click', 'a#auditunchanged', function (e) {
+				
+				// Assemble the data, obtaining the ID
+				var data = {
+					id: $(this).data('id')
+				};
+				
+				// If not logged in, convert the button to a login requirement
+				if (!_user) {
+					$('p.auditbuttons' + data.id).html ('<p style="color: red;">Please <a href="' + _settings.baseUrl + '/login/?/audit/">log in</a> or <a href="' + _settings.baseUrl + '/register/">register</a> first.</p>');
+					e.preventDefault ();
+					return;		// End
+				}
+				
+				// Show confirmation first
+				if (confirm ('Confirm - are all the details of this location, as shown above, correct?')) {
+					
+					// Send the AJAX request and handle the response
+					$.ajax ({
+						type: 'POST',
+						url: _settings.baseUrl + '/ajax/auditunchanged',
+						data: data,
+						dataType: 'json',
+						success: function (response) {
+							
+							// Hide the popup button for this ID
+							$('p.auditbuttons' + data.id).html ('<p style="color: green;">✓ This location has now been reviewed - thank you!</p>');
+							
+							// Update the points
+							$('span.badge, span.profile a').text (response.points + ' points');
+							$('span.badge, span.profile a').fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);	// https://stackoverflow.com/questions/275931/
+							
+							// Update the icon/line to green, by forcing map move of zero position change to result in new AJAX request
+							map.panTo (map.getCenter());
+						},
+						error: function (xhr, status, error) {
+							var data = $.parseJSON(xhr.responseText);
+							/*vex.dialog.*/alert (data.error);
+						}
+					});
+				}
+				e.preventDefault ();	// Don't follow link
 			});
 		},
 		

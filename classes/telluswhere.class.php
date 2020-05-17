@@ -397,7 +397,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '200310';
+		$this->template['revision'] = '200517';
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
@@ -2700,7 +2700,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Create the map; alternatively, placeholderHtmlToFormTemplate may have already done this if the <!-- {$map} --> placeholder is within the form layout
 		$mapLocation = (isSet ($data['latitude']) ? $data : array ());
-		$this->template['map'] = $this->mapPanel ($action, $mapLocation, true, $enableInitialCookieLocation, false, array (), false, array (), $enableInitialCookieLocation);
+		$this->template['map'] = $this->mapPanel ($action, $mapLocation, true, false, false, array (), false, array (), $enableInitialCookieLocation);
 		
 		# Determine whether an existing photo already exists
 		$existingPhoto = ($existingData && $existingData['hasPhoto'] ? $existingData['thumbnailUrl'] : false);

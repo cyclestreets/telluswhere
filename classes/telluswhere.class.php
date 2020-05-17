@@ -973,7 +973,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
-	# City page, e.g. /cambridge, basically a wrapper to current
+	# City page, e.g. /cambridge, basically a wrapper to suggest
 	private function city ()
 	{
 		# Ensure there is a city moniker
@@ -1004,6 +1004,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->settings['defaultZoom'] = ($feature['properties']['radius'] > 5 ? 12 : 14);
 		
 		# Run suggest
+		$this->action = 'suggest';
+		$this->template['_action'] = $this->action;		// Re-register
 		$this->suggest (array (), $enableInitialCookieLocation = false);
 	}
 	

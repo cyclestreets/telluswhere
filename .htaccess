@@ -53,6 +53,10 @@ RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas|login)$ /$1/$2/
 RewriteRule ^(admin)/(review)/page([1-9][0-9]*).html$ index.html?action=$1$2&page=$3 [L,QSA]
 RewriteRule ^ajax/([a-z]+)$ index.html?action=ajax&call=$1 [L,QSA]
 
+# Geographical cities, e.g. /cambridge, matching last
+RewriteRule ^([-a-z]+)/$ index.html?action=city&id=$1 [L,QSA]
+RewriteRule ^([-a-z]+)$ /$1/ [L,R=302]
+
 # If no match above, serve files from the style folder directly, via the web application, for the configured style, other than specified static files
 RewriteCond %{REQUEST_FILENAME} !/.well-known
 RewriteCond %{REQUEST_FILENAME} !/index\.html$

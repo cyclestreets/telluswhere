@@ -63,6 +63,11 @@ class telluswhere
 					'bikeshare' => 'schemes',
 				),
 			),
+			'city' => array (		// Basically a wrapper to current
+				'description' => 'Homepage for city',
+				'url' => '/suggest/',	// Template location; URL will be /%id
+				'template' => false,
+			),
 			'audit' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/',
@@ -968,8 +973,43 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
+	# City page, e.g. /cambridge, basically a wrapper to current
+	private function city ()
+	{
+		# Ensure there is a city moniker
+		if (!isSet ($_GET['id'])) {
+			$html = $this->page404 ();
+			echo $html;
+			return false;
+		}
+		$city = $_GET['id'];
+		
+		# Set the starting point
+		switch ($city) {
+			case 'cambridge':
+				$this->settings['defaultLatitude'] = 52.205276;
+				$this->settings['defaultLongitude'] = 0.119167;
+				$this->settings['defaultZoom'] = 14;
+				break;
+			case 'ely':
+				$this->settings['defaultLatitude'] = 52.3995;
+				$this->settings['defaultLongitude'] = 0.2624;
+				$this->settings['defaultZoom'] = 17;
+				break;
+			case 'camden':
+				$this->settings['defaultLatitude'] = 51.5455;
+				$this->settings['defaultLongitude'] = 0.1628;
+				$this->settings['defaultZoom'] = 15;
+				break;
+		}
+		
+		# Run suggest
+		$this->suggest (array (), $enableInitialCookieLocation = false);
+	}
+	
+	
 	# Suggest a location page
-	private function suggest ($existingData = array ())
+	private function suggest ($existingData = array (), $enableInitialCookieLocation = true)
 	{
 		# Start the HTML
 		$html = '';
@@ -1005,7 +1045,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[__FUNCTION__]['apiUrl'] = str_replace ('%category', $category, $this->actions[__FUNCTION__]['apiUrl']);
 		
 		# Show the submission page
-		$html = $this->submissionPage (__FUNCTION__, $category, $existingData);
+		$html = $this->submissionPage (__FUNCTION__, $category, $existingData, array (), $enableInitialCookieLocation);
 		
 		# Register the HTML
 		$this->template['form'] = $html;
@@ -2279,13 +2319,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Submission page logic
-	private function submissionPage ($action, $category, $existingData = array (), $schema = array ())
+	private function submissionPage ($action, $category, $existingData = array (), $schema = array (), $enableInitialCookieLocation = true)
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Create the form and process the data
-		if (!$data = $this->locationSubmissionForm ($action, $existingData, $schema, $category /* written into by reference */, $html /* &html written into by reference */)) {
+		if (!$data = $this->locationSubmissionForm ($action, $existingData, $schema, $enableInitialCookieLocation, $category /* written into by reference */, $html /* &html written into by reference */)) {
 			return $html;
 		}
 		
@@ -2431,7 +2471,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Map panel, for setting a location and/or showing others
-	private function mapPanel ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array ())
+	private function mapPanel ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array (), $enableInitialCookieLocation = true)
 	{
 		# By default, no marker is shown
 		$setMarkerInitially = false;
@@ -2551,6 +2591,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelsJs = ($this->popupLabels ? json_encode ($this->popupLabels, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'false');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
+		$enableInitialCookieLocationJs = ($enableInitialCookieLocation ? 'true' : 'false');
 		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$this->headContent['application'] .= "\n" . "<script>
 		$(function() {
@@ -2577,7 +2618,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				tileOpacity: {$this->settings['tileOpacity']},
 				apiBaseUrl: '{$this->settings['apiBase']}',
 				apiKey: '{$this->settings['apiKey']}',
-				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}'
+				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}',
+				enableInitialCookieLocation: {$enableInitialCookieLocationJs}
 			};
 			
 			telluswhere.initialise (config, 'createMap', '{$this->action}', {$userJs});
@@ -2632,7 +2674,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Location submission form
-	private function locationSubmissionForm ($action, $existingData, $schema = array (), &$category, &$html = '')
+	private function locationSubmissionForm ($action, $existingData, $schema = array (), $enableInitialCookieLocation = true, &$category, &$html = '')
 	{
 		# Start the HTML
 		$html = '';
@@ -2656,7 +2698,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Create the map; alternatively, placeholderHtmlToFormTemplate may have already done this if the <!-- {$map} --> placeholder is within the form layout
 		$mapLocation = (isSet ($data['latitude']) ? $data : array ());
-		$this->template['map'] = $this->mapPanel ($action, $mapLocation, true);
+		$this->template['map'] = $this->mapPanel ($action, $mapLocation, true, $enableInitialCookieLocation, false, array (), false, array (), $enableInitialCookieLocation);
 		
 		# Determine whether an existing photo already exists
 		$existingPhoto = ($existingData && $existingData['hasPhoto'] ? $existingData['thumbnailUrl'] : false);

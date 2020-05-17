@@ -14,6 +14,7 @@ var telluswhere = (function ($) {
 		initialLongitude: false,
 		initialGeometry: false,
 		initialZoom: false,
+		enableInitialCookieLocation: true,
 		
 		// Max/min zoom
 		maxZoom: 21,
@@ -1333,14 +1334,16 @@ var telluswhere = (function ($) {
 		// Function to detread map location cookie
 		getInitialLocation: function ()
 		{
-			// Check for a cookie location
-			var location = telluswhere.readCookie ('location');
-			if (location) {
-				var locationComponents = location.split ('/');
-				return {
-					latitude: locationComponents[1],
-					longitude: locationComponents[2],
-					zoom: locationComponents[0]
+			// Check for a cookie location, unless disabled
+			if (_settings.enableInitialCookieLocation) {
+				var location = telluswhere.readCookie ('location');
+				if (location) {
+					var locationComponents = location.split ('/');
+					return {
+						latitude: locationComponents[1],
+						longitude: locationComponents[2],
+						zoom: locationComponents[0]
+					}
 				}
 			}
 			

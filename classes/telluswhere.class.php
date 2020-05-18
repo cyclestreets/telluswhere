@@ -1073,6 +1073,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->settings['defaultLongitude'] = $feature['geometry']['coordinates'][0];
 		$this->settings['defaultZoom'] = ($feature['properties']['radius'] > 5 ? 12 : 14);
 		
+		# If there is an overlay, enable it
+		$overlay = '/overlays/' . $id . '.geojson';
+		if (file_exists ($_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $overlay)) {
+			$this->actions['suggest']['apiUrl2'] = $_SERVER['_SITE_URL'] . $overlay;
+		}
+		
 		# Run suggest
 		$this->action = 'suggest';
 		$this->template['_action'] = $this->action;		// Re-register

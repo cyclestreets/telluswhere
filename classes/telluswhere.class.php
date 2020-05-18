@@ -401,7 +401,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '200517';
+		$this->template['revision'] = '200518';
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
@@ -909,7 +909,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->template['areas'] = $this->areasDropdown ();
 		
 		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
 		# Load the application, to enable the geocoder
 		$userJs = ($this->user ? 'true' : 'false');
@@ -982,7 +982,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	private function areas ()
 	{
 		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
 		# Get the areas list from the API
 		$apiUrl = '/v2/localareas.list';
@@ -2650,7 +2650,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->headContent['jquery-exif'] = '<script src="/js/lib/jquery.exif.js"></script>';
 		
 		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css" />';
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');

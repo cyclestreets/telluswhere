@@ -2626,7 +2626,16 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$browsingApiUrlJs = ($browsingApiUrl ? "'" . $browsingApiUrl . "'" : 'false');
 		
 		# Define a second browsing layer if required
-		$browsingApiUrl2 = (isSet ($this->actions[$showLayer]['apiUrl2']) ? "'" . $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'] . "'" : 'false');
+		if (isSet ($this->actions[$showLayer]['apiUrl2'])) {
+			if (preg_match ('|^https?://|', $this->actions[$showLayer]['apiUrl2'])) {
+				$browsingApiUrl2 = $this->actions[$showLayer]['apiUrl2'];
+			} else {
+				$browsingApiUrl2 = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'];
+			}
+			$browsingApiUrl2 = "'" . $browsingApiUrl2 . "'";
+		} else {
+			$browsingApiUrl2 = 'false';
+		}
 		
 		# Load Leaflet.js
 		$this->headContent['leaflet']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';

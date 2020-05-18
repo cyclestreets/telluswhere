@@ -2644,8 +2644,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Load Leaflet.js
-		$this->headContent['leaflet']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />';
-		$this->headContent['leaflet'] .= "\n" . '<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>';
+		$this->headContent['leaflet']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />';
+		$this->headContent['leaflet'] .= "\n" . '<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>';
 		
 		# Load leaflet-hash
 		$this->headContent['leaflet-hash'] = '<script src="/js/lib/leaflet-hash/leaflet-hash.js"></script>';

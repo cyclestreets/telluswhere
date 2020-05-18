@@ -220,123 +220,7 @@ var telluswhere = (function ($) {
 			
 			// Add each data layer to the map, if enabled
 			$.each (_browsingApiUrls, function (index, url) {
-				_currentDataLayers[index] = L.geoJson (null /* added later instead, using .addData */ , {
-					
-					// Filter, to skip existing selected
-					filter: telluswhere.setIconFilter,
-					
-					// Style points - create a marker
-					pointToLayer: function (feature, latlng) {
-						var icon = _icons['already'];
-						if (feature.properties.iconUrl) {
-							icon = _icons['_dynamic'];
-							icon.options.iconUrl = feature.properties.iconUrl;
-						}
-						
-						// Special case for trf_cushi
-						// #!# Need to be made generic
-						if (feature.properties.trf_cushi && feature.properties.trf_cushi == 'TRUE') {
-							icon.options.iconUrl = feature.properties.iconUrl.replace(/bad/g, 'good');
-						}
-						
-						// Add class if required to enable opacity styling for deleted items
-						icon.options.className = null;
-						if (feature.properties._status == 'deleted') {
-							icon.options.className = 'deleted';
-						}
-						
-						// If there are likes, make the icon larger progressively
-						icon = telluswhere.iconSizeLikes (icon, feature.properties.likes);
-						
-						// Return the marker
-						return L.marker (latlng, {icon: icon});
-					},
-					
-					// Add interactions
-					onEachFeature: function (feature, layer) {
-						
-						// Remove internal colour field if present
-						if (feature.properties.hasOwnProperty ('_colour')) {
-							delete feature.properties._colour;
-						}
-						
-						// For auditing, add class for reviewed/unreviewed
-						var className = null;
-						if (_action == 'audit') {
-							className = (feature.properties._status == 'initial' ? 'unreviewed' : 'reviewed');
-						}
-						
-						// Determine the latlng of the centre
-						var centre = null;
-						if (feature.geometry.type == 'Polygon') {
-							centre = layer.getBounds().getCenter();
-						}
-						
-						// Add popups
-						layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {
-							'className': className,
-							autoPanPaddingTopLeft: [0, 50],			// 50px from top
-							autoPanPaddingBottomRight: [55, 0]		// 55px from right
-						});
-						
-						// Add hover styles; see: https://leafletjs.com/examples/choropleth/
-						layer.on ({
-							mouseover: function (e) {
-								var layer = e.target;
-								if (e.target.feature.geometry.type == 'Point') {
-									// #!# Change to making icon larger instead
-									layer.setOpacity (0.7);
-								}
-								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
-									layer.setStyle({
-										color: telluswhere.lineColour (e.target.feature.properties),
-										weight: _settings.lineSize.hover
-									});
-								}
-							},
-							mouseout: function (e) {
-								var layer = e.target;
-								if (e.target.feature.geometry.type == 'Point') {
-									// #!# Should actually reset rather than set to 1 - icons may already be grayed-out when gone
-									layer.setOpacity (1);
-								}
-								if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
-									layer.setStyle({
-										color: telluswhere.lineColour (e.target.feature.properties),
-										weight: _settings.lineSize.initial
-									});
-								}
-							}
-						});
-					},
-					
-					// Polygon styling
-					style: function (feature) {
-						var styles = {};
-						
-						// Lines
-						if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
-							styles.color = telluswhere.lineColour (feature.properties);
-							styles.weight = _settings.lineSize.initial;
-						}
-						
-						// Polygons
-						if (feature.geometry.type == 'Polygon') {
-							if (feature.properties.hasOwnProperty ('_colour')) {
-								styles.color = feature.properties._colour;
-								styles.fillColor = feature.properties._colour;
-							} else {
-								styles.color = _settings.lineColour.initial;
-								styles.fillColor = _settings.lineColour.initial;
-							}
-						}
-						
-						// Return the styles
-						return styles;
-					}
-				});
-				
-				_currentDataLayers[index].addTo(map);
+				telluswhere.registerLeafletDataLayer (index, url);
 			});
 			
 			// Add support for Like clicks
@@ -402,6 +286,131 @@ var telluswhere = (function ($) {
 					e.preventDefault ();
 				});
 			}
+		},
+		
+		
+		// Function to add a data layer to the map
+		registerLeafletDataLayer: function (index, url)
+		{
+			// Register the layer, requested via AJAX
+			_currentDataLayers[index] = L.geoJson (null /* added later instead, using .addData */ , {
+				
+				// Filter, to skip existing selected
+				filter: telluswhere.setIconFilter,
+				
+				// Style points - create a marker
+				pointToLayer: function (feature, latlng) {
+					var icon = _icons['already'];
+					if (feature.properties.iconUrl) {
+						icon = _icons['_dynamic'];
+						icon.options.iconUrl = feature.properties.iconUrl;
+					}
+					
+					// Special case for trf_cushi
+					// #!# Need to be made generic
+					if (feature.properties.trf_cushi && feature.properties.trf_cushi == 'TRUE') {
+						icon.options.iconUrl = feature.properties.iconUrl.replace(/bad/g, 'good');
+					}
+					
+					// Add class if required to enable opacity styling for deleted items
+					icon.options.className = null;
+					if (feature.properties._status == 'deleted') {
+						icon.options.className = 'deleted';
+					}
+					
+					// If there are likes, make the icon larger progressively
+					icon = telluswhere.iconSizeLikes (icon, feature.properties.likes);
+					
+					// Return the marker
+					return L.marker (latlng, {icon: icon});
+				},
+				
+				// Add interactions
+				onEachFeature: function (feature, layer) {
+					
+					// Remove internal colour field if present
+					if (feature.properties.hasOwnProperty ('_colour')) {
+						delete feature.properties._colour;
+					}
+					
+					// For auditing, add class for reviewed/unreviewed
+					var className = null;
+					if (_action == 'audit') {
+						className = (feature.properties._status == 'initial' ? 'unreviewed' : 'reviewed');
+					}
+					
+					// Determine the latlng of the centre
+					var centre = null;
+					if (feature.geometry.type == 'Polygon') {
+						centre = layer.getBounds().getCenter();
+					}
+					
+					// Add popups
+					layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {
+						'className': className,
+						autoPanPaddingTopLeft: [0, 50],			// 50px from top
+						autoPanPaddingBottomRight: [55, 0]		// 55px from right
+					});
+					
+					// Add hover styles; see: https://leafletjs.com/examples/choropleth/
+					layer.on ({
+						mouseover: function (e) {
+							var layer = e.target;
+							if (e.target.feature.geometry.type == 'Point') {
+								// #!# Change to making icon larger instead
+								layer.setOpacity (0.7);
+							}
+							if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
+								layer.setStyle({
+									color: telluswhere.lineColour (e.target.feature.properties),
+									weight: _settings.lineSize.hover
+								});
+							}
+						},
+						mouseout: function (e) {
+							var layer = e.target;
+							if (e.target.feature.geometry.type == 'Point') {
+								// #!# Should actually reset rather than set to 1 - icons may already be grayed-out when gone
+								layer.setOpacity (1);
+							}
+							if (e.target.feature.geometry.type == 'LineString' || e.target.feature.geometry.type == 'MultiLineString') {
+								layer.setStyle({
+									color: telluswhere.lineColour (e.target.feature.properties),
+									weight: _settings.lineSize.initial
+								});
+							}
+						}
+					});
+				},
+				
+				// Line/polygon styling
+				style: function (feature) {
+					var styles = {};
+					
+					// Lines
+					if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
+						styles.color = telluswhere.lineColour (feature.properties);
+						styles.weight = _settings.lineSize.initial;
+					}
+					
+					// Polygons
+					if (feature.geometry.type == 'Polygon') {
+						if (feature.properties.hasOwnProperty ('_colour')) {
+							styles.color = feature.properties._colour;
+							styles.fillColor = feature.properties._colour;
+						} else {
+							styles.color = _settings.lineColour.initial;
+							styles.fillColor = _settings.lineColour.initial;
+						}
+					}
+					
+					// Return the styles
+					return styles;
+				}
+			});
+			
+			// Add the data layer to the map
+			_currentDataLayers[index].addTo(map);
 		},
 		
 		

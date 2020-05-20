@@ -2650,6 +2650,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Load leaflet-hash
 		$this->headContent['leaflet-hash'] = '<script src="/js/lib/leaflet-hash/leaflet-hash.js"></script>';
 		
+		# Load Leaflet-active-area, in case this is activated by the style
+		$this->headContent['leaflet-activearea'] = '<script src="/js/lib/Leaflet-active-area/src/leaflet.activearea.js"></script>';
+		
 		# Load Geolocation control; see: https://github.com/domoritz/leaflet-locatecontrol
 		$this->headContent['leaflet-locatecontrol']  = '<script src="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.js"></script>';
 		$this->headContent['leaflet-locatecontrol'] .= "\n" . '<link rel="stylesheet" href="/js/lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />';

@@ -150,6 +150,9 @@ var telluswhere = (function ($) {
 			map = L.map('map', {maxBounds: [[61, 9],[49, -11]]});
 			map.setView([initialMapLocation.latitude, initialMapLocation.longitude], initialMapLocation.zoom);
 			
+			// If the style defines an activearea div, adjust Leaflet.js methods to use this for centring; this must be loaded before L.hash
+			telluswhere.activearea ();
+			
 			// Set tile layer
 			var tileAttribution = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors (<a href="https://www.openstreetmap.org/copyright">ODbL</a>)';
 			L.tileLayer (_settings.tileUrl, {
@@ -272,6 +275,28 @@ var telluswhere = (function ($) {
 			
 			// Return map
 			return map;
+		},
+		
+		
+		// Function to adjust Leaflet.js methods for centring, based on a defined active area; this must be loaded before L.hash
+		activearea: function ()
+		{
+			// End if not enabled by the style
+			if (!$('.activearea').length) {return;}
+			
+			// Set the active area, using the Leaflet-active-area plugin; see: https://github.com/Mappy/Leaflet-active-area
+			map.setActiveArea ('activearea', true);
+			
+			/*
+			// Reactivate on resize
+			// #!# This does not seem to work, so is disabled to reduce events
+			$(window).on ('resize', function () {
+				var browserWidth = $(window).width ();
+				if (browserWidth < 768) {
+					map.setActiveArea ('activearea', true);
+				}
+			});
+			*/
 		},
 		
 		

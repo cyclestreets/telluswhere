@@ -838,22 +838,22 @@ var telluswhere = (function ($) {
 		{
 			// Legacy separate lat/lon/zoom values
 			if ($('#form_latitude').length > 0) {
-				$('#form_latitude').val(lat);
-				$('#form_longitude').val(lng);
-				$('#form_zoom').val(zoom);
+				$('#form_latitude').attr('value', lat);
+				$('#form_longitude').attr('value', lng);
+				$('#form_zoom').attr('value', zoom);
 			}
 			
 			// Geometry value
 			if ($('#form_location').length > 0) {
 				if (lat == null && lng == null) {
-					$('#form_location').val ('');
+					$('#form_location').attr ('value', '');
 				} else {
 					var geometry = {
 						type: 'Point',
 						coordinates: [parseFloat(lng.toFixed(6)), parseFloat(lat.toFixed(6))]
 					};
 					geometry = JSON.stringify (geometry);
-					$('#form_location').val (geometry);
+					$('#form_location').attr ('value', geometry);
 				}
 			}
 		},

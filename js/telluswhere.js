@@ -379,6 +379,7 @@ var telluswhere = (function ($) {
 					// Add popups
 					layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {
 						'className': className,
+						closeOnClick: false,					// Disable auto-close when clicking on map, which is handled automatically by onMapClick
 						autoPanPaddingTopLeft: [0, 50],			// 50px from top
 						autoPanPaddingBottomRight: [55, 0]		// 55px from right
 					});
@@ -684,6 +685,24 @@ var telluswhere = (function ($) {
 		// Create marker and popup when clicking on the map
 		onMapClick: function (e)
 		{
+			// Determine whether any popup is open
+			var hasOpenPopup = false;
+			var popup;
+			$.each (_currentDataLayers, function (index, dataLayer) {
+				dataLayer.eachLayer (function (layer) {
+					popup = layer.getPopup ();
+					if (popup.isOpen ()) {
+						hasOpenPopup = true;
+					}
+				});
+			});
+			
+			// If a popup is open, close it, then end to prevent auto-zoom in
+			if (hasOpenPopup) {
+				map.closePopup ();
+				return;
+			}
+			
 			// Show the help text
 			$('#helptext').addClass('display');
 			

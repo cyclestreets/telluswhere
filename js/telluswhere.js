@@ -215,19 +215,19 @@ var telluswhere = (function ($) {
 				telluswhere.cursorZoomin ();
 			});
 			
+			// Add each data layer to the map, if enabled
+			$.each (_browsingApiUrls, function (index, url) {
+				telluswhere.registerLeafletDataLayer (index, url);
+			});
+			
 			// Enable either drawing or map point setting
 			if (_settings.enableDrawing) {
 				var formElement = (_action == 'priorityareas' ? '#geometry' : '#form_location');
 				var fragmentOnly = (_action == 'priorityareas');	// #!# Aim to remove this legacy handling
 				telluswhere.drawing (formElement, _settings.enableDrawing /* i.e. type */, _settings.initialGeometry, true, fragmentOnly);
 			} else {
-				map.on('click', telluswhere.onMapClick);
+				map.on ('click', telluswhere.onMapClick);
 			}
-			
-			// Add each data layer to the map, if enabled
-			$.each (_browsingApiUrls, function (index, url) {
-				telluswhere.registerLeafletDataLayer (index, url);
-			});
 			
 			// Add support for Like clicks
 			telluswhere.liking ();
@@ -262,7 +262,7 @@ var telluswhere = (function ($) {
 			
 			// Register reporting link function
 			if (_settings.useIcon == 'current') {
-				map.on('popupopen', telluswhere.problemForm);
+				map.on ('popupopen', telluswhere.problemForm);
 			}
 			
 			// Show the help text also if the user zooms
@@ -688,8 +688,8 @@ var telluswhere = (function ($) {
 			$('#helptext').addClass('display');
 			
 			// Remove any marker present
-			if(telluswhere._marker){
-				map.removeLayer(telluswhere._marker);
+			if (telluswhere._marker) {
+				map.removeLayer (telluswhere._marker);
 			}
 			
 			// Zoom if too far out and end

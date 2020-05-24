@@ -26,13 +26,14 @@ table.reviewmetadata tr td:first-child {width: 60%;}
 .leaflet-container.cursorzoomin {cursor: zoom-in;}
 
 /* Likes */
-#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; border: 1px solid #eee; background-color: #fcfcfc; border-radius: 5px;}
+#likes {float: right; margin: 0; margin-left: 4px; padding: 3px 5px; min-width: 7em; background-color: #bbb; border-radius: 5px;}
 #likes {transition: background-color .5s ease-in-out; transition: border-color .5s ease-in-out;}
-#likes:hover {background-color: #eee; border-color: gray;}
+#likes:hover {background-color: #ccc; border-color: gray;}
 #likes.liked {border: 1px solid #999;}
-#likes p {margin: 0; padding: 0; line-height: 16px;}
-#likes p img, #likes p span {vertical-align: middle;}
-#likes p span, #likes a {color: gray; text-decoration: none;}
+#likes p {margin: 0; padding: 0 0 0 5px; line-height: 20px;}
+#likes p a, #likes p img, #likes p span {vertical-align: middle;}
+#likes p span, #likes a {color: black; text-decoration: none;}
+.leaflet-popup .hasphoto #likes img {margin-top: 0;}
 #likes span {padding-left: 2px;}
 #likes.liked #likestext {color: #603;}
 #likes.changed {animation: yellow-fade 2s ease-in 1;}

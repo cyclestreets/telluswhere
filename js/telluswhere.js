@@ -90,6 +90,7 @@ var telluswhere = (function ($) {
 	var _currentDataLayers = {};
 	var _geolocationData;
 	var _minZoomLevelToSet;
+	var _instructionHtmlOriginal;
 	
 	
 	// Login status
@@ -227,6 +228,7 @@ var telluswhere = (function ($) {
 				telluswhere.drawing (formElement, _settings.enableDrawing /* i.e. type */, _settings.initialGeometry, true, fragmentOnly);
 			} else {
 				map.on ('click', telluswhere.onMapClick);
+				$('span.close a').click (telluswhere.onMapSettingRemove);
 			}
 			
 			// Add support for Like clicks
@@ -786,10 +788,14 @@ var telluswhere = (function ($) {
 			
 			// If the interface provides an instruction and/or a space for a tick box, set these
 			if ($('.mapsetting .instruction').length) {
+				_instructionHtmlOriginal = $('.mapsetting .instruction').html ();
 				$('.mapsetting .instruction').text ('Location set!');
 			}
-			if ($('.mapsetting span').length) {
-				$('.mapsetting span').text ('✓');
+			if ($('.mapsetting span.tick').length) {
+				$('.mapsetting span.tick').text ('✓');
+			}
+			if ($('.mapsetting span.close').length) {
+				$('.mapsetting span.close').show ();
 			}
 			
 			// If there is already a marker set, treat the click as a move (as per a drag)
@@ -832,15 +838,49 @@ var telluswhere = (function ($) {
 		},
 		
 		
+		// Mapping setting removal (close) button handler
+		onMapSettingRemove: function ()
+		{
+			// End if not supported by the style
+			if (!$('.mapsetting span.close').length) {return;}
+			
+			// Transmit the value to the form
+			telluswhere.setPointFormValues (null, null, null);
+			
+			// Hide the close button
+			$('.mapsetting span.close').hide ();
+			
+			// Reset the text
+			if ($('.mapsetting .instruction').length) {
+				$('.mapsetting .instruction').html (_instructionHtmlOriginal);
+			}
+			
+			// Remove the tick
+			if ($('.mapsetting span.tick').length) {
+				$('.mapsetting span.tick').text ('');
+			}
+			
+			// Remove the marker
+			map.removeLayer (_marker);
+			_marker = false;
+		},
+		
+		
 		// Function to transmit the location values for a point location to the form
 		// LineString features are handled by .drawing() with targetField also as #form_location
 		setPointFormValues: function (lat, lng, zoom)
 		{
 			// Legacy separate lat/lon/zoom values
 			if ($('#form_latitude').length > 0) {
-				$('#form_latitude').attr('value', lat);
-				$('#form_longitude').attr('value', lng);
-				$('#form_zoom').attr('value', zoom);
+				if (lat == null && lng == null) {
+					$('#form_latitude').attr('value', '');
+					$('#form_longitude').attr('value', '');
+					$('#form_zoom').attr('value', '');
+				} else {
+					$('#form_latitude').attr('value', lat);
+					$('#form_longitude').attr('value', lng);
+					$('#form_zoom').attr('value', zoom);
+				}
 			}
 			
 			// Geometry value

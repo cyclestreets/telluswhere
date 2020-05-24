@@ -533,6 +533,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# End if an export action, which should not generate HTML
 		if ($isExportAction) {return;}
 		
+		# Enable feedback handler
+		$this->feedbackHandler ();
+		
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
 		
@@ -4822,6 +4825,51 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Send to the template
 		$this->template['table'] = application::htmlTable ($table, array (), $class = 'responsive-table', $keyAsFirstColumn = false, $uppercaseHeadings = true, $allowHtml = array ('name'));
+	}
+	
+	
+	# Function to support feedback handler
+	private function feedbackHandler ()
+	{
+		# Register assets
+		$this->headContent['vex']  = '<script src="/js/lib/vex-4.1.0/dist/js/vex.combined.min.js"></script>';
+		$this->headContent['vex'] .= "\n" . '<link rel="stylesheet" href="/js/lib/vex-4.1.0/dist/css/vex.css" />';
+		$this->headContent['vex'] .= "\n" . '<link rel="stylesheet" href="/js/lib/vex-4.1.0/dist/css/vex-theme-plain.css" />';
+		
+		# Create the HTML
+		$this->template['feedback'] = '
+			<div id="feedback">
+				
+				<h2>Give feedback</h2>
+				<form method="post" id="feedbackform" name="feedbackform" action="https://www.cyclestreets.net/feedback/" enctype="application/x-www-form-urlencoded" accept-charset="UTF-8">
+					<table>
+						<tr>
+							<td colspan="2">
+								<p>We welcome your feedback!</p>
+							</td>
+						</tr>
+						<tr>
+							<td>Comments:</td>
+							<td><textarea name="comments" cols="60" rows="5" required="required"></textarea></td>
+						</tr>
+						<tr>
+							<td>Your name:</td>
+							<td><input type="text" name="name" size="40" maxlength="255" required="required" /></td>
+						</tr>
+						<tr>
+							<td>E-mail:</td>
+							<td><input type="email" name="email" size="40" maxlength="255" required="required" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><input type="submit" value="Submit!" class="button" /></td>
+						</tr>
+					</table>
+					<input type="hidden" name="type" value="other" />
+				</form>
+				
+			</div>
+		';
 	}
 }
 

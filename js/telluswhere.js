@@ -74,7 +74,10 @@ var telluswhere = (function ($) {
 		
 		// Geocoder
 		apiBaseUrl: false,
-		geocoderBboxBounded: false
+		geocoderBboxBounded: false,
+		
+		// Feedback API URL; re-use of settings values represented as placeholders {%apiBaseUrl}, {%apiKey}, are supported
+		feedbackApiUrl: '{%apiBaseUrl}/v2/feedback.add?key={%apiKey}'
 	};
 	
 	/* Class properties */
@@ -272,6 +275,9 @@ var telluswhere = (function ($) {
 			
 			// Export
 			telluswhere.export ();
+			
+			// Feedback
+			telluswhere.feedbackHandler ();
 			
 			// Return map
 			return map;
@@ -1780,6 +1786,72 @@ var telluswhere = (function ($) {
 					$(linkTarget).attr ('target', '_blank');
 				});
 			});
+		},
+		
+		
+		// Feedback box and handler
+		feedbackHandler: function ()
+		{
+			// Obtain the HTML from the page
+			var html = $('#feedback').html();
+			
+			$('a.feedback').click (function (e) {
+				html = '<div id="feedbackbox">' + html + '</div>';
+				vex.dialog.alert ({unsafeMessage: html, showCloseButton: true, className: 'vex vex-theme-plain feedback'});
+				
+				// Create the form handler, which submits to the API
+				$('#feedbackbox form').submit (function (event) {	// #feedbackbox form used as #feedbackform doesn't seem to exist in the DOM properly in this context
+					var resultHtml;
+					
+					// Feedback URL; re-use of settings values is supported, represented as placeholders {%apiBaseUrl}, {%apiKey}
+					var feedbackApiUrl = telluswhere.settingsPlaceholderSubstitution (_settings.feedbackApiUrl, ['apiBaseUrl', 'apiKey']);
+					
+					var form = $(this);
+					$.ajax ({
+						url: feedbackApiUrl,
+						type: form.attr ('method'),
+						data: form.serialize()
+					}).done (function (result) {
+						
+						// Detect API error
+						if ('error' in result) {
+							resultHtml = "<p class=\"error\">Sorry, an error occured. The API said: <em>" + result.error + '</em></p>';
+							$('#feedbackbox').replaceWith (resultHtml);
+						
+						// Normal result; NB result.id is the feedback number
+						} else {
+							resultHtml  = '<p class="success">&#10004; Thank you for submitting feedback.</p>';
+							resultHtml += '<p>We read all submissions and endeavour to respond to all feedback.</p>';
+							$('#feedbackbox').replaceWith (resultHtml);
+						}
+						
+					}).fail (function (failure) {
+						resultHtml = '<p>There was a problem contacting the server; please try again later. The failure was: <em>' + failure.responseText + '</em>.</p>';
+						$('#feedbackbox').replaceWith (resultHtml);
+					});
+					
+					// Prevent normal submit
+					event.preventDefault ();
+				});
+				
+				// Prevent following link to contact page
+				return false;
+			});
+		},
+		
+		
+		// Helper function to implement settings placeholder substitution in a string
+		settingsPlaceholderSubstitution: function (string, supportedPlaceholders)
+		{
+			// Substitute each placeholder
+			var placeholder;
+			$.each (supportedPlaceholders, function (index, field) {
+				placeholder = '{%' + field + '}';
+				string = string.replace(placeholder, _settings[field]);
+			});
+			
+			// Return the modified string
+			return string;
 		},
 		
 		

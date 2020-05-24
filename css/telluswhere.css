@@ -88,6 +88,16 @@ body.areas table.splitlist {width: 100%; table-layout: fixed;}
 body.areas table.splitlist td {width: 33%;}
 body.areas table.splitlist ul {list-style: none; margin: 0; padding: 0;}
 
+/* Feedback handling */
+#feedback {display: none;}
+.feedback.vex.vex-theme-plain .vex-content {width: 550px; max-width: 90%;}
+.feedback.vex.vex-theme-plain .vex-dialog-buttons {display: none;}
+.feedback table td {vertical-align: top;}
+.feedback textarea, .feedback input[type='text'], .feedback input[type='email'] {width: 100%;}
+.feedback input[type='submit'] {margin-top: 1.2em;}
+.feedback.vex.vex-theme-plain .vex-content p.success {color: green;}
+.feedback.vex.vex-theme-plain .vex-content p.error {color: red;}
+
 /* Mobile styles; see: https://www.paintcodeapp.com/news/ultimate-guide-to-iphone-resolutions */
 @media only screen and (min-width: 320px) and (max-width: 768px) {
 	body.home #geocoder .geolocation {display: inline;}

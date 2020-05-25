@@ -173,7 +173,11 @@ var telluswhere = (function ($) {
 			map.addControl (L.control.locate ({
 				icon: 'fa fa-location-arrow',
 				setView: 'once',	// The default, 'untilPanOrZoom', can reduce battery heavily
-				locateOptions: {maxZoom: 16}
+				initialZoomLevel: 15,
+				locateOptions: {
+					maxZoom: 16,
+					flyTo: true
+				}
 			}));
 			
 			// Add geocoder

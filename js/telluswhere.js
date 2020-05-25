@@ -296,6 +296,12 @@ var telluswhere = (function ($) {
 			// End if not enabled by the style
 			if (!$('.activearea').length) {return;}
 			
+			// End if on mobile
+			var browserWidth = $(window).width ();
+			if (browserWidth < 768) {
+				return false;
+			}
+			
 			// Set the active area, using the Leaflet-active-area plugin; see: https://github.com/Mappy/Leaflet-active-area
 			map.setActiveArea ('activearea', true);
 			

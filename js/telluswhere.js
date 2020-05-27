@@ -838,6 +838,13 @@ var telluswhere = (function ($) {
 			
 			// Transmit the value to the form
 			telluswhere.setPointFormValues (latlng.lat, latlng.lng, map.getZoom ());
+			
+			// Scroll down on mobile to nav
+			var browserWidth = $(window).width ();
+			if (browserWidth < 768) {
+				var y = $(window).scrollTop ();
+				$('html, body').animate({ scrollTop: (y + 400) }, 2400);
+			}
 		},
 		
 		

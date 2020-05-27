@@ -387,7 +387,7 @@ var telluswhere = (function ($) {
 					layer.bindPopup (telluswhere.popupHtml (feature.properties, index, centre), {
 						'className': className,
 						closeOnClick: false,					// Disable auto-close when clicking on map, which is handled automatically by onMapClick
-						autoPanPaddingTopLeft: [0, 50],			// 50px from top
+						autoPanPaddingTopLeft: [50, 50],		// Avoid zoom buttons and geocoder
 						autoPanPaddingBottomRight: [55, 0]		// 55px from right
 					});
 					

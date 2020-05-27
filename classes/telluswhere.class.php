@@ -2770,7 +2770,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->headContent['cyclestreets-autocomplete']  = '<script src="/js/autocomplete.js?4"></script>';
 		
 		# Create the HTML
-		$html .= "\n\n\t" . '<div id="geocoder">';
+		$html  = "\n\n\t" . '<div id="geocoder">';
 		if ($withGeolocation) {
 			$html .= "\n\t\t" . '<img class="geolocation" src="/images/gps.png" />';
 		}

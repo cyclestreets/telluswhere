@@ -46,6 +46,9 @@ var telluswhere = (function ($) {
 		// Drawing
 		enableDrawing: false,
 		
+		// Multicategory mode
+		multiCategoryMode: false,
+		
 		// Popup labelling
 		popupLabels: {},
 		
@@ -1838,6 +1841,11 @@ var telluswhere = (function ($) {
 					
 					// Use default limit
 					url = url.replace (/&limit=[0-9]+/, '');
+					
+					// Include category field in multicategory mode
+					if (_settings.multiCategoryMode) {
+						url = url.replace (',caption', ',caption,categoryId');
+					}
 					
 					// Remove unnecessary fields from export
 					url = url.replace (',iconUrl', '');

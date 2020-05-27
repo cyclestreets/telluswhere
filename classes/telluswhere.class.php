@@ -2696,6 +2696,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$popupLabelSubsetFieldJs = ($this->popupLabelSubsetField ? "'{$this->popupLabelSubsetField}'" : 'false');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
 		$enableInitialCookieLocationJs = ($enableInitialCookieLocation ? 'true' : 'false');
+		$multiCategoryModeJs = ($this->settings['multiCategoryMode'] ? 'true' : 'false');
 		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$this->headContent['application'] .= "\n" . "<script>
 		$(function() {
@@ -2713,6 +2714,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				browsingApiUrl2: {$browsingApiUrl2},
 				viewOnlyMode: {$viewOnlyModeJs},
 				enableDrawing: {$enableDrawingJs},
+				multiCategoryMode: {$multiCategoryModeJs},
 				popupLabels: {$popupLabelsJs},
 				popupLabelSubsetField: {$popupLabelSubsetFieldJs},
 				markerData: {$markerDataJs},

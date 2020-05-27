@@ -129,8 +129,10 @@ var telluswhere = (function ($) {
 			_action = action;
 			_user = user;
 			
-			// Start map creation
-			telluswhere[run] (config, action, user);
+			// Run specified function, if any and it exists
+			if (run && telluswhere[run]) {
+				telluswhere[run] (config, action, user);
+			}
 		},
 		
 		

@@ -911,6 +911,20 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add areas drop-down if supported
 		$this->template['areas'] = $this->areasDropdown ();
 		
+		# Initialise the Javascript appilcation
+		$this->initJsGeneral ('home');
+		
+		# Add geocoder
+		$html .= $this->geocoder ($withGeolocation = true);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to initialise the Javascript application, as required for e.g. feedback
+	private function initJsGeneral ($run)
+	{
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
@@ -926,16 +940,10 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}'
 			};
 			
-			telluswhere.initialise (config, 'home', '{$this->action}', {$userJs});
+			telluswhere.initialise (config, '{$run}', '{$this->action}', {$userJs});
 		});
 		</script>
 		";
-		
-		# Add geocoder
-		$html .= $this->geocoder ($withGeolocation = true);
-		
-		# Return the HTML
-		return $html;
 	}
 	
 	

@@ -911,7 +911,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add areas drop-down if supported
 		$this->template['areas'] = $this->areasDropdown ();
 		
-		# Initialise the Javascript appilcation
+		# Initialise the Javascript application
 		$this->initJsGeneral ('home');
 		
 		# Add geocoder
@@ -923,7 +923,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to initialise the Javascript application, as required for e.g. feedback
-	private function initJsGeneral ($run)
+	private function initJsGeneral ($run = false)
 	{
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
@@ -994,6 +994,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	{
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
+		
+		# Initialise the Javascript application
+		$this->initJsGeneral ();
 		
 		# Get the areas list from the API
 		$apiUrl = '/v2/localareas.list';
@@ -3110,6 +3113,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	{
 		# Start the HTML
 		$html = '';
+		
+		# Initialise the Javascript application
+		$this->initJsGeneral ();
 		
 		# Text of page
 		$this->template['text'] = $this->settings['aboutPageHtml'];

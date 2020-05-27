@@ -67,7 +67,7 @@ form .latitude, form .longitude, form .zoom, form .location {display: none;}
 
 /* Geocoder autocomplete */
 #geocoder input {-webkit-appearance: none; -webkit-border-radius: 0;}
-#mapcontainer #geocoder {position: absolute; top: 10px; left: 55px; z-index: 1001;}
+#mapcontainer #geocoder {position: absolute; top: 10px; left: 55px; z-index: 1001; box-shadow: 10px 10px 20px 0px rgba(0,0,0,0.50);}
 #mapcontainer #geocoder input {padding: 5px; font-size: 1em; color: #603; width: 200px;}
 #mapcontainer #geocoder input, .ui-autocomplete {border: 1px solid #ccc;}
 .ui-autocomplete-loading {background: white url('/images/ui-anim_basic_16x16.gif') right center no-repeat;}

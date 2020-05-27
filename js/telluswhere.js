@@ -133,6 +133,9 @@ var telluswhere = (function ($) {
 			if (run && telluswhere[run]) {
 				telluswhere[run] (config, action, user);
 			}
+			
+			// Feedback
+			telluswhere.feedbackHandler ();
 		},
 		
 		
@@ -278,9 +281,6 @@ var telluswhere = (function ($) {
 			
 			// Export
 			telluswhere.export ();
-			
-			// Feedback
-			telluswhere.feedbackHandler ();
 			
 			// Return map
 			return map;

@@ -23,6 +23,9 @@ table.reviewmetadata tr td:first-child {width: 60%;}
 .leaflet-marker-icon.deleted {opacity: 0.6;}
 .leaflet-container.cursorzoomin {cursor: zoom-in;}
 
+/* Popups */
+#map span.truncate {cursor: zoom-in;}
+
 /* Help text, hidden by default */
 #mapcontainer #helptext {display: none; position: absolute; bottom: 10px; left: 10px; width: 100px; z-index: 500; opacity: 0.9; background-color: yellow; color: #111; padding: 4px 8px; margin: 0; font-size: 0.76em; border-radius: 10px; line-height: 1.2em;}
 

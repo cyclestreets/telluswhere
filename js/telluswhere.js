@@ -233,6 +233,12 @@ var telluswhere = (function ($) {
 				telluswhere.registerLeafletDataLayer (index, url);
 			});
 			
+			// Add truncation handler for popups
+			$('#map').on ('click', '.truncate', function (e) {
+				var extendedText = $(this).data ('text');
+				$(this).replaceWith (extendedText);
+			});
+			
 			// Enable either drawing or map point setting
 			if (_settings.enableDrawing) {
 				var formElement = (_action == 'priorityareas' ? '#geometry' : '#form_location');
@@ -1003,10 +1009,21 @@ var telluswhere = (function ($) {
 		},
 		
 		
-		// String truncate function to avoid over-long caption texts causing large bubbles
+		// String truncate function to avoid over-long caption texts causing large bubbles, with expandable text
 		truncateString: function (str, length)
 		{
-			return (str.length > length ? str.substring(0, length - 3) + '...' : str);
+			// Return unmodified if no need for truncation
+			if (str.length <= length) {
+				return str;
+			}
+			
+			// Truncate
+			var truncatedText = str.substring (0, length - 1);
+			var extendedText = str.substring (length - 1);
+			str = truncatedText + '<span class="truncate" data-text="' + telluswhere.htmlspecialchars (extendedText) + '" title="[Click to see remaining text]">&hellip;</span>';
+			
+			// Return the string
+			return str;
 		},
 		
 		

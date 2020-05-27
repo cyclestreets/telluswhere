@@ -271,11 +271,6 @@ var telluswhere = (function ($) {
 				map.on ('popupopen', telluswhere.problemForm);
 			}
 			
-			// Show the help text also if the user zooms
-			map.on('zoomstart', function() {
-				$('#helptext').addClass('display');
-			});
-			
 			// EXIF callback for file upload
 			telluswhere.fileUploadExif ()
 			
@@ -715,9 +710,6 @@ var telluswhere = (function ($) {
 				return;
 			}
 			
-			// Show the help text
-			$('#helptext').addClass('display');
-			
 			// Remove any marker present
 			if (telluswhere._marker) {
 				map.removeLayer (telluswhere._marker);
@@ -731,6 +723,7 @@ var telluswhere = (function ($) {
 				var newZoomLevel = currentZoomLevel + zoomBy;
 				// alert('Current zoom: ' + currentZoomLevel + '; zooming by: ' + zoomBy + ' to: ' + newZoomLevel);
 				map.setZoomAround(e.latlng, newZoomLevel);
+				$('#helptext').show ();
 				return;
 			}
 			
@@ -738,7 +731,7 @@ var telluswhere = (function ($) {
 			telluswhere.setMarker (e.latlng, true);
 			
 			// Remove the help text
-			$('#helptext').removeClass('display').addClass('hide');
+			$('#helptext').hide ();
 		},
 		
 		

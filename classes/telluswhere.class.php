@@ -2723,14 +2723,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Start the HTML
 		$html = '';
 		
-		# Zoom warning
-		#!# This is a poor UI and should be replaced in older UI designs
-		if (!$viewOnlyMode) {
-			if (!$selectedIdData) {
-				$html .= "\n" . '<p id="helptext">Zoom all the way in, using +/- or mouse scroll functions, then click on the map to set the marker.</p>';
-			}
-		}
-		
 		# Start a container
 		$html .= "\n\n" . '<div id="mapcontainer">';
 		
@@ -2739,6 +2731,14 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Create the map itself
 		$html .= "\n\n\t" . '<div id="map"></div>';
+		
+		# Zoom warning
+		#!# This is a poor UI and should be replaced in older UI designs
+		if (!$viewOnlyMode) {
+			if (!$selectedIdData) {
+				$html .= "\n\n\t" . '<p id="helptext">Zoom in further, then click to set location.</p>';
+			}
+		}
 		
 		# End the container
 		$html .= "\n\n" . '</div>';

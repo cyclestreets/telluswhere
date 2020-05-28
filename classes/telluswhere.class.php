@@ -2484,12 +2484,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Map the fields to the API
 		$data = array (
-			#!# Currently a fixed username/password
 			'username'				=> $this->settings['submissionsUsername'],
 			'password'				=> $this->settings['submissionsPassword'],
 			'metacategory'			=> $this->actions[$action]['metacategory'],
 			'category'				=> $category,
-			'caption'				=> $rawdata['caption'],
+			'caption'				=> mb_ucfirst ($rawdata['caption']),	// Provided by the application.php library
 			'latitude'				=> $rawdata['latitude'],
 			'longitude'				=> $rawdata['longitude'],
 			'zoom'					=> $rawdata['zoom'],

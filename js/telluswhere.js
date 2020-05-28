@@ -1019,8 +1019,7 @@ var telluswhere = (function ($) {
 			
 			// Truncate
 			var truncatedText = str.substring (0, length - 1);
-			var extendedText = str.substring (length - 1);
-			str = truncatedText + '<span class="truncate" data-text="' + telluswhere.htmlspecialchars (extendedText) + '" title="[Click to see remaining text]">&hellip;</span>';
+			str = '<span class="truncate" data-text="' + telluswhere.htmlspecialchars (str) + '" title="[Click to see remaining text]">' + truncatedText + '&hellip;</span>';
 			
 			// Return the string
 			return str;

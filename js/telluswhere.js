@@ -1597,6 +1597,44 @@ var telluswhere = (function ($) {
 		},
 		
 		
+		// Areas page functions
+		areas: function ()
+		{
+			// Obtain the source values of places on the page
+			var source = [];
+			var places = $('table.splitlist li a');
+			$.each (places, function (index, place) {
+				source.push ({
+					label: $(place).text (),
+					value: place.href
+				});
+			});
+			
+			// Attach autocomplete
+			// See example at: https://jqueryui.com/autocomplete/#custom-data
+			$("input[name='area']").autocomplete ({
+				source: source,
+				focus: function (e, place) {
+					$("input[name='area']").val (place.item.label);
+					
+					// Show the homepage URL
+					var homepage = place.item.value;
+					homepage = homepage.replace (/^https:\/\//, '');
+					homepage = homepage.replace (/\/$/, '');
+					var link = '<a href="' + place.item.value + '">' + homepage + '</a>';
+					$('#homepage').html (link);
+					
+					return false;
+				},
+				select: function (e, place) {
+					$("input[name='area']").val (place.item.label);
+					window.location.href = place.item.value;
+					return false;
+				}
+			});
+		},
+		
+		
 		// Function to provide a geocoder, using the CycleStreet API and autocomplete library
 		geocoder: function ()
 		{

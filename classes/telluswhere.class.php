@@ -401,7 +401,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '200527';
+		$this->template['revision'] = '200528';
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
@@ -995,8 +995,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
+		# Register assets, needed for the place search
+		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
+		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
+		
 		# Initialise the Javascript application
-		$this->initJsGeneral ();
+		$this->initJsGeneral (__FUNCTION__);
 		
 		# Get the areas list from the API
 		$apiUrl = '/v2/localareas.list';

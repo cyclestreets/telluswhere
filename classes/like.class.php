@@ -100,8 +100,15 @@ class like
 			$liked = array ();
 		}
 		
+		# Create the browser fingerprint
+		$fingerprint = hash ('sha256', $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+		
 		# Post to the public API
-		$like = array ('id' => $id, 'token' => $token);
+		$like = array (
+			'id' => $id,
+			'token' => $token,
+			'fingerprint' => $fingerprint,
+		);
 		$apiUrl = $this->settings['apiBase'] . '/v2/' . 'photomap.like' . '?key=' . $this->settings['apiKey'];
 		$result = application::file_post_contents ($apiUrl, $like);
 		$result = json_decode ($result, true);

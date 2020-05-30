@@ -1097,18 +1097,24 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$this->actions['suggest']['apiUrl2'] = $_SERVER['_SITE_URL'] . $overlay;
 		}
 		
+		# Register the city name for the template
+		$city = $feature['properties']['name'];
+		
 		# Run suggest
 		$this->action = 'suggest';
 		$this->template['_action'] = $this->action;		// Re-register
-		$this->suggest (array (), $enableInitialCookieLocation = false);
+		$this->suggest (array (), $enableInitialCookieLocation = false, $city);
 	}
 	
 	
 	# Suggest a location page
-	private function suggest ($existingData = array (), $enableInitialCookieLocation = true)
+	private function suggest ($existingData = array (), $enableInitialCookieLocation = true, $city = false)
 	{
 		# Start the HTML
 		$html = '';
+		
+		# Register the city name to the template, if present
+		$this->template['city'] = ($city ? $city : '');
 		
 		# If there are multiple categories, force selection, unless in multi-category mode
 		if ($this->settings['multiCategoryMode']) {

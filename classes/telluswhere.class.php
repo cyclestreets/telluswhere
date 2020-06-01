@@ -401,7 +401,7 @@ class telluswhere
 		$this->template['date'] = date ('Y');
 		
 		# Set asset revision
-		$this->template['revision'] = '200528';
+		$this->template['revision'] = date ('ymd');		// Force asset update each day
 		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {

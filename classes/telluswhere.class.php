@@ -254,30 +254,37 @@ class telluswhere
 		'cycleparking'		=> array (
 			'plural'			=> 'Cycle parking',
 			'singular'			=> 'Cycle parking',
+			'title'				=> false,
 		),
 		'bikeshare'		=> array (
 			'plural'			=> 'Bikeshare locations',
 			'singular'			=> 'Bikeshare location',
+			'title'				=> false,
 		),
 		'obstructions'		=> array (
 			'plural'			=> 'Obstructions',
 			'singular'			=> 'Obstruction',
+			'title'				=> false,
 		),
 		'cycleways'		=> array (
 			'plural'			=> 'Cycleways',
 			'singular'			=> 'Cycleway',
+			'title'				=> 'Space on roads and junctions, separate from cars/pedestrians, makes cycling safe and pleasant.',
 		),
 		'dutchcycleways'	=> array (
 			'plural'			=> 'Dutch-style cycleways',
 			'singular'			=> 'Dutch-style cycleway',
+			'title'				=> false,
 		),
 		'track'		=> array (
 			'plural'			=> 'Pavements',
 			'singular'			=> 'Pavement',
+			'title'				=> 'Wider footpaths and pavements.',
 		),
 		'closure'		=> array (
 			'plural'			=> 'Closures',
 			'singular'			=> 'Closure',
+			'title'				=> 'A filter prevents through-traffic, enabling walking and cycling.',
 		),
 	);
 	
@@ -2898,14 +2905,17 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				if (in_array ('category', $formFieldsInTemplate)) {
 					$categoriesList = preg_split ('/[\s,]+/', trim ($this->settings['categories']));
 					$categories = array ();
+					$titles = array ();
 					foreach ($categoriesList as $category) {
 						$categories[$category] = $this->categoryLabels[$category]['singular'];
+						$titles[$category] = $this->categoryLabels[$category]['title'];
 					}
 					$form->radiobuttons (array (
 						'name'			=> 'category',
 						'title'			=> 'Which type of change is needed?',
 						'required'		=> true,
 						'values'		=> $categories,
+						'titles'		=> $titles,
 					));
 				}
 			}

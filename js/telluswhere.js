@@ -58,10 +58,11 @@ var telluswhere = (function ($) {
 		
 		// Icon sizing based on Likes
 		iconSizeLikesScaling: [
-			[1, 1.2],
-			[3, 1.5],
-			[5, 2],
-			[20, 3]
+			[0, 0.9],
+			[2, 1.1],
+			[5, 1.4],
+			[10, 1.7],
+			[20, 2.5]
 		],
 		
 		// Browse request limitations
@@ -622,13 +623,11 @@ var telluswhere = (function ($) {
 		{
 			// Determine scale
 			var scale = 1;
-			if (likes) {
-				$.each (_settings.iconSizeLikesScaling, function (index, scaleFactor) {
-					if (likes >= scaleFactor[0]) {
-						scale = scaleFactor[1];
-					} // continue until end
-				});
-			}
+			$.each (_settings.iconSizeLikesScaling, function (index, scaleFactor) {
+				if (likes >= scaleFactor[0]) {
+					scale = scaleFactor[1];
+				} // continue until end
+			});
 			
 			// Set the icon size; this must be done for every icon, even if not scaling
 			icon.options.iconSize = [

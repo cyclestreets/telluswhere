@@ -53,7 +53,7 @@
  * @package ultimateForm
  * @license	https://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-19, Martin Lucas-Smith, University of Cambridge
+ * @copyright Copyright  2003-20, Martin Lucas-Smith, University of Cambridge
  * @version See $version below
  */
 class form
@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.25.8';
+	var $version = '1.25.10';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -545,7 +545,7 @@ class form
 				}
 				
 			} else {
-				$widgetHtml = '<input' . $this->nameIdHtml ($arguments['name']) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? ' step="' . $arguments['step'] . '"' : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($this->form[$arguments['name']]) . '"' . $widget->tabindexHtml () . ' />';
+				$widgetHtml = '<input' . $this->nameIdHtml ($arguments['name']) . ' type="' . ($functionName == 'input' ? 'text' : $functionName) . "\" size=\"{$arguments['size']}\"" . ($arguments['maxlength'] != '' ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['required'] ? ' required="required"' : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . ((isSet ($arguments['min']) && $arguments['min'] !== false) ? " min=\"{$arguments['min']}\"" : '') . ((isSet ($arguments['max']) && $arguments['max'] !== false) ? " max=\"{$arguments['max']}\"" : '') . ((isSet ($arguments['step']) && $arguments['step'] !== false) ? ' step="' . $arguments['step'] . '"' : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['multiple'] ? ' multiple="multiple"' : '') . " value=\"" . htmlspecialchars ($this->form[$arguments['name']]) . '"' . $widget->tabindexHtml () . ' />';
 			}
 		} else {
 			$displayedValue = ($arguments['displayedValue'] ? $arguments['displayedValue'] : $this->form[$arguments['name']]);
@@ -932,7 +932,7 @@ class form
 			if ($arguments['maxlength']) {
 				$widgetHtml .= '<div' . $this->nameIdHtml ($arguments['name'], false, false, false, $idOnly = true, '__info') . ' class="charactersremaininginfo"></div>';
 			}
-			$widgetHtml .= '<textarea' . $this->nameIdHtml ($arguments['name']) . " cols=\"{$arguments['cols']}\" rows=\"{$arguments['rows']}\"" . ($arguments['maxlength'] ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['wrap'] ? " wrap=\"{$arguments['wrap']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . $widget->tabindexHtml () . '>' . htmlspecialchars ($this->form[$arguments['name']]) . '</textarea>';
+			$widgetHtml .= '<textarea' . $this->nameIdHtml ($arguments['name']) . " cols=\"{$arguments['cols']}\" rows=\"{$arguments['rows']}\"" . ($arguments['maxlength'] ? " maxlength=\"{$arguments['maxlength']}\"" : '') . ($arguments['wrap'] ? " wrap=\"{$arguments['wrap']}\"" : '') . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . ($arguments['required'] ? ' required="required"' : '') . ($arguments['placeholder'] != '' ? " placeholder=\"{$arguments['placeholder']}\"" : '') . $widget->tabindexHtml () . '>' . htmlspecialchars ($this->form[$arguments['name']]) . '</textarea>';
 		} else {
 			if ($arguments['displayedValue']) {
 				$widgetHtml  = ($arguments['entities'] ? htmlspecialchars ($arguments['displayedValue']) : $arguments['displayedValue']);
@@ -2214,28 +2214,29 @@ class form
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$argumentDefaults = array (
-			'name'					=> NULL,	# Name of the element
-			'editable'				=> true,	# Whether the widget is editable (if not, a hidden element will be substituted but the value displayed)
-			'values'				=> array (),# Simple array of selectable values
-			'valuesNamesAutomatic'	=> false,	# Whether to create automatic value names based on the value itself (e.g. 'option1' would become 'Option 1')
-			'disabled'				=> array (),# Whether individual radiobuttons are disabled, either true for all (except for a default one), or false for none, or an array of the values that are disabled
-			'title'					=> '',		# Introductory text
-			'description'			=> '',		# Description text
-			'append'				=> '',		# HTML appended to the widget
-			'prepend'				=> '',		# HTML prepended to the widget
-			'output'				=> array (),# Presentation format
-			'required'				=> false,	# Whether required or not
-			'autofocus'				=> false,	# HTML5 autofocus (true/false)
-			'default'				=> array (),# Pre-selected item
+			'name'					=> NULL,		# Name of the element
+			'editable'				=> true,		# Whether the widget is editable (if not, a hidden element will be substituted but the value displayed)
+			'values'				=> array (),	# Simple array of selectable values
+			'valuesNamesAutomatic'	=> false,		# Whether to create automatic value names based on the value itself (e.g. 'option1' would become 'Option 1')
+			'disabled'				=> array (),	# Whether individual radiobuttons are disabled, either true for all (except for a default one), or false for none, or an array of the values that are disabled
+			'title'					=> '',			# Introductory text
+			'description'			=> '',			# Description text
+			'append'				=> '',			# HTML appended to the widget
+			'prepend'				=> '',			# HTML prepended to the widget
+			'output'				=> array (),		# Presentation format
+			'required'				=> false,		# Whether required or not
+			'autofocus'				=> false,		# HTML5 autofocus (true/false)
+			'default'				=> array (),	# Pre-selected item
 			'linebreaks'			=> $this->settings['linebreaks'],	# Whether to put line-breaks after each widget: true = yes (default) / false = none / array (1,2,5) = line breaks after the 1st, 2nd, 5th items
-			'forceAssociative'		=> false,	# Force the supplied array of values to be associative
+			'forceAssociative'		=> false,		# Force the supplied array of values to be associative
 			'nullText'				=> $this->settings['nullText'],	# Override null text for a specific widget (if false, the master value is assumed)
-			'discard'				=> false,	# Whether to process the input but then discard it in the results
-			'datatype'				=> false,	# Datatype used for database writing emulation (or caching an actual value)
+			'discard'				=> false,		# Whether to process the input but then discard it in the results
+			'datatype'				=> false,		# Datatype used for database writing emulation (or caching an actual value)
 			'truncate'				=> $this->settings['truncate'],	# Override truncation setting for a specific widget
-			'tabindex'				=> false,	# Tabindex if required; replace with integer between 0 and 32767 to create
-			'after'					=> false,	# Placing the widget after a specific other widget
-			'entities'				=> true,	# Convert HTML in label to entity equivalents
+			'tabindex'				=> false,		# Tabindex if required; replace with integer between 0 and 32767 to create
+			'after'					=> false,		# Placing the widget after a specific other widget
+			'entities'				=> true,		# Convert HTML in label to entity equivalents
+			'titles'				=> array (),	# Title attribute texts, as array (value => string, ...)
 		);
 		
 		# Create a new form widget
@@ -2345,8 +2346,13 @@ class form
 			foreach ($arguments['values'] as $value => $visible) {
 				$elementId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}_{$value}]" : "{$arguments['name']}_{$value}");
 				
+				# Determine whether to include a title attribute
+				$title = ($arguments['titles'] && isSet ($arguments['titles'][$value]) ? $arguments['titles'][$value] : false);
+				$titleHtml = ($title ? ' title="' . htmlspecialchars ($title) . '"' : '');
+				
 				#!# Dagger hacked in - fix properly for other such characters; consider a flag somewhere to allow entities and HTML tags to be incorporated into the text (but then cleaned afterwards when printed/e-mailed)
-				$subelementsWidgetHtml[$value] = '<input type="radio"' . $this->nameIdHtml ($arguments['name'], false, $value) . ' value="' . htmlspecialchars ($value) . '"' . ($value == $elementValue ? ' checked="checked"' : '') . (($arguments['autofocus'] && $firstItem) ? ' autofocus="autofocus"' : '') . (in_array ($value, $arguments['disabled'], true) ? ' disabled="disabled"' : '') . $widget->tabindexHtml ($subwidgetIndex - 1) . " /><label for=\"" . $elementId . '">' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>';
+				$subelementsWidgetHtml[$value]  = '<input type="radio"' . $this->nameIdHtml ($arguments['name'], false, $value) . ' value="' . htmlspecialchars ($value) . '"' . ($value == $elementValue ? ' checked="checked"' : '') . (($arguments['autofocus'] && $firstItem) ? ' autofocus="autofocus"' : '') . (in_array ($value, $arguments['disabled'], true) ? ' disabled="disabled"' : '') . $titleHtml . $widget->tabindexHtml ($subwidgetIndex - 1) . ' />';
+				$subelementsWidgetHtml[$value] .= '<label for="' . $elementId . '"' . $titleHtml . '>' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>';
 				$widgetHtml .= "\n\t\t\t" . $subelementsWidgetHtml[$value];
 				$firstItem = false;
 				
@@ -3202,9 +3208,9 @@ class form
 			'flatten'				=> false,	# Whether to flatten the rawcomponents (i.e. default in 'processing' mode) result if only a single subfield is specified
 			'tabindex'				=> false,	# Tabindex if required; replace with integer between 0 and 32767 to create
 			'after'					=> false,	# Placing the widget after a specific other widget
-			'progressbar'			=> false,	# Whether to enable a progress bar (assumed to be in /uploader, or in specified subdirectory)
+			'progressbar'			=> false,	# Whether to enable a progress bar; if so, give the AJAX endpoint providing the data; requires the PECL uploadprogress module
 			'thumbnail'				=> false,	# Enable HTML5 thumbnail preview; either true (to auto-create a container div), or jQuery-style selector, specifying an existing element
-			'draganddrop'				=> false,	# Whether to convert the element to be styled as a drag and drop zone
+			'draganddrop'			=> false,	# Whether to convert the element to be styled as a drag and drop zone
 		);
 		
 		# Create a new form widget
@@ -3261,21 +3267,6 @@ class form
 		if ($arguments['unzip'] && !extension_loaded ('zip')) {
 			$this->formSetupErrors['uploadUnzipUnsupported'] = 'Unzipping of zip files upon upload was requested but the unzipping module is not available on this server.';
 			$arguments['unzip'] = false;
-		}
-		
-		# Disallow progressbar with more than one subfield
-		if ($arguments['progressbar']) {
-			if ($arguments['subfields'] > 1) {
-				$this->formSetupErrors['uploadProgressbarSubfields'] = 'Only one subfield is allowed in an upload widget with a progressbar.';
-			}
-			if ($arguments['progressbar'] === true) {
-				$arguments['progressbar'] = '/uploader/';
-			}
-			$uploaderProgram = $_SERVER['DOCUMENT_ROOT'] . $arguments['progressbar'] . '/SolmetraUploader.php';
-			if (!file_exists ($uploaderProgram)) {
-				$this->formSetupErrors['uploadProgressbarSubfields'] = 'The upload widget is set to have a progressbar, but the third-party program for this is not installed.';
-				$arguments['progressbar'] = false;
-			}
 		}
 		
 		# Ensure the initial value(s) is an array, even if only an empty one, converting if necessary, and lowercase (and then unique) the extensions lists, ensuring each starts with .
@@ -3364,8 +3355,24 @@ class form
 			$elementProblems['subfieldsMismatch'] = 'You appear to have submitted more files than there are fields available.';
 		}
 		
-		# Loop through the number of fields required to create the widget
+		# Start the widget HTML
 		$widgetHtml = '';
+		
+		# Add progress bar support if required; currently supported for single upload only
+		if ($arguments['progressbar']) {
+			
+			# Disallow progressbar with more than one subfield
+			if ($arguments['subfields'] > 1) {
+				$this->formSetupErrors['uploadProgressbarSubfields'] = 'Only one subfield is allowed in an upload widget with a progressbar.';
+			}
+			
+			# This must be before the input field itself
+			$uploadProgressIdentifier = bin2hex (random_bytes (16));
+			$widgetHtml .= "\n\t\t\t" . '<input type="hidden" name="UPLOAD_IDENTIFIER" value="' . $uploadProgressIdentifier . '">';
+		}
+		
+		
+		# Loop through the number of fields required to create the widget
 		if ($arguments['subfields'] > 1) {$widgetHtml .= "\n\t\t\t";}
 		for ($subfield = 0; $subfield < $arguments['subfields']; $subfield++) {
 			
@@ -3424,31 +3431,33 @@ class form
 			";
 		}
 		
-		# Add progress bar support if required; this has only been tested so far with a single widget having this flag and with single upload
+		# Progress bar handler
 		if ($arguments['progressbar']) {
-			
-			# Load the uploader
-			require_once ($uploaderProgram);
-			$solmetraUploader = new SolmetraUploader (
-				$arguments['progressbar'] . '/',				// a base path to Flash Uploader's directory (relative to the page)
-				$arguments['progressbar'] . '/upload.php',	// path to a file that handles file uploads (relative to uploader.swf) [optional]
-				$_SERVER['DOCUMENT_ROOT'] . $arguments['progressbar'] . '/config.php'	// path to a server-side config file (relative to the page) [optional]
-			);
-			
-			# Populate (emulate) $_FILES; NB We don't use $solmetraUploader->gatherUploadedFiles ();	as that populates the _FILES array differently to the (silly) array arrangement that PHP has
-			$elementValue = false;
-			$_FILES = array ();
-			$file = $solmetraUploader->getUploadedFiles ();
-			if ($file) {
-				$elementValue = array ($file[$arguments['name']]);
-				foreach ($file[$arguments['name']] as $key => $value) {	// Loop through the attributes (name,type,size,tmp_name,error) for the file
-					$_FILES[$arguments['name']][$key][] = $value;
-				}
-			}
-			
-			# Create the HTML
-			$widgetHtml  = '<script type="text/javascript" src="' . $arguments['progressbar'] . '/SolmetraUploader.js"></script>';
-			$widgetHtml .= $solmetraUploader->getInstance ($arguments['name']);
+			$progressbarId = $this->cleanId ($arguments['name'] . '__progressbar');
+			$widgetHtml .= "\n\t\t\t<br />\n\t\t\t" . '<div id="' . $progressbarId . '"><progress max="100" value="0"></progress> <span></span></div>';
+			$widgetHtml .= "\n\t\t\t<style type=\"text/css\">#{$progressbarId} {display: none;}</style>";		// Hidden by default; shown using show() below on submit
+			$widgetHtml .= "\n\t\t\t";
+			$this->jQueryCode[__FUNCTION__] = "\n" . "
+				$(function () {		// document ready
+					$('#{$progressbarId}').closest ('form').submit (function (e) {
+						var updateProgressbar = function () {
+							$.get ('{$arguments['progressbar']}/{$uploadProgressIdentifier}', function (data) {
+								if (data != null) {
+									var progress = (data.bytes_uploaded / data.bytes_total) * 100;
+									progress = progress.toFixed (0);
+									$('#{$progressbarId} progress').val (progress);
+									$('#{$progressbarId} span').text (progress + '%');
+									if (progress < 100) {
+										setTimeout (updateProgressbar, 1000);	// Iterate
+									}
+								}
+							});
+						};
+						$('#{$progressbarId}').show ();
+						setTimeout (updateProgressbar, 1000);
+					});
+				});
+			";
 		}
 		
 		# If thumbnail viewing is enabled, parse the argument and create the HTML5 code
@@ -3710,6 +3719,32 @@ class form
 			'default'	=> $arguments['default'],
 			'after' => $arguments['after'],
 		);
+	}
+	
+	
+	# AJAX endpoint function to provide progress upload, which calling code can use
+	# See: https://github.com/php/pecl-php-uploadprogress
+	# See: https://www.automatem.co.nz/blog/the-state-of-upload-progress-measurement-on-ubuntu-16-04-php7.html
+	#!# This fails in Safari for some reason, giving access control errors even on the same domain
+	public static function progressbar ()
+	{
+		# End if not supported
+		if (!function_exists ('uploadprogress_get_info')) {
+			echo "ERROR: The PECL uploadprogress module is not installed.";
+			application::sendHeader (500);
+			return false;
+		}
+		
+		# End if ID not supplied
+		if (!isSet ($_GET['id']) || !preg_match ('/^([0-9a-f]{32})$/', $_GET['id'])) {return false;}
+		
+		# Get the data
+		$data = uploadprogress_get_info ($_GET['id']);
+		
+		# Send the response as JSON
+		$json = json_encode ($data, JSON_PRETTY_PRINT);
+		header ('Content-Type: application/json');
+		echo $json;
 	}
 	
 	
@@ -7323,13 +7358,7 @@ class form
 				
 				# Attempt to upload the file to the (now finalised) destination
 				$destination = $arguments['directory'] . $filename;
-				if ($arguments['progressbar']) {
-					$uploadedFileMoved = true;	// The progressbar will have already moved the file into place
-					#!# Error handling needed
-					rename ($attributes['tmp_name'], $destination);
-				} else {
-					$uploadedFileMoved = move_uploaded_file ($attributes['tmp_name'], $destination);
-				}
+				$uploadedFileMoved = move_uploaded_file ($attributes['tmp_name'], $destination);
 				if (!$uploadedFileMoved) {
 					
 					# Create an array of any failed file uploads
@@ -8823,6 +8852,7 @@ class formWidget
 		if ($this->arguments['disallow'] !== false) {
 			
 			# If the disallow text is presented as an array, convert the key and value to the disallow patterns and descriptive text; otherwise 
+			#!# This should be changed to allow multiple checks, as they may have different error messages required
 			if (is_array ($this->arguments['disallow'])) {
 				foreach ($this->arguments['disallow'] as $disallowRegexp => $disallowErrorMessage) {
 					break;

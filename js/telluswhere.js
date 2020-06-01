@@ -638,6 +638,19 @@ var telluswhere = (function ($) {
 				icon.options.__proto__.iconSize[1] * scale
 			];
 			
+			// Set the icon anchor and popup anchor
+			// See: https://leafletjs.com/examples/custom-icons/
+			icon.options.iconAnchor = [
+				icon.options.__proto__.iconAnchor[0] * scale,
+				icon.options.__proto__.iconAnchor[1] * scale
+			];
+			/* #!# Not working
+			icon.options.popupAnchor = [
+				0,
+				(0 - (icon.options.__proto__.iconSize[1] * scale))
+			];
+			*/
+			
 			// Return the icon
 			return icon;
 		},

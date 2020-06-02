@@ -2463,11 +2463,19 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
-		# Determine the redirection target, namely the location page
-		$redirectToPath = $this->baseUrl . "/location/{$result['id']}/" . $this->iframeSuffix;
+		# Allocate zoom/lat/lon for location hash setting, shortening decimal places
+		$zoom		= $data['zoom'];
+		$latitude	= round ($data['latitude'], 6);
+		$longitude	= round ($data['longitude'], 6);
 		
 		# Thank the user, resetting the HTML
-		$html  = $this->confirmationMessage ($result['id'], $existingData, $action);
+		$html = $this->confirmationMessage ($result['id'], $existingData, $action, $zoom, $latitude, $longitude);
+
+		# Determine the redirection path
+		$mapLocationHash = '#' . ($data['zoom'] - 1) . '/' . $latitude . '/' . $longitude;
+		$redirectToPath = $this->baseUrl . "/location/{$result['id']}/" . $this->iframeSuffix . $mapLocationHash;
+		
+		# Redirect the user
 		$html .= "\n<p><a href=\"{$redirectToPath}\">Click here to continue to the next page.</a></p>";
 		
 		# Add editing rights into the session, by logging the current time for this ID
@@ -2483,11 +2491,29 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to set the addition confirmation message
-	private function confirmationMessage ($id, $isUpdate, $action)
+	private function confirmationMessage ($id, $isUpdate, $action, $zoom = false, $latitude = false, $longitude = false)
 	{
+		# Determine the map location hash
+		$mapLocationHash = '#' . ($zoom - 1) . '/' . $latitude . '/' . $longitude;
+		
+		# Show confirmation
 		$unicodeTick = chr(0xe2).chr(0x9c).chr(0x94);	// https://www.fileformat.info/info/unicode/char/2714/
 		$html  = "\n<p id=\"thankyou\">{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number " . number_format ($id) . '.') . '</p>';
-		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}{$this->iframeSuffix}\">Add another?</a></p>";
+		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}{$this->iframeSuffix}{$mapLocationHash}\">Add another?</a></p>";
+		
+		# If the site is embedded and an 'onward' URL parameter is provided, provide an onward link
+		if (isSet ($_GET['onward'])) {
+			$mapLocationHash = '#' . '14' . '/' . $latitude . '/' . $longitude;		// Fixed zoom level, to show a general area, a little more than a Ward
+			$currentMapUrl = $_SERVER['_SITE_URL'] . $this->actions[$action]['url'] . $mapLocationHash;
+			$onwardUrl = $_GET['onward'] . (substr_count ($_GET['onward'], '?') ? '&' : '?') . 'map=' . urlencode ($currentMapUrl);
+			$html .= "\n<div id=\"lobby\">";
+			$html .= "\n\t<h3>Help lobby local-decision makers</h3>";
+			$html .= "\n\t<p>Now that you have added a location to the map, please consider contacting your local councillor, using our simple action form:</p>";
+			$html .= "\n\t<p><strong><a href=\"" . htmlspecialchars ($onwardUrl) . "\">Contact my local councillor &raquo;</strong></p>";
+			$html .= "\n</div>";
+		}
+		
+		# Return the HTML
 		return $html;
 	}
 	

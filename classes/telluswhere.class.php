@@ -2769,6 +2769,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
+		# Add a container that can be used flexibly for attribution
+		$html .= "\n\n\t" . '<div id="attribution"></div>';
+		
 		# End the container
 		$html .= "\n\n" . '</div>';
 		

@@ -2508,8 +2508,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$currentMapUrl = $_SERVER['_SITE_URL'] . $this->actions[$action]['url'] . $mapLocationHash;
 			$onwardUrl = $_GET['onward'] . (substr_count ($_GET['onward'], '?') ? '&' : '?') . 'map=' . urlencode ($currentMapUrl);
 			$html .= "\n<div id=\"lobby\">";
-			$html .= "\n\t<h3>Help lobby local-decision makers</h3>";
-			$html .= "\n\t<p>Now that you have added a location to the map, please consider contacting your local councillor, using our simple action form:</p>";
+			$html .= "\n\t<h3>Help lobby local decision-makers</h3>";
+			$html .= "\n\t<p>Now that you have added a location to the map, please consider writing to your council, using our simple action form:</p>";
 			$html .= "\n\t<p><strong><a href=\"" . htmlspecialchars ($onwardUrl) . "\">Contact my local councillor &raquo;</strong></p>";
 			$html .= "\n</div>";
 		}

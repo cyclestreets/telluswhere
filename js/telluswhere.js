@@ -1906,6 +1906,9 @@ var telluswhere = (function ($) {
 					// Determine export type
 					parameters.format = linkTarget.className;
 					
+					// Add URL prefix for map location
+					parameters.urlprefix = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
+					
 					// Assemble the link
 					var url = _settings.browsingApiUrl + '&' + $.param (parameters);
 					
@@ -1916,6 +1919,9 @@ var telluswhere = (function ($) {
 					if (_settings.multiCategoryMode) {
 						url = url.replace (',caption', ',caption,categoryId');
 					}
+					
+					// Add map URL field; see also urlprefix above
+					url = url.replace (',iconUrl', ',iconUrl,mapUrl');
 					
 					// Remove unnecessary fields from export
 					url = url.replace (',iconUrl', '');

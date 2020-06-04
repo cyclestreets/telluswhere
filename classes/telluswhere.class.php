@@ -2842,13 +2842,18 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Enable only in multi-category mode
 		if (!$this->settings['multiCategoryMode']) {return;}
 		
+		# Get the available categories
+		$categories = preg_split ('/[\s,]+/', trim ($this->settings['categories']));
+		
+		# Determine if a default has been set via the URL
+		$defaultCategory = (isSet ($_GET['category']) && in_array ($_GET['category'], $categories) ? $_GET['category'] : false);
+		
 		# Create the HTML
 		$html  = "\n\n\t" . '<div id="filters">';
 		$html .= "\n\t\t" . '<select name="category" id="category">';
-		$categoriesList = preg_split ('/[\s,]+/', trim ($this->settings['categories']));
 		$html .= "\n\t\t\t" . '<option value="">Show only category:</option>';
-		foreach ($categoriesList as $category) {
-			$html .= "\n\t\t\t" . '<option value="' . $category . '">' . $this->categoryLabels[$category]['plural'] . '</option>';
+		foreach ($categories as $category) {
+			$html .= "\n\t\t\t" . '<option value="' . $category . '"' . ($category == $defaultCategory ? ' selected="selected"' : '') . '>' . $this->categoryLabels[$category]['plural'] . '</option>';
 		}
 		$html .= "\n\t\t" . '</select>';
 		$html .= "\n\t" . '</div>';

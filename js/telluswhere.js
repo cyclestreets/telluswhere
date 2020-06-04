@@ -286,11 +286,7 @@ var telluswhere = (function ($) {
 			telluswhere.getData();
 			
 			// Register filtering change, in multicategory mode
-			if (_settings.multiCategoryMode) {
-				$('#filters select').change (function () {
-					telluswhere.getData ();
-				});
-			}
+			telluswhere.filteringUi ();
 			
 			// Register reporting link function
 			if (_settings.useIcon == 'current') {
@@ -963,6 +959,28 @@ var telluswhere = (function ($) {
 			}
 		},
 		
+		
+		// Filtering UI
+		filteringUi: function ()
+		{
+			// Only available in multi-category mode
+			if (!_settings.multiCategoryMode) {return;}
+			
+			// Register change handler
+			$('#filters select').change (function () {
+				
+				// Do data refresh
+				telluswhere.getData ();
+				
+				// Update the URL
+				if (history.pushState) {
+					var category = $('#filters select').val ();
+					var url = window.location.origin + window.location.pathname + (category ? '?category=' + category : '') + window.location.hash;
+					var state = {category: category};		// Category may be null, but key still added to state
+					history.pushState (state, '', url);
+				}
+			});
+		},
 		
 		
 		/* EXIF image marker setting functions */

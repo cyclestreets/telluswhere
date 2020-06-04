@@ -22,7 +22,7 @@ var telluswhere = (function ($) {
 		
 		// Max/min zoom
 		maxZoom: 21,
-		minZoom: 7,
+		minZoom: 6,
 		
 		// Data API endpoint(s)
 		browsingApiUrl: false,

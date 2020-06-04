@@ -71,7 +71,7 @@ form .latitude, form .longitude, form .zoom, form .location {display: none;}
 
 /* Geocoder autocomplete */
 #geocoder input {-webkit-appearance: none; -webkit-border-radius: 0;}
-#mapcontainer #geocoder {position: absolute; top: 10px; left: 55px; z-index: 1001; box-shadow: 10px 10px 20px 0px rgba(0,0,0,0.50);}
+#mapcontainer #geocoder {position: absolute; top: 10px; left: 55px; z-index: 1001; box-shadow: 10px 10px 20px 0px rgba(0,0,0,0.5);}
 #mapcontainer #geocoder input {padding: 5px; font-size: 1em; color: #603; width: 200px;}
 #mapcontainer #geocoder input, .ui-autocomplete {border: 1px solid #ccc;}
 .ui-autocomplete-loading {background: white url('/images/ui-anim_basic_16x16.gif') right center no-repeat;}
@@ -81,6 +81,10 @@ form .latitude, form .longitude, form .zoom, form .location {display: none;}
 .ui-autocomplete li a {padding: 5px 15px 3px; display: block; color: #603;}
 .ui-autocomplete li a span {color: gray; font-size: 0.81em;}
 .ui-autocomplete li a.ui-state-active {cursor: pointer; background-color: #f7f7f7; color: inherit;}
+
+/* Filters */
+#mapcontainer #filters {z-index: 500; position: absolute; left: 10px; bottom: 10px;}
+#mapcontainer #filters select {appearance: none; padding: 3px 6px; border-radius: 5px; border-color: #bbb; color: #444; margin-right: 5px; box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.2);}
 
 /* Home page geocoder */
 body.home #geocoder .geolocation {float: left; display: none; width: 50px; height: 50px;}

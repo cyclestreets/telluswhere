@@ -2801,6 +2801,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
+		# Category filtering, in multi-category mode
+		$html .= $this->categoryFilters ();
+		
 		# Add a container that can be used flexibly for attribution
 		$html .= "\n\n\t" . '<div id="attribution"></div>';
 		
@@ -2826,6 +2829,28 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$html .= "\n\t\t" . '<img class="geolocation" src="/images/gps.png" />';
 		}
 		$html .= "\n\t\t" . '<input type="search" name="location" autocomplete="off" placeholder="Search locations" spellcheck="false" />';
+		$html .= "\n\t" . '</div>';
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Category filtering
+	private function categoryFilters ()
+	{
+		# Enable only in multi-category mode
+		if (!$this->settings['multiCategoryMode']) {return;}
+		
+		# Create the HTML
+		$html  = "\n\n\t" . '<div id="filters">';
+		$html .= "\n\t\t" . '<select name="category" id="category">';
+		$categoriesList = preg_split ('/[\s,]+/', trim ($this->settings['categories']));
+		$html .= "\n\t\t\t" . '<option value="">Show only category:</option>';
+		foreach ($categoriesList as $category) {
+			$html .= "\n\t\t\t" . '<option value="' . $category . '">' . $this->categoryLabels[$category]['plural'] . '</option>';
+		}
+		$html .= "\n\t\t" . '</select>';
 		$html .= "\n\t" . '</div>';
 		
 		# Return the HTML

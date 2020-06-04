@@ -280,10 +280,17 @@ var telluswhere = (function ($) {
 			_useJsonpTransport = telluswhere.useJsonpTransport();
 			
 			// Register moveend
-			map.on('moveend', telluswhere.whenMapMoves);
+			map.on ('moveend', telluswhere.whenMapMoves);
 			
 			// Get the data on initial view
 			telluswhere.getData();
+			
+			// Register filtering change, in multicategory mode
+			if (_settings.multiCategoryMode) {
+				$('#filters select').change (function () {
+					telluswhere.getData ();
+				});
+			}
 			
 			// Register reporting link function
 			if (_settings.useIcon == 'current') {
@@ -1393,6 +1400,16 @@ var telluswhere = (function ($) {
 			// Add BBOX
 			var data = {};
 			data.bbox = map.getBounds().toBBoxString();
+			
+			// Limit to category if required
+			if (_settings.multiCategoryMode) {
+				if ($('#filters select').length) {
+					var value = $('#filters select').val ();
+					if (value) {
+						data.category = value;
+					}
+				}
+			}
 			
 			// Limit to tag if required
 			if (_settings.limitToTag) {

@@ -23,6 +23,7 @@ var telluswhere = (function ($) {
 		// Max/min zoom
 		maxZoom: 21,
 		minZoom: 6,
+		exportMinZoom: 12,
 		
 		// Data API endpoint(s)
 		browsingApiUrl: false,
@@ -1884,7 +1885,7 @@ var telluswhere = (function ($) {
 				}
 				
 				// Limit visibility of link to Local Authority area size, as API export at country-wide scale will give a misleading selection
-				if (map.getZoom() >= 13) {
+				if (map.getZoom() >= _settings.exportMinZoom) {
 					$('#export').fadeIn (2000);
 				} else {
 					$('#export').fadeOut (1000);

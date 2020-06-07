@@ -410,6 +410,9 @@ class telluswhere
 		# Set asset revision
 		$this->template['revision'] = date ('ymd');		// Force asset update each day
 		
+		# Create the map application CSS
+		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
+		
 		# If a file is requested, serve the file directly, then end
 		if (isSet ($_GET['file'])) {
 			if ($this->serveFile ($_GET['file'])) {
@@ -935,9 +938,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	# Function to initialise the Javascript application, as required for e.g. feedback
 	private function initJsGeneral ($run = false)
 	{
-		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
-		
 		# Load the application, to enable the geocoder
 		$userJs = ($this->user ? 'true' : 'false');
 		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
@@ -1002,9 +1002,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	# Areas listing page
 	private function areas ()
 	{
-		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
-		
 		# Register assets, needed for the place search
 		$this->headContent['jquery-ui']  = '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>';
 		$this->headContent['jquery-ui'] .= "\n" . '<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />';
@@ -2769,9 +2766,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Load EXIF Filereader support
 		$this->headContent['jquery-exif'] = '<script src="/js/lib/jquery.exif.js"></script>';
-		
-		# Create the map application CSS
-		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');

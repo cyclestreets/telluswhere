@@ -628,6 +628,10 @@ var telluswhere = (function ($) {
 		// Function to set the icon size, as adjusted by likes
 		iconSizeLikes: function (icon, likes)
 		{
+			// Do not scale at low zoom
+			var zoom = map.getZoom ();
+			if (zoom < 12) {return icon;}
+
 			// Determine scale
 			var scale = 1;
 			$.each (_settings.iconSizeLikesScaling, function (index, scaleFactor) {

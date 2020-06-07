@@ -93,6 +93,10 @@ body.home #geocoder .geolocation {float: left; display: none; width: 50px; heigh
 p#export {display: none; /* Hidden by default, shown by JS */}
 p#export, p#export a {opacity: 0.6;}
 
+/* Share buttons */
+p.whatsapp a {background-color: #1dc143; padding: 5px 8px; border-radius: 4px; font-size: 0.9em; text-decoration: none;}
+p.whatsapp img {width: 16px; height: 16px; vertical-align: middle; border: 0;}
+
 /* Areas page */
 body.areas table.splitlist {width: 100%; table-layout: fixed;}
 body.areas table.splitlist td {width: 33%;}

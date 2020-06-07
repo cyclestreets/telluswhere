@@ -637,6 +637,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `defaultZoom` float NOT NULL COMMENT 'Default zoom',
 			  `earliestDate` date DEFAULT NULL COMMENT 'Earliest date to appear in export',
 			  `bbox` varchar(225) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Bounding box for export',
+			  `shareTwitterText` VARCHAR(255) NULL COMMENT 'Sharing text for Twitter',
+			  `shareWhatsappText` VARCHAR(255) NULL COMMENT 'Sharing text for Whatsapp',
 			  `trackingCode` text COLLATE utf8mb4_unicode_ci COMMENT 'Analytics tracking code',
 			  `areas` text COLLATE utf8mb4_unicode_ci COMMENT 'Area names',
 			  `auditDataset` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Audit dataset moniker'
@@ -2502,6 +2504,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html  = "\n<p id=\"thankyou\">{$unicodeTick}" . ($isUpdate ? '<strong> Thank you for your update</strong>.' : "<strong> Thank you for your submission</strong>, which is number " . number_format ($id) . '.') . '</p>';
 		$html .= "\n<p><a href=\"{$this->actions[$action]['url']}{$this->iframeSuffix}{$mapLocationHash}\">Add another?</a></p>";
 		
+		# Include social media sharing buttons if enabled in the settings
+		$html .= $this->shareButtons ($action);
+		
 		# If the site is embedded and an 'onward' URL parameter is provided, provide an onward link
 		if (isSet ($_GET['onward'])) {
 			$mapLocationHash = '#' . '14' . '/' . $latitude . '/' . $longitude;		// Fixed zoom level, to show a general area, a little more than a Ward
@@ -2607,6 +2612,42 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$mediaupload = '@' . $file;	// Deprecated method using @ symbol - see: https://stackoverflow.com/a/4270282/180733
 		}
 		return $mediaupload;
+	}
+	
+	
+	# Function to provide social media links upon submission
+	private function shareButtons ($action)
+	{
+		# Enable only the suggest page
+		if ($action != 'suggest') {return false;}
+		
+		# Ensure one or more share settings are enabled
+		if (!$this->settings['shareTwitterText'] && !$this->settings['shareWhatsappText']) {return false;}
+		
+		# Start the HTML
+		$html = '';
+		
+		# Determine any explicit share URL if supplied by an iframe
+		$iframeUrl = (isSet ($_GET['twitter']) ? $_GET['twitter'] : false);
+		
+		# Twitter sharing; see: https://developer.twitter.com/en/docs/twitter-for-websites/tweet-button/overview
+		if ($this->settings['shareTwitterText']) {
+			$dataUrl = ($iframeUrl ? $iframeUrl : false);		// URL is added implicitly if not specified; this will result in the map has being included
+			$message = $this->settings['shareTwitterText'];
+			$html .= "\n" . "<br />";
+			$html .= "\n" . '<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>';
+			$html .= "\n" . '<p><a class="twitter-share-button" data-size="large"' . ($dataUrl ? ' data-url="' . htmlspecialchars ($dataUrl) . '"' : '') . ' href="https://twitter.com/intent/tweet?text=' . htmlspecialchars (rawurlencode ($message)) . '">Tweet</a></p>';
+		}
+		
+		# Whatsapp sharing; see: https://faq.whatsapp.com/general/chats/how-to-use-click-to-chat
+		if ($this->settings['shareWhatsappText']) {
+			$dataUrl = ($iframeUrl ? $iframeUrl : $_SERVER['_PAGE_URL']);
+			$message = $this->settings['shareWhatsappText'] . ' ' . $dataUrl;
+			$html .= "\n" . '<p class="whatsapp"><a href="https://wa.me/?text=' . htmlspecialchars (rawurlencode ($message)) . '"><img src="/images/whatsapp.png" /> WhatsApp this!</a></p>';
+		}
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -3394,6 +3435,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'defaultLatitude'	=> array ('heading' => array (3 => 'Initial map location'), ),
 				'earliestDate'		=> array ('heading' => array (3 => 'Export parameters'), ),
 				'bbox'				=> array ('description' => 'W,S,E,N; data from: https://wiki.openstreetmap.org/wiki/Bounding_Box', ),
+				'shareTwitterText'	=> array ('heading' => array (3 => 'Social media', 'p' => 'Sharing text will have the URL added automatically.'), ),
 				'trackingCode'		=> array ('heading' => array (3 => 'Analytics'), 'rows' => 11, ),
 				'password'			=> array ('type' => 'input', 'confirmation' => false, 'editable' => true, ),	// Override intelligence=true for field named 'password'
 				'areas'				=> array ('heading' => array (3 => 'Areas'), 'rows' => 12, ),

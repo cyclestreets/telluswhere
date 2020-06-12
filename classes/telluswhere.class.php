@@ -3654,6 +3654,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'rows' => 12,
 			'cols' => 60,
 		));
+		$form->input (array (
+			'name'			=> 'extracredit',
+			'title'			=> 'Optional credit line which will be appended to each caption',
+			'required'		=> false,
+			'size'			=> 80,
+		));
 		/*
 		$form->select (array (
 			'name'			=> 'projection',
@@ -3724,7 +3730,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$action = $this->metacategories[$metacategory];
 		$defaultCaption = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
 		foreach ($data as $index => $location) {
-			$data[$index]['caption'] = (isSet ($location['caption']) ? $location['caption'] : $defaultCaption);
+			$data[$index]['caption'] = trim (isSet ($location['caption']) ? $location['caption'] : $defaultCaption) . ($result['extracredit'] ? "\n\n" . $result['extracredit'] : '');
 			$data[$index]['metacategory'] = $metacategory;
 			$data[$index]['license'] = $result['license'];
 			$data[$index]['name'] = $result['name'];

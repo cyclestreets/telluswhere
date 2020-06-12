@@ -3872,7 +3872,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'name'			=> "caption_{$index}",
 				'title'			=> 'Caption',
 				'required'		=> true,
-				'rows'			=> 2,
+				'rows'			=> 4,
 				'cols'			=> 40,
 				'default'		=> $location['caption'],
 			));

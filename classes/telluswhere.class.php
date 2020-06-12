@@ -404,6 +404,9 @@ class telluswhere
 		# Determine the style directory in use
 		$this->styleDirectory = $this->getStyleDirectory ();
 		
+		# Add support for hiding a properties header
+		$this->template['_noproperties'] = ((isSet ($_GET['properties']) && $_GET['properties'] == 'false') ? ' noproperties' : '');
+		
 		# Register standard placeholder substitutions
 		$this->template['date'] = date ('Y');
 		

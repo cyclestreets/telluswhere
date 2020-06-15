@@ -632,7 +632,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
 			  `privateSubmissions` int(1) DEFAULT NULL COMMENT 'Make submissions private?',
 			  `overlayUrl` VARCHAR(255) DEFAULT NULL COMMENT 'Overlay URL',
-			  `overlayButtonText` VARCHAR(255) DEFAULT NULL COMMENT 'Overlay button text',
+			  `overlayButtonHtml` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Overlay button HTML (will be added inside a paragraph)',
 			  `aboutPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'About page text',
 			  `contactsPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page text',
 			  `termsPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Terms page text',
@@ -2915,9 +2915,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions['suggest']['apiUrl2'] = $this->settings['overlayUrl'];
 		
 		# Create the HTML
-		$overlayButtonText = ($this->settings['overlayButtonText'] ? $this->settings['overlayButtonText'] : 'Show overlay?');
+		$overlayButtonHtml = ($this->settings['overlayButtonHtml'] ? $this->settings['overlayButtonHtml'] : 'Show overlay?');
 		$html  = "\n\n\t" . '<div id="overlay">';
-		$html .= "\n\t\t" . '<label><input type="checkbox" name="overlay" value="true" /> ' . htmlspecialchars ($overlayButtonText) . '</label>';
+		$html .= "\n\t\t" . '<label><input type="checkbox" name="overlay" value="true" /> ' . $overlayButtonHtml . '</label>';
 		$html .= "\n\t" . '</div>';
 		
 		# Return the HTML

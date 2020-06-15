@@ -631,6 +631,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			  `since` DATE NULL DEFAULT NULL COMMENT 'Limit to locations since time',
 			  `showOthers` int(1) DEFAULT NULL COMMENT 'Show submissions by others?',
 			  `privateSubmissions` int(1) DEFAULT NULL COMMENT 'Make submissions private?',
+			  `overlayUrl` VARCHAR(255) DEFAULT NULL COMMENT 'Overlay URL',
+			  `overlayButtonText` VARCHAR(255) DEFAULT NULL COMMENT 'Overlay button text',
 			  `aboutPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'About page text',
 			  `contactsPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Contact page text',
 			  `termsPageHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Terms page text',
@@ -1100,12 +1102,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->settings['defaultLatitude'] = $feature['geometry']['coordinates'][1];
 		$this->settings['defaultLongitude'] = $feature['geometry']['coordinates'][0];
 		$this->settings['defaultZoom'] = ($feature['properties']['radius'] > 5 ? 12 : 14);
-		
-		# If there is an overlay, enable it
-		$overlay = '/overlays/' . $id . '.geojson';
-		if (file_exists ($_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $overlay)) {
-			$this->actions['suggest']['apiUrl2'] = $_SERVER['_SITE_URL'] . $overlay;
-		}
 		
 		# Register the city name for the template
 		$city = $feature['properties']['name'];
@@ -2719,6 +2715,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			}
 		}
 		
+		# Overlay support
+		$overlayHtml = $this->overlay ();
+		
 		# Determine whether a browsing API is to be shown
 		$useBrowsingApi = false;
 		if (in_array ($this->action, array ('suggest', 'current')) && $this->settings['showOthers']) {$useBrowsingApi = true;}
@@ -2783,6 +2782,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$markerDataJs = ($markerData ? json_encode ($markerData) : 'false');
 		$enableInitialCookieLocationJs = ($enableInitialCookieLocation ? 'true' : 'false');
 		$multiCategoryModeJs = ($this->settings['multiCategoryMode'] ? 'true' : 'false');
+		$enableOverlayJs = ($this->settings['overlayUrl'] ? 'true' : 'false');
 		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
 		$this->headContent['application'] .= "\n" . "<script>
 		$(function() {
@@ -2801,6 +2801,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				viewOnlyMode: {$viewOnlyModeJs},
 				enableDrawing: {$enableDrawingJs},
 				multiCategoryMode: {$multiCategoryModeJs},
+				enableOverlay: {$enableOverlayJs},
 				popupLabels: {$popupLabelsJs},
 				popupLabelSubsetField: {$popupLabelSubsetFieldJs},
 				markerData: {$markerDataJs},
@@ -2841,6 +2842,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Category filtering, in multi-category mode
 		$html .= $this->categoryFilters ();
+		
+		# Overlay support
+		$html .= $overlayHtml;
 		
 		# Add a container that can be used flexibly for attribution
 		$html .= "\n\n\t" . '<div id="attribution"></div>';
@@ -2894,6 +2898,26 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$html .= "\n\t\t\t" . '<option value="' . $category . '"' . ($category == $defaultCategory ? ' selected="selected"' : '') . '>' . $this->categoryLabels[$category]['plural'] . '</option>';
 		}
 		$html .= "\n\t\t" . '</select>';
+		$html .= "\n\t" . '</div>';
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Overlay support
+	private function overlay ()
+	{
+		# End if not enabled
+		if (!$this->settings['overlayUrl']) {return false;}
+		
+		# Register the overlay as URL 2, performing string replacement
+		$this->actions['suggest']['apiUrl2'] = $this->settings['overlayUrl'];
+		
+		# Create the HTML
+		$overlayButtonText = ($this->settings['overlayButtonText'] ? $this->settings['overlayButtonText'] : 'Show overlay?');
+		$html  = "\n\n\t" . '<div id="overlay">';
+		$html .= "\n\t\t" . '<label><input type="checkbox" name="overlay" value="true" /> ' . htmlspecialchars ($overlayButtonText) . '</label>';
 		$html .= "\n\t" . '</div>';
 		
 		# Return the HTML
@@ -3424,6 +3448,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'attributes' => array (
 				'url'				=> array ('heading' => array (3 => 'Core settings'), 'default' => $_SERVER['_SITE_URL'], 'editable' => false, ),
 				'categories'	=> array ('description' => 'One category ID per line', ),
+				'overlayUrl'		=> array ('heading' => array (3 => 'Overlay'), ),
 				'aboutPageHtml'		=> array ('heading' => array (3 => 'Page texts'), ),
 				'administrators'	=> array ('heading' => array (3 => 'Privileged users'), 'description' => 'One e-mail address per line', ),
 				'downloaders'		=> array ('description' => 'One e-mail address per line', ),

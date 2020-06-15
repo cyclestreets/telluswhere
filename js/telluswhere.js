@@ -50,6 +50,9 @@ var telluswhere = (function ($) {
 		// Multicategory mode
 		multiCategoryMode: false,
 		
+		// Overlay
+		enableOverlay: false,
+		
 		// Popup labelling
 		popupLabels: {},
 		
@@ -233,6 +236,9 @@ var telluswhere = (function ($) {
 				telluswhere.cursorZoomin ();
 			});
 			
+			// Overlay support
+			telluswhere.overlay ();
+			
 			// Add each data layer to the map, if enabled
 			$.each (_browsingApiUrls, function (index, url) {
 				telluswhere.registerLeafletDataLayer (index, url);
@@ -301,6 +307,56 @@ var telluswhere = (function ($) {
 			
 			// Return map
 			return map;
+		},
+		
+		
+		// Overlay support, enabled using a button
+		overlay: function ()
+		{
+			// End if not enabled
+			if (!_settings.enableOverlay) {return false;}
+			
+			// Ensure there is an overlay button in the UI
+			if (!$('#overlay').length) {return false;}
+			
+			// Change line colour/size for overlay
+			_settings.lineColour.initial = 'brown';
+			_settings.lineSize.initial = 4;
+			_settings.lineSize.reviewed = 8;	// #!# Doesn't seem to be working
+			
+			// Set initial visibility state
+			var isEnabledInitially = ($('#overlay input').is(':checked'));
+			telluswhere.overlayHandler (isEnabledInitially);
+			
+			// Change state on checkbox change
+			$('#overlay input').change (function() {
+				var isEnabled = ($('#overlay input').is(':checked'));
+				telluswhere.overlayHandler (isEnabled);
+			});
+		},
+		
+		
+		// Function to enable or disable the overlay
+		overlayHandler (isEnabled)
+		{
+			// If too zoomed-out, the overlay must be disabled
+			// #!# This doesn't yet subsequently disable it after zoom out
+			var minZoom = 11;
+			if (map.getZoom () < minZoom) {
+				isEnabled = false;
+			}
+			
+			// If enabled, register/re-register the layer; else remove it if present
+			if (isEnabled) {
+				_browsingApiUrls[1] = _settings.browsingApiUrl2;
+				telluswhere.registerLeafletDataLayer (1, _browsingApiUrls[1]);
+				map.setView (map.getCenter (), map.getZoom ());		// Trigger map change, 'moving' it by no distance
+			} else {
+				_browsingApiUrls[1] = false;
+				if (_currentDataLayers[1]) {
+					map.removeLayer (_currentDataLayers[1]);
+				}
+			}
 		},
 		
 		
@@ -1074,7 +1130,7 @@ var telluswhere = (function ($) {
 		// Define HTML to be used in the popup
 		popupHtml: function (properties, layerIndex, centre)
 		{
-			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation' || _action == 'priorityareas') {
+			if (_action == 'audit' || _action == 'auditadd' || _action == 'auditaddlocation' || _action == 'priorityareas' || (_settings.enableOverlay && _action == 'suggest' && layerIndex == 1)) {
 				return telluswhere.popupHtmlDynamic (properties, layerIndex, centre);
 			} else {
 				return telluswhere.popupHtmlFixed (properties);

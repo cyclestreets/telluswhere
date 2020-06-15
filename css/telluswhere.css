@@ -82,9 +82,12 @@ form .latitude, form .longitude, form .zoom, form .location {display: none;}
 .ui-autocomplete li a span {color: gray; font-size: 0.81em;}
 .ui-autocomplete li a.ui-state-active {cursor: pointer; background-color: #f7f7f7; color: inherit;}
 
-/* Filters */
-#mapcontainer #filters {z-index: 500; position: absolute; left: 10px; bottom: 10px;}
-#mapcontainer #filters select {appearance: none; padding: 3px 6px; border-radius: 5px; border-color: #bbb; color: #444; margin-right: 5px; box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.2);}
+/* Filters and overlay */
+#mapcontainer #filters, #mapcontainer #overlay {z-index: 500; position: absolute; left: 10px; bottom: 10px; opacity: 1;}
+#mapcontainer #filters select, #mapcontainer #overlay {padding: 3px 6px; border-radius: 5px; border-color: #bbb; color: #444; margin-right: 5px;  box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.2);}
+#mapcontainer #filters select {appearance: none;}
+#mapcontainer #overlay {border-width: 1px; border-style: solid; background-color: white; font-size: 0.9em; padding: 2px 8px 3px;}
+#mapcontainer #overlay {left: 245px;}
 
 /* Home page geocoder */
 body.home #geocoder .geolocation {float: left; display: none; width: 50px; height: 50px;}

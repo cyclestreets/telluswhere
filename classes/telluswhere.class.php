@@ -2512,6 +2512,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$html .= "\n\t<h3>Help lobby local decision-makers</h3>";
 			$html .= "\n\t<p>Now that you have added a location to the map, please consider writing to your council, using our simple action form:</p>";
 			$html .= "\n\t<p><strong><a target=\"_parent\" href=\"" . htmlspecialchars ($onwardUrl) . "\">Contact my local councillor &raquo;</strong></p>";
+			if (isSet ($_GET['onwardimage'])) {
+				$html .= "\n\t<p><a target=\"_parent\" href=\"" . htmlspecialchars ($onwardUrl) . '"><img src="' . htmlspecialchars ($_GET['onwardimage']) . '" /></p>';
+			}
 			$html .= "\n</div>";
 		}
 		

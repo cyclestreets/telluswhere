@@ -2774,7 +2774,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Load the map application Javascript and run it
 		$userJs = ($this->user ? 'true' : 'false');
-		$initialGeometryJs = ($mapLocation['geometry'] ? json_encode ($mapLocation['geometry']) : 'false');
+		$initialGeometryJs = (isSet ($mapLocation['geometry']) && $mapLocation['geometry'] ? json_encode ($mapLocation['geometry']) : 'false');
 		$setMarkerInitiallyJs = ($setMarkerInitially ? 'true' : 'false');
 		$markerSetInitiallyIsDraggableJs = ($markerSetInitiallyIsDraggable ? 'true' : 'false');
 		$selectedIdJs = ($selectedIdData ? (ctype_digit ($selectedIdData['id']) ? $selectedIdData['id'] : "'{$selectedIdData['id']}'") : 'false');

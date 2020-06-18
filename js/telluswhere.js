@@ -62,11 +62,12 @@ var telluswhere = (function ($) {
 		
 		// Icon sizing based on Likes
 		iconSizeLikesScaling: [
-			[0, 0.9],
-			[2, 1.1],
-			[5, 1.4],
-			[10, 1.7],
-			[20, 2.5]
+			[0, 0.8],
+			[2, 0.9],
+			[5, 1],
+			[15, 1.2],
+			[50, 1.8],
+			[100, 3],
 		],
 		
 		// Browse request limitations

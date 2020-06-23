@@ -334,11 +334,13 @@ var telluswhere = (function ($) {
 				var isEnabled = ($('#overlay input').is(':checked'));
 				telluswhere.overlayHandler (isEnabled);
 			});
+			
+			
 		},
 		
 		
 		// Function to enable or disable the overlay
-		overlayHandler (isEnabled)
+		overlayHandler: function (isEnabled)
 		{
 			// If too zoomed-out, the overlay must be disabled
 			// #!# This doesn't yet subsequently disable it after zoom out

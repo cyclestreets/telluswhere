@@ -3669,11 +3669,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'values'		=> $metacategories,
 		));
 		$form->textarea (array (
-			'name' => 'metadata',
-			'title' => 'Paste in the box copied from your spreadsheet - see notes above',
-			'required' => true,
-			'rows' => 12,
-			'cols' => 60,
+			'name'			=> 'metadata',
+			'title'			=> 'Paste in the box copied from your spreadsheet - see notes above',
+			'required'		=> true,
+			'rows'			=> 12,
+			'cols'			=> 60,
 		));
 		$form->input (array (
 			'name'			=> 'extracredit',
@@ -3700,14 +3700,14 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		));
 		*/
 		$form->upload (array (
-			'name' => 'images',
-			'title' => '(Optional) Images - zipped as single file (maximum size: ' . ini_get ('upload_max_filesize') . ')',
-			'directory' => $this->imagesDirectory,
-			'required' => false,
-			'allowedExtensions' => array ('zip'),
-			'enableVersionControl' => false,
-			'flatten' => true,
-			'unzip' => true,
+			'name'			=> 'images',
+			'title'			=> '(Optional) Images - zipped as single file (maximum size: ' . ini_get ('upload_max_filesize') . ')',
+			'directory'		=> $this->imagesDirectory,
+			'required'		=> false,
+			'allowedExtensions'		=> array ('zip'),
+			'enableVersionControl'	=> false,
+			'flatten'		=> true,
+			'unzip'			=> true,
 		));
 		$form->select (array (
 			'name'			=> 'license',

@@ -3668,12 +3668,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'required'		=> true,
 			'values'		=> $metacategories,
 		));
-		$form->select (array (
-			'name'			=> 'license',
-			'title'			=> 'License',
-			'values'		=> array ('publicdomain' => 'Public domain (preferred)', 'ogl' => 'Open Government Licence'),
-			'required'		=> true,
-		));
 		$form->textarea (array (
 			'name' => 'metadata',
 			'title' => 'Paste in the box copied from your spreadsheet - see notes above',
@@ -3708,6 +3702,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'enableVersionControl' => false,
 			'flatten' => true,
 			'unzip' => true,
+		));
+		$form->select (array (
+			'name'			=> 'license',
+			'title'			=> 'License',
+			'values'		=> array ('publicdomain' => 'Public domain (preferred)', 'ogl' => 'Open Government Licence'),
+			'required'		=> true,
 		));
 		$form->input (array (
 			'name'			=> 'name',

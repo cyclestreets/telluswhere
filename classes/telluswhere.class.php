@@ -3685,6 +3685,13 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'title'			=> 'If using GeoJSON, the fieldname that contains the category',
 			'required'		=> false,
 		));
+		$form->textarea (array (
+			'name'			=> 'categorymapping',
+			'title'			=> 'Category mapping - one per line, as two tab-separated columns, current then new',
+			'required'		=> false,
+			'rows'			=> 4,
+			'cols'			=> 60,
+		));
 		$form->input (array (
 			'name'			=> 'captionfieldname',
 			'title'			=> 'If using GeoJSON, the fieldname that contains the caption',
@@ -3745,7 +3752,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$data = array ();
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
 			if ($unfinalisedData['metadata']) {
-				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $unfinalisedData['captionfieldname'], $unfinalisedData['categoryfieldname'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
+				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $unfinalisedData['captionfieldname'], $unfinalisedData['categoryfieldname'], $unfinalisedData['categorymapping'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 			}
@@ -3973,7 +3980,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to process submitted batch metadata string (TSV or GeoJSON) and assemble the data from it
-	private function getBatchData ($metadata, $captionFieldname, $categoryFieldname, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
+	private function getBatchData ($metadata, $captionFieldname, $categoryFieldname, $categoryMapping, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
 	{
 		# Determine the format, either TSV or GeoJSON
 		$isGeoJson = (preg_match ('/^{/', trim ($metadata)) && preg_match ('/}$/', trim ($metadata)) && substr_count ($metadata, 'FeatureCollection'));
@@ -3981,6 +3988,24 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$data = $this->getBatchDataGeojson ($metadata, $captionFieldname, $categoryFieldname);
 		} else {
 			$data = $this->getBatchDataTsv ($metadata);
+		}
+		
+		# Convert categories if required
+		if ($categoryMapping) {
+			
+			# Parse out the TSV block
+			$categoryMappingLines = explode ("\n", trim ($categoryMapping));
+			$categoryMapping = array ();
+			foreach ($categoryMappingLines as $line) {
+				list ($current, $new) = explode ("\t", $line);
+				$categoryMapping[$current] = $new;
+			}
+			
+			# Substitute values
+			foreach ($data as $index => $record) {
+				$category = $record['category'];
+				$data[$index]['category'] = $categoryMapping[$category];
+			}
 		}
 		
 		# Extract the fields in the data by taking the first row of data

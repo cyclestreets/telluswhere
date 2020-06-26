@@ -3681,6 +3681,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'required'		=> false,
 			'size'			=> 80,
 		));
+		$form->input (array (
+			'name'			=> 'tags',
+			'title'			=> 'Tag(s)',
+			'required'		=> false,
+			'default'		=> $this->settings['submitTag'],
+		));
 		/*
 		$form->select (array (
 			'name'			=> 'projection',
@@ -3761,6 +3767,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$data[$index]['category'] = $this->categories[0];	// #!# Multiple category support not yet in place
 			$data[$index]['metacategory'] = $metacategory;
 			$data[$index]['license'] = $result['license'];
+			$data[$index]['tags'] = $result['tags'];
 			$data[$index]['name'] = $result['name'];
 			$data[$index]['email'] = $result['email'];
 		}
@@ -3931,6 +3938,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'name'			=> $stage1Data[$i]['name'],
 				'email'			=> $stage1Data[$i]['email'],
 			);
+			if (strlen ($stage1Data[$i]['tags'])) {
+				$data[$i]['tags'] = $stage1Data[$i]['tags'];
+			}
 			if (isSet ($stage1Data[$i]['filename'])) {
 				$data[$i]['filename'] = $stage1Data[$i]['filename'];
 			}

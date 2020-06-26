@@ -3629,7 +3629,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$category = $this->categories[0];	// #!# Multiple category support not yet in place
 		$metacategories = array ();
 		foreach ($this->metacategories as $metacategory => $action) {
-			$metacategories[$metacategory] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
+			if (count ($this->categories) > 1) {
+				$metacategories[$metacategory] = str_replace ('%categoryLabel', 'infrastructure', $this->actions[$action]['description']);
+			} else {
+				$metacategories[$metacategory] = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
+			}
 		}
 		
 		#!# Fix styles in UCP

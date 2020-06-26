@@ -609,6 +609,13 @@ class batchImport
 		# Loop through each feature
 		$data = array ();
 		foreach ($geojson['features'] as $feature) {
+			
+			# If there is no caption, use the category
+			if (!strlen ($feature['properties'][$captionFieldname])) {
+				$feature['properties'][$captionFieldname] = $feature['properties'][$categoryFieldname];
+			}
+			
+			# Register this location
 			$data[] = array (
 				#!# No support yet for LineString
 				'latitude' => $feature['geometry']['coordinates'][1],

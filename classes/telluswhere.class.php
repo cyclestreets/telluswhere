@@ -3497,7 +3497,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	{
 		# Subclass
 		require_once ('classes/batchImport.class.php');
-		$batchImport = new batchImport ($this, $this->tmpDirectory, $this->tmpFolder);
+		$batchImport = new batchImport ($this, $this->tmpDirectory, $this->tmpFolder, $this->categoryLabels);
 		$batchImport->batch ();
 		$this->template['contents'] = $batchImport->getHtml ();
 		$this->headContent += $batchImport->getHeadContent ();

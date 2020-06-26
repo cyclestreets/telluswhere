@@ -11,7 +11,7 @@ class batchImport
 	
 	
 	# Constructor
-	public function __construct ($telluswhere, $tmpDirectory, $tmpFolder)
+	public function __construct ($telluswhere, $tmpDirectory, $tmpFolder, $categoryLabels)
 	{
 		# Create handles to the main class properties
 		$this->telluswhere = $telluswhere;
@@ -26,6 +26,7 @@ class batchImport
 		# Other properties
 		$this->tmpDirectory = $tmpDirectory;
 		$this->tmpFolder = $tmpFolder;
+		$this->categoryLabels = $categoryLabels;
 	}
 	
 	

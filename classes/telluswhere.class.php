@@ -2524,7 +2524,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to post submissions to the API
-	private function postSubmission ($rawdata, $action, $category, $license, $filePath, $existingData, &$errorText = '')
+	public function postSubmission ($rawdata, $action, $category, $license, $filePath, $existingData, &$errorText = '')
 	{
 		# Define the API URL; note this uses a POST operation due to the presence of a username and password
 		$apiCall = ($existingData ? 'photomap.update' : 'photomap.add');
@@ -2651,7 +2651,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Map panel, for setting a location and/or showing others
-	private function mapPanel ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array (), $enableInitialCookieLocation = true)
+	public function mapPanel ($showLayer, $selectedIdData = array (), $markerSetInitiallyIsDraggable = false, $viewOnlyMode = false, $initialLocation = array (), $enableDrawing = false, $markerData = array (), $enableInitialCookieLocation = true)
 	{
 		# By default, no marker is shown
 		$setMarkerInitially = false;

@@ -79,7 +79,7 @@ class batchImport
 		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
 			$action = $this->metacategories[$location['metacategory']];
-			if (!$result = $this->postSubmission ($location, $action, $location['category'], $location['license'], $this->imagesDirectory, false, $errorText)) {
+			if (!$result = $this->telluswhere->postSubmission ($location, $action, $location['category'], $location['license'], $this->imagesDirectory, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}
@@ -97,7 +97,7 @@ class batchImport
 		$locationsCentrepoint = $this->locationsCentrepoint ($data);
 		
 		# Create the map HTML
-		$html .= $this->mapPanel ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
+		$html .= $this->telluswhere->mapPanel ($action, false, false, $viewOnlyMode = true, $locationsCentrepoint);
 		
 		# Register the HTML
 		$this->html = $html;

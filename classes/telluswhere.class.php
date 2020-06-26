@@ -3645,11 +3645,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add instructions
 		$this->headContent['generic-css'] = '<link rel="stylesheet" href="/css/generic.css" />';
 		$instructionBoxHtml  = "\n<div class=\"graybox\">";
-		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations (either {$requiredLocationFieldsHtml}) in a spreadsheet.</p>";
-		$instructionBoxHtml .= "\n\t<p>The spreadsheet file must have a header row, as shown in this example:</p>";
+		$instructionBoxHtml .= "\n\t<p>To add multiple locations, firstly assemble a spreadsheet containing the locations (either {$requiredLocationFieldsHtml}) in either a GeoJSON file or a spreadsheet.</p>";
+		$instructionBoxHtml .= "\n\t<p>If using a spreadsheet, the file must have a header row, as shown in this example:</p>";
 		$instructionBoxHtml .= "\n\t<p><img src=\"{$this->baseUrl}/images/multipleupload.png\" alt=\"Multiple upload example\" width=\"606\" height=\"172\" /></p>";
 		$instructionBoxHtml .= "\n\t<p><strong>Required fields</strong> are: {$requiredLocationFieldsHtml}<br /><strong>Optional fields</strong> are: " . implode (', ', $optionalFields);
-		$instructionBoxHtml .= "\n\t<p>Lat/lon pairs are assumed to be supplied in WGS84 (Web Mercator) projection.<br />If supplying northings/eastings pairs instead, these must be in OSGB36 projection; they will be converted to WGS84.</p>";
+		$instructionBoxHtml .= "\n\t<p>Lat/lon locations are assumed to be supplied in WGS84 (Web Mercator) projection.<br />If supplying northings/eastings pairs instead, these must be in OSGB36 projection; they will be converted to WGS84.</p>";
 		$instructionBoxHtml .= "\n\t<p>If you have <strong>images</strong> of the locations, you will need to create a zip file of all the files. If these have been taken on a phone which captures the location automatically, that will be used in preference to the given latitude/longitudes.</p>";
 		$instructionBoxHtml .= "\n</div>";
 		
@@ -3674,10 +3674,15 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		));
 		$form->textarea (array (
 			'name'			=> 'metadata',
-			'title'			=> 'Paste in the box copied from your spreadsheet - see notes above',
+			'title'			=> 'Paste in the data copied from your spreadsheet or GeoJSON file - see notes above',
 			'required'		=> true,
 			'rows'			=> 12,
 			'cols'			=> 60,
+		));
+		$form->input (array (
+			'name'			=> 'captionfieldname',
+			'title'			=> 'If using GeoJSON, the fieldname that contains the caption',
+			'required'		=> false,
 		));
 		$form->input (array (
 			'name'			=> 'extracredit',
@@ -3734,7 +3739,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$data = array ();
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
 			if ($unfinalisedData['metadata']) {
-				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
+				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $unfinalisedData['captionfieldname'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 			}
@@ -3961,12 +3966,16 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
-	# Function to process submitted TSV batch string and assemble the data from it
-	private function getBatchData ($tsv, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
+	# Function to process submitted batch metadata string (TSV or GeoJSON) and assemble the data from it
+	private function getBatchData ($metadata, $captionFieldname, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
 	{
-		# Parse the TSV string
-		require_once ('csv.php');
-		$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true);
+		# Determine the format, either TSV or GeoJSON
+		$isGeoJson = (preg_match ('/^{/', trim ($metadata)) && preg_match ('/}$/', trim ($metadata)) && substr_count ($metadata, 'FeatureCollection'));
+		if ($isGeoJson) {
+			$data = $this->getBatchDataGeojson ($metadata, $captionFieldname);
+		} else {
+			$data = $this->getBatchDataTsv ($metadata);
+		}
 		
 		# Extract the fields in the data by taking the first row of data
 		$fields = array_keys ($data[0]);
@@ -4000,6 +4009,41 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$conversionFunction = 'convertCoordinates' . ucfirst ($typeChosen);		// e.g. convertCoordinatesOs
 			$data = $this->{$conversionFunction} ($data);
 		}
+		
+		# Return the data
+		return $data;
+	}
+	
+	
+	# Function to convert the GeoJSON string to an array
+	private function getBatchDataGeojson ($geojson, $captionFieldname = 'caption')
+	{
+		# Decode the data to JSON
+		$geojson = json_decode ($geojson, true);
+		
+		# Loop through each feature
+		$data = array ();
+		foreach ($geojson['features'] as $feature) {
+			$data[] = array (
+				#!# No support yet for LineString
+				'latitude' => $feature['geometry']['coordinates'][1],
+				'longitude' => $feature['geometry']['coordinates'][0],
+				'caption' => $feature['properties'][$captionFieldname],
+				'filename' => false,
+			);
+		}
+		
+		# Return the data
+		return $data;
+	}
+	
+	
+	# Function to convert the TSV string to an array
+	private function getBatchDataTsv ($tsv)
+	{
+		# Parse the TSV string
+		require_once ('csv.php');
+		$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true);
 		
 		# Return the data
 		return $data;

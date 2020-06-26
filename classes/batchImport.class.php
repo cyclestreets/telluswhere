@@ -559,7 +559,7 @@ class batchImport
 			
 			# Substitute values
 			foreach ($data as $index => $record) {
-				$category = $record['category'];
+				$category = trim ($record['category']);
 				$data[$index]['category'] = $categoryMapping[$category];
 			}
 		}

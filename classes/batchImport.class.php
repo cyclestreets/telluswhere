@@ -442,8 +442,9 @@ class batchImport
 			
 			# Add the table entries; hidden fields will be added to the end of the form HTML automatically
 			$table[$index] = array (
-				'No.'			=> ($index + 1),
+				'No.'		=> ($index + 1),
 				'caption'	=> "{caption_{$index}}",
+				'category'	=> $stage1Data[$index]['category'],
 				'map'		=> $mapJsHtml,
 			);
 			

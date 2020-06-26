@@ -3524,8 +3524,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Add each entry via the API, reporting any error
 		foreach ($data as $location) {
 			$action = $this->metacategories[$location['metacategory']];
-			$category = $this->categories[0];	// #!# Multiple category support not yet in place
-			if (!$result = $this->postSubmission ($location, $action, $category, $location['license'], $this->imagesDirectory, false, $errorText)) {
+			if (!$result = $this->postSubmission ($location, $action, $location['category'], $location['license'], $this->imagesDirectory, false, $errorText)) {
 				$html .= "\n<p class=\"warning\">Error: " . htmlspecialchars ($errorText) . '</p>';
 			}
 		}
@@ -3759,6 +3758,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$defaultCaption = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = trim (isSet ($location['caption']) ? $location['caption'] : $defaultCaption) . ($result['extracredit'] ? "\n\n" . $result['extracredit'] : '');
+			$data[$index]['category'] = $this->categories[0];	// #!# Multiple category support not yet in place
 			$data[$index]['metacategory'] = $metacategory;
 			$data[$index]['license'] = $result['license'];
 			$data[$index]['name'] = $result['name'];
@@ -3925,6 +3925,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'latitude'		=> $result["location_{$i}"]['latitude'],
 				'longitude'		=> $result["location_{$i}"]['longitude'],
 				'zoom'			=> $result["location_{$i}"]['zoom'],
+				'category'		=> $stage1Data[$i]['category'],
 				'metacategory'	=> $stage1Data[$i]['metacategory'],
 				'license'		=> $stage1Data[$i]['license'],
 				'name'			=> $stage1Data[$i]['name'],

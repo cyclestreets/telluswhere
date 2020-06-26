@@ -3615,6 +3615,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Define other, optional fields
 		$optionalFields = array (
 			'caption',
+			'category',
 			'filename',
 		);
 		
@@ -3680,6 +3681,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'cols'			=> 60,
 		));
 		$form->input (array (
+			'name'			=> 'categoryfieldname',
+			'title'			=> 'If using GeoJSON, the fieldname that contains the category',
+			'required'		=> false,
+		));
+		$form->input (array (
 			'name'			=> 'captionfieldname',
 			'title'			=> 'If using GeoJSON, the fieldname that contains the caption',
 			'required'		=> false,
@@ -3739,7 +3745,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$data = array ();
 		if ($unfinalisedData = $form->getUnfinalisedData ()) {
 			if ($unfinalisedData['metadata']) {
-				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $unfinalisedData['captionfieldname'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
+				if (!$data = $this->getBatchData ($unfinalisedData['metadata'], $unfinalisedData['captionfieldname'], $unfinalisedData['categoryfieldname'], $optionalFields, $locationFields, $requiredLocationFieldsHtml, $errorMessage)) {
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 			}
@@ -3773,7 +3779,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$defaultCaption = str_replace ('%categoryLabel', lcfirst ($this->categoryLabels[$category]['singular']), $this->actions[$action]['description']);
 		foreach ($data as $index => $location) {
 			$data[$index]['caption'] = trim (isSet ($location['caption']) ? $location['caption'] : $defaultCaption) . ($result['extracredit'] ? "\n\n" . $result['extracredit'] : '');
-			$data[$index]['category'] = $this->categories[0];	// #!# Multiple category support not yet in place
+			$data[$index]['category'] = (isSet ($location['category']) ? $location['category'] : $this->categories[0]);
 			$data[$index]['metacategory'] = $metacategory;
 			$data[$index]['license'] = $result['license'];
 			$data[$index]['tags'] = $result['tags'];
@@ -3967,12 +3973,12 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to process submitted batch metadata string (TSV or GeoJSON) and assemble the data from it
-	private function getBatchData ($metadata, $captionFieldname, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
+	private function getBatchData ($metadata, $captionFieldname, $categoryFieldname, $optionalFields, $locationFields, $requiredLocationFieldsHtml, &$errorMessage = '')
 	{
 		# Determine the format, either TSV or GeoJSON
 		$isGeoJson = (preg_match ('/^{/', trim ($metadata)) && preg_match ('/}$/', trim ($metadata)) && substr_count ($metadata, 'FeatureCollection'));
 		if ($isGeoJson) {
-			$data = $this->getBatchDataGeojson ($metadata, $captionFieldname);
+			$data = $this->getBatchDataGeojson ($metadata, $captionFieldname, $categoryFieldname);
 		} else {
 			$data = $this->getBatchDataTsv ($metadata);
 		}
@@ -4016,7 +4022,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to convert the GeoJSON string to an array
-	private function getBatchDataGeojson ($geojson, $captionFieldname = 'caption')
+	private function getBatchDataGeojson ($geojson, $captionFieldname = 'caption', $categoryFieldname = 'category')
 	{
 		# Decode the data to JSON
 		$geojson = json_decode ($geojson, true);
@@ -4030,6 +4036,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				'longitude' => $feature['geometry']['coordinates'][0],
 				'caption' => $feature['properties'][$captionFieldname],
 				'filename' => false,
+				'category' => $feature['properties'][$categoryFieldname],
 			);
 		}
 		

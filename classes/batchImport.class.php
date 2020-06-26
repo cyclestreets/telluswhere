@@ -611,6 +611,16 @@ class batchImport
 		$data = array ();
 		foreach ($geojson['features'] as $feature) {
 			
+			# If the feature is a LineString, convert to a Point, taking the middle point
+			if ($feature['geometry']['type'] == 'LineString') {
+				$totalCoordinates = count ($feature['geometry']['coordinates']);
+				$middlePoint = ceil ($totalCoordinates / 2) - 1;	// E.g. 5 points gets the centre one; 2 points gets the end
+				$feature['geometry'] = array (
+					'type'			=> 'Point',
+					'coordinates'	=> $feature['geometry']['coordinates'][$middlePoint],
+				);
+			}
+			
 			# If there is no caption, use the category
 			if (!strlen ($feature['properties'][$captionFieldname])) {
 				$feature['properties'][$captionFieldname] = $feature['properties'][$categoryFieldname];

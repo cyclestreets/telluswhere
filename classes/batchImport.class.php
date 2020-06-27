@@ -553,7 +553,7 @@ class batchImport
 			$categoryMappingLines = explode ("\n", trim ($categoryMapping));
 			$categoryMapping = array ();
 			foreach ($categoryMappingLines as $line) {
-				list ($current, $new) = explode ("\t", $line);
+				list ($current, $new) = explode ("\t", trim ($line));	// Trim necessary to ensure \r is removed
 				$categoryMapping[$current] = $new;
 			}
 			

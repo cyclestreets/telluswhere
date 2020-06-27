@@ -1673,7 +1673,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		));
 		
 		# Add photo upload
-		#!# Need client-size resize before upload: https://stackoverflow.com/questions/49759386/resize-image-in-the-client-side-before-upload
+		#!# Need client-size resize before upload; see: https://stackoverflow.com/questions/49759386/resize-image-in-the-client-side-before-upload and https://medium.com/@murb/resizing-images-before-upload-1c832dec7fd5
 		$tempDir = sys_get_temp_dir () . '/';
 		$photos = 2;
 		$form->upload (array (

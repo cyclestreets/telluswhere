@@ -2573,8 +2573,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		
 		# Include tag if required
-		if ($this->settings['submitTag']) {
-			$data['tags'] = $this->settings['submitTag'];
+		if (isSet ($rawdata['tags']) || $this->settings['submitTag']) {
+			$data['tags'] = (isSet ($rawdata['tags']) ? $rawdata['tags'] : $this->settings['submitTag']);
 		}
 		
 		# Post the data

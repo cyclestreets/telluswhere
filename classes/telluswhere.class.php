@@ -259,7 +259,7 @@ class telluswhere
 		'bikeshare'		=> array (
 			'plural'			=> 'Bikeshare locations',
 			'singular'			=> 'Bikeshare location',
-			'title'				=> false,
+			'title'				=> 'Bikeshare docking stations provide short-term use of a public bike.',
 		),
 		'obstructions'		=> array (
 			'plural'			=> 'Obstructions',

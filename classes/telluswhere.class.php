@@ -413,6 +413,9 @@ class telluswhere
 		# Set asset revision
 		$this->template['revision'] = date ('ymd');		// Force asset update each day
 		
+		# Placeholder for categories total CSS class
+		$this->template['_categoriestotal'] = '';
+		
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		
@@ -1121,6 +1124,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Register the city name to the template, if present
 		$this->template['city'] = ($city ? $city : '');
+		
+		# Register the number of categories as a CSS class name for the template
+		$this->template['_categoriestotal'] = ' categories' . count ($this->categories);
 		
 		# If there are multiple categories, force selection, unless in multi-category mode
 		if ($this->settings['multiCategoryMode']) {

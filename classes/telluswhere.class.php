@@ -113,6 +113,7 @@ class telluswhere
 			'problem' => array (
 				'description' => false,
 				'url' => false,	// No template; Will be /location/<id>/problem/
+				'export' => true,
 			),
 			'news' => array (
 				'description' => false,

@@ -1547,10 +1547,15 @@ var telluswhere = (function ($) {
 		problemForm: function ()
 		{
 			// If the link is clicked, replace the popup content
-			$('p.problem a').click(function(e){
+			$('p.problem a').click (function(e) {
 				
 				// Create a form
-				var formHtml = $("<form />", {name: 'problem', id: 'problem', method: 'POST', action: _settings.baseUrl + '/location/' + $('p.problem a').data('id') + '/problem/'});
+				var formHtml = $('<form />', {
+					name: 'problem',
+					id: 'problem',
+					method: 'POST',
+					action: _settings.baseUrl + '/location/' + $('p.problem a').data('id') + '/problem/'
+				});
 				
 				// Add input fields to the form
 				var formContentHtml = '';
@@ -1563,27 +1568,27 @@ var telluswhere = (function ($) {
 				formHtml.append(formContentHtml);
 				
 				// Replace the popup content with the form
-				$('.leaflet-popup-content').html(formHtml);
+				$('.leaflet-popup-content').html (formHtml);
 				
 				// Submit the form via AJAX
 				var ajaxform = $('#problem');
-				ajaxform.submit(function (e) {
+				ajaxform.submit (function (e) {
 					
 					// Determine if form not complete, showing any error
 					var thisFormOk = telluswhere.formOk('#problem', e);
 					
 					// Submit the form if no problem detected; based on: https://stackoverflow.com/questions/1960240/jquery-ajax-submit-form
 					if (thisFormOk) {
-						$.ajax({
-							type: ajaxform.attr('method'),
-							url: ajaxform.attr('action'),
-							data: ajaxform.serialize(),
+						$.ajax ({
+							type: ajaxform.attr ('method'),
+							url: ajaxform.attr ('action'),
+							data: ajaxform.serialize (),
 							success: function (data) {
-								$('.leaflet-popup-content').html('<p>' + data.response + '</p>');
+								$('.leaflet-popup-content').html ('<p>' + data.response + '</p>');
 							},
 							error: function (xhr, status, error) {
-								var data = JSON.parse(xhr.responseText);
-								$('.leaflet-popup-content').html('<p>' + data.response + '</p>');
+								var data = JSON.parse (xhr.responseText);
+								$('.leaflet-popup-content').html ('<p>' + data.response + '</p>');
 							}
 						});
 						e.preventDefault();

@@ -6293,7 +6293,8 @@ class form
 	 * @access private
 	 */
 	#!# The whole problems area needs refactoring
-	function getElementProblems ()
+	#!# Replace external access with new function returning bool hasElementProblems ()
+	public function getElementProblems ()
 	{
 		# If the form is not posted, end here
 		if (!$this->formPosted) {return false;}

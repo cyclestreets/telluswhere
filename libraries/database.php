@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-18
- * Version 3.0.9
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-19
+ * Version 3.0.12
  * Uses prepared statements (see https://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - https://www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -726,7 +726,7 @@ class database
 	
 	
 	# Function to get fields
-	public function getFields ($database, $table, $addSimpleType = false, $matchingRegexpNoForwardSlashes = false, $asTotal = false, $excludeAuto = false)
+	public function getFields ($database, $table, $addSimpleType = false, $matchingRegexpNoForwardSlashes = false, $asTotal = false, $excludeAuto = false, $groupByCapture = false)
 	{
 		# If the raw fields list is already in the fields cache, use that to avoid a pointless SHOW FULL FIELDS lookup
 		if (isSet ($this->fieldsCache[$database]) && isSet ($this->fieldsCache[$database][$table])) {
@@ -798,6 +798,17 @@ class database
 			}
 		}
 		
+		# Group, if required, using the specified capture in the regexp
+		if ($groupByCapture && $matchingRegexpNoForwardSlashes) {
+				$fieldsGrouped = array ();
+				foreach ($fields as $field => $attributes) {
+					preg_match ("/{$matchingRegexpNoForwardSlashes}/", $field, $matches);
+					$group = $matches[$groupByCapture];
+					$fieldsGrouped[$group][$field] = $attributes;
+				}
+				$fields = $fieldsGrouped;
+		}
+
 		# If returning as a total, convert to a count
 		if ($asTotal) {
 			$fields = count ($fields);
@@ -856,7 +867,7 @@ class database
 		
 		# Detect keywords
 		if ($string == 'NOW()') {return true;}
-		if (preg_match ('/^(ST_)?(GEOMCOLL|GEOMETRYCOLLECTION|GEOM|GEOMETRY|LINE|LINESTRING|MLINE|MULTILINESTRING|MPOINT|MULTIPOINT|MPOLY|MULTIPOLYGON|POINT|POLY|POLYGON)FROMTEXT\(/', $string)) {return true;}
+		if (preg_match ('/^(ST_)?(GEOMCOLL|GEOMETRYCOLLECTION|GEOM|GEOMETRY|LINE|LINESTRING|MLINE|MULTILINESTRING|MPOINT|MULTIPOINT|MPOLY|MULTIPOLYGON|POINT|POLY|POLYGON)FROM(TEXT|GEOJSON)\(/', $string)) {return true;}
 		// Add more here
 		
 		# Treat as standard string if not detected
@@ -914,15 +925,22 @@ class database
 	
 	
 	# Function to get field names
-	public function getFieldNames ($database, $table, $fields = false, $matchingRegexpNoForwardSlashes = false, $excludeAuto = false)
+	public function getFieldNames ($database, $table, $fields = false, $matchingRegexpNoForwardSlashes = false, $excludeAuto = false, $groupByCapture = false)
 	{
 		# Get the fields if not already supplied
-		if (!$fields) {$fields = $this->getFields ($database, $table, false, $matchingRegexpNoForwardSlashes, false, $excludeAuto);}
+		if (!$fields) {$fields = $this->getFields ($database, $table, false, $matchingRegexpNoForwardSlashes, false, $excludeAuto, $groupByCapture);}
 		
 		#!# Bug: $matchingRegexpNoForwardSlashes is not used if $fields is supplied
 		
 		# Get the array keys of the fields
-		return array_keys ($fields);
+		if ($groupByCapture) {
+			foreach ($fields as $group => $fieldsInGroup) {
+				$fields[$group] = array_keys ($fieldsInGroup);
+			}
+			return $fields;
+		} else {
+			return array_keys ($fields);
+		}
 	}
 	
 	
@@ -1259,7 +1277,7 @@ class database
 	
 	
 	# Function to construct and execute an INSERT statement
-	public function insert ($database, $table, $data, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, $statement = 'INSERT')
+	public function insert ($database, $table, $data, $onDuplicateKeyUpdate = false, $emptyToNull = true, $safe = false, $showErrors = false, $statement = 'INSERT', $functionValues = array ())
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($data) || !$data) {return false;}
@@ -1279,6 +1297,11 @@ class database
 			$preparedValuePlaceholders[] = ':' . $key;
 		}
 		$preparedValuePlaceholders = implode (', ', $preparedValuePlaceholders);
+		
+		# Add any additional placeholders for functions, e.g. location => ST_GeomFromGeoJSON(:location) supplied with $functionValues = array (location = '{...}')
+		if ($functionValues) {
+			$data = array_merge ($data, $functionValues);
+		}
 		
 		# Handle ON DUPLICATE KEY UPDATE support
 		$onDuplicateKeyUpdate = $this->onDuplicateKeyUpdate ($onDuplicateKeyUpdate, $data);
@@ -1461,7 +1484,7 @@ if (!$rows) {
 	
 	
 	# Function to construct and execute an UPDATE statement
-	public function update ($database, $table, $data, $conditions = array (), $emptyToNull = true, $safe = false, $returnRowCount = false)
+	public function update ($database, $table, $data, $conditions = array (), $emptyToNull = true, $safe = false, $returnRowCount = false, $_ignoredArg = NULL /* so that functionValues is same position as insert */, $functionValues = array ())
 	{
 		# Ensure the data is an array and that there is data
 		if (!is_array ($data) || !$data) {return false;}
@@ -1475,7 +1498,7 @@ if (!$rows) {
 			
 			# Add the data
 			if ($emptyToNull && ($data[$key] === '')) {$data[$key] = NULL;}	// Convert empty to NULL if required
-			if ($data[$key] == 'NOW()') {	// Special handling for keywords, which are not quoted
+			if ($this->valueIsFunctionCall ($data[$key])) {	// Special handling for keywords, which are not quoted
 				$preparedValueUpdates[] = "`{$key}`= " . $data[$key];
 				unset ($data[$key]);
 				continue;
@@ -1487,6 +1510,11 @@ if (!$rows) {
 			$dataUniqued[$placeholder] = $data[$key];
 		}
 		$preparedValueUpdates = implode (',', $preparedValueUpdates);
+		
+		# Add any additional placeholders for functions, e.g. location => ST_GeomFromGeoJSON(:location) supplied with $functionValues = array (location = '{...}')
+		if ($functionValues) {
+			$dataUniqued = array_merge ($dataUniqued, $functionValues);
+		}
 		
 		# Construct the WHERE clause
 		$where = '';

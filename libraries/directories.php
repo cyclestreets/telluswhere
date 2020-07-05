@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.2.0
+# Version 1.2.3
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -99,7 +99,7 @@ class directories
 	
 	
 	# Function to get the file list
-	public static function getFileListing ($hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $showOnly = array (), $sortByKey = 'name', $includeDirectories = true)
+	public static function getFileListing ($hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $showOnly = array (), $sortByKey = 'name', $includeDirectories = true, $includeDirectoriesRequireEmpty = false)
 	{
 		# Obtain the current directory, chopping off the query string
 		$currentDirectory = $_SERVER['REQUEST_URI'];
@@ -114,13 +114,24 @@ class directories
 		# Loop through each file
 		foreach ($files as $file => $attributes) {
 			
-			# Remove directories if required
-			if (!$includeDirectories) {
-				if ($attributes['type'] == 'dir') {
+			# Handle directory flags
+			if ($attributes['type'] == 'dir') {
+				
+				# Remove directories if required
+				if (!$includeDirectories) {
 					unset ($files[$file]);
+					continue;
+				}
+				
+				# If including directories, if required, require them to be empty
+				if ($includeDirectoriesRequireEmpty) {
+					$directory = $currentDirectory . $file  . '/';
+					if ($directoryContents = directories::listFiles ($directory)) {
+						unset ($files[$file]);
+						continue;
+					}
 				}
 			}
-			
 			
 			# If a list of areas is given, show only those allowed
 			if ($showOnly) {
@@ -233,7 +244,7 @@ class directories
 		# Show photo thumbnails if required
 		if ($includeGallery) {
 			require_once ('image.php');
-			$html .= image::gallery (true, false, $size = 250);
+			$html .= image::gallery (true, false, $size = 250, '/images/generator', false, $hiddenFiles /* will only pick up direct filenames in this list */);
 		}
 		
 		# Return the HTML
@@ -425,9 +436,11 @@ class directories
 			'mov' => 'quicktime.gif',
 			'mpa' => 'media.gif',
 			'mpeg' => 'media.gif',
-			'mp4' => 'quicktime.jpg',
+			'mp3' => 'wav.gif',
+			'mp4' => 'mp4.png',
 			'msg' => 'msg.gif',
 			'mtw' => 'minitab.gif',
+			'm4a' => 'm4a.png',
 			'odb' => 'odb.gif',
 			'odp' => 'odp.gif',
 			'ods' => 'ods.gif',

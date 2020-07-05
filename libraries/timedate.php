@@ -1,8 +1,8 @@
 <?php
 
 # Class containing a variety of date/time processing functions
-# http://download.geog.cam.ac.uk/projects/timedate/
-# Version: 1.2.8
+# https://download.geog.cam.ac.uk/projects/timedate/
+# Version: 1.2.11
 
 class timedate
 {
@@ -399,7 +399,7 @@ class timedate
 	
 	
 	# Function to get an array of dates in future months
-	public static function getDatesForFutureMonths ($monthsAhead, $format = 'Y-m-d', $days = true)
+	public static function getDatesForFutureMonths ($monthsAhead, $format = 'Y-m-d', $days = true, $fromDate = false /* or date in Y-m-d format */)
 	{
 		# Start an array to hold the dates
 		$dates = array ();
@@ -408,9 +408,13 @@ class timedate
 		$monthsAhead++;
 		
 		# Define the current day, month and year
-		$day = date ('d');
-		$month = date ('m');
-		$year = date ('Y');
+		if ($fromDate && preg_match ('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $fromDate)) {
+			list ($year, $month, $day) = explode ('-', $fromDate, 3);
+		} else {
+			$day = date ('d');
+			$month = date ('m');
+			$year = date ('Y');
+		}
 		
 		# Advance through the calendar until finished
 		while ($monthsAhead) {
@@ -681,12 +685,21 @@ class timedate
 			
 			'2020-01-01',
 			'2020-04-10',
-			'2020-04-23',
-			'2020-05-04',
+			'2020-04-13',
+			'2020-05-08',
 			'2020-05-25',
 			'2020-08-31',
 			'2020-12-25',
-			'2020-12-26',
+			'2020-12-28',
+			
+			'2021-01-01',
+			'2021-04-02',
+			'2021-04-05',
+			'2021-05-03',
+			'2021-05-31',
+			'2021-08-30',
+			'2021-12-27',
+			'2021-12-28',
 			
 			// Add to this list each year when new dates are confirmed
 		);

@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-19
- * Version 1.5.38
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-20
+ * Version 1.5.40
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
  * Download latest from: http://download.geog.cam.ac.uk/projects/application/
@@ -806,6 +806,10 @@ class application
 	# Function to create an array of all combinations in a set of associative arrays, acting on their keys (not their value labels); adapted from https://gist.github.com/cecilemuller/4688876
 	public static function array_key_combinations ($arrays, $keyConcatCharacter = '_', $valueConcatCharacter = ' - ')
 	{
+		# End if none
+		if (!$arrays) {return array ();}
+		
+		# Create combinations
 		$result = array (array ());
 		foreach ($arrays as $property => $property_values) {
 			$tmp = array ();
@@ -3497,7 +3501,7 @@ class application
 					$isCorrect = $cache[$word]['isCorrect'];	// Read from cache if present
 				} else {
 					$isCorrect = enchant_dict_check ($d, $word);
-					$cache[$word]['isCorrect'] = $isCorrect;	// Add to cache
+					$cache[$word]['isCorrect'] = ($isCorrect ? '1' : '0');	// Add to cache; cast boolean as numeric for INT(1) storage
 					if ($isCorrect) {
 						$cache[$word]['suggestions'] = NULL;	// Since the $enableSuggestions phase will not be reached, leaving holes in some array entries
 					}

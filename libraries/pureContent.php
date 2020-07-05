@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-18
- * Version 1.10.0
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-20
+ * Version 1.11.0
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 5.3
  * Download latest from: https://download.geog.cam.ac.uk/projects/purecontent/
@@ -448,31 +448,29 @@ if (isSet ($_SERVER['REMOTE_USER']) && in_array ($_SERVER['REMOTE_USER'], array 
 		# Assume disabled by default
 		$userSwitching = false;
 		
-		# If logged in, get the real username and ensure they have superuser rights
-		if ($userSwitchingEnabled) {
-			if (!session_id ()) {session_start ();}
-			
-			# Maintain an existing session
-			if (isSet ($_SESSION['switchuser']) && isSet ($_SESSION['switchuser']['username']) && preg_match ($usernameRegexp, $_SESSION['switchuser']['username'])) {
-				$userSwitching = $_SESSION['switchuser']['username'];
+		# Start the session
+		if (!session_id ()) {session_start ();}
+		
+		# Maintain an existing session
+		if (isSet ($_SESSION['switchuser']) && isSet ($_SESSION['switchuser']['username']) && preg_match ($usernameRegexp, $_SESSION['switchuser']['username'])) {
+			$userSwitching = $_SESSION['switchuser']['username'];
+		}
+		
+		# If the form is posted, select or clear the user
+		if (isSet ($_POST['switchuser']) && isSet ($_POST['switchuser']['username'])) {
+			if (strlen ($_POST['switchuser']['username']) && preg_match ($usernameRegexp, $_POST['switchuser']['username']) && ($_POST['switchuser']['username'] != $_SERVER['REMOTE_USER'])) {
+				$userSwitching = trim ($_POST['switchuser']['username']);
+				$_SESSION['switchuser']['username'] = $userSwitching;
+			} else {
+				unset ($_SESSION['switchuser']);
+				$userSwitching = false;
 			}
-			
-			# If the form is posted, select or clear the user
-			if (isSet ($_POST['switchuser']) && isSet ($_POST['switchuser']['username'])) {
-				if (strlen ($_POST['switchuser']['username']) && preg_match ($usernameRegexp, $_POST['switchuser']['username']) && ($_POST['switchuser']['username'] != $_SERVER['REMOTE_USER'])) {
-					$userSwitching = trim ($_POST['switchuser']['username']);
-					$_SESSION['switchuser']['username'] = $userSwitching;
-				} else {
-					unset ($_SESSION['switchuser']);
-					$userSwitching = false;
-				}
-				header ("Location: {$_SERVER['_PAGE_URL']}");	// 302 Redirect (temporary)
-			}
-			
-			# Switch the user, and refresh the page to avoid POST warnings
-			if ($userSwitching) {
-				$_SERVER['REMOTE_USER'] = $userSwitching;
-			}
+			header ("Location: {$_SERVER['_PAGE_URL']}");	// 302 Redirect (temporary)
+		}
+		
+		# Switch the user, and refresh the page to avoid POST warnings
+		if ($userSwitching) {
+			$_SERVER['REMOTE_USER'] = $userSwitching;
 		}
 		
 		# Return the user switching status (false or username)
@@ -850,6 +848,139 @@ if (isSet ($_SERVER['REMOTE_USER']) && in_array ($_SERVER['REMOTE_USER'], array 
 			}
 			header ("Location: {$newUrl}");
 		}
+	}
+	
+	
+	# Function to run Wordpress-style shortcode handling to enable application embedding, by scanning the page for supported shortcodes, and replacing the content
+	# E.g. [my_form foo="bar" size="5"] runs my_form.php and replaces any %attributes placeholder in that file with $foo = 'bar', $size = '5'
+	public static function shortcodeHandledContent ()
+	{
+		# Define supported shortcodes, which are listed as files in the shortcodes directory
+		$directory = $_SERVER['DOCUMENT_ROOT'] . '/sitetech/shortcodes/';
+		$files = array_values (preg_grep ('/(.+)\.php$/', scandir ($directory)));	// array_values just reindexes
+		$shortcodes = array ();
+		foreach ($files as $file) {
+			$shortcode = pathinfo ($file, PATHINFO_FILENAME);
+			$shortcodes[$shortcode] = $directory . $file;
+		}
+		
+		# Start a list of instances of shortcodes and their (optional) attributes on the page
+		$instances = array ();
+		
+		# If a shortcode is present, run the file
+		foreach ($shortcodes as $shortcode => $file_ignored) {
+			
+			# Load the current page
+			$currentPage = $_SERVER['SCRIPT_FILENAME'];
+			$currentFileContents = file_get_contents ($currentPage);
+			
+			# Scan for the current shortcode tag, in basic format (i.e. without attributes), e.g. [my_form], on the page, and register it once (however many times it appears, as each will result in the same replacement)
+			$tag = '[' . $shortcode . ']';
+			if (substr_count ($currentFileContents, $tag)) {
+				$instances[$tag] = array (
+					'shortcode' 	=> $shortcode,
+					'attributes'	=> array (),
+				);
+			}
+			
+			# Also scan for the current shortcode tag, but with attributes (double-quoted), e.g. [my_form foo="bar"], on the page
+			if (preg_match_all ("/\[{$shortcode} ([^\]]+)\]/", $currentFileContents, $matches, PREG_SET_ORDER)) {
+				
+				# Unique the list, as duplicates will result in the same replacements
+				$matches = array_unique ($matches, SORT_REGULAR);
+				
+				# Register each match
+				foreach ($matches as $match) {
+					$tag = $match[0];
+					$attributesString = trim ($match[1]);
+					
+					# Fix up encoded e-mail strings
+					$attributesString = str_replace ('<span>&#64;</span>', '@', $attributesString);
+					
+					# Parse out attributes
+					preg_match_all ('/\b([^=]+)="([^"]+)"/', $attributesString, $tokenMatches, PREG_SET_ORDER);
+					$attributes = array ();
+					foreach ($tokenMatches as $tokenMatch) {
+						$key = $tokenMatch[1];
+						$value = $tokenMatch[2];
+						$attributes[$key] = $value;
+					}
+					
+					# Register this instance
+					$instances[$tag] = array (
+						'shortcode' 	=> $shortcode,
+						'attributes'	=> $attributes,
+					);
+				}
+			}
+		}
+		
+		# End if no instances, as no special handling needed
+		if (!$instances) {return false;}
+		
+		# For each instance, load the plugin and set the attributes
+		$replacements = array ();
+		foreach ($instances as $tag => $instance) {
+			$shortcode = $instance['shortcode'];
+			$attributes = $instance['attributes'];
+			
+			# Load this shortcode's plugin, with the correct directory context
+			$plugin = $shortcodes[$shortcode];
+			$shortcodeContent = file_get_contents ($plugin);
+			
+			# If an attributes placeholder is specified, replace with values
+			if (substr_count ($shortcodeContent, '%attributes')) {
+				$attributesStrings = array ();
+				foreach ($attributes as $key => $value) {
+					$attributesStrings[] = "\${$key} = '" . str_replace ("'", "\\'", $value) . "'";
+				}
+				$attributesString = implode (', ', $attributesStrings);
+				$shortcodeContent = str_replace ('%attributes', $attributesString, $shortcodeContent);
+			}
+			
+			# If the tag has become surrounded with a paragraph tag by the WYSIWYG editor, include that surrounding tag in the replacement
+			if (preg_match ('/(<p[^>]*>' . preg_quote ($tag, '/') . '<\/p>)/', $currentFileContents, $matches)) {
+				$tag = $matches[0];
+			}
+			
+			# Replace the shortcode in the page content with the generated content
+			$replacements[$tag] = $shortcodeContent;
+		}
+		
+		//var_dump ($replacements);
+		
+		# Perform replacements, so that the page now has the shortcodes replaced with the real PHP
+		$content = strtr ($currentFileContents, $replacements);
+		
+		# Determine the shadow file
+		$shadowFile = preg_replace ('/^' . preg_quote ($_SERVER['DOCUMENT_ROOT'], '/') . '/', $_SERVER['DOCUMENT_ROOT'] . '/sitetech/shortcodes-cache', $currentPage);
+		
+		# Determine whether to write the shadow file, or use an existing file if present
+		$writeShadowFile = true;
+		if (file_exists ($shadowFile)) {
+			if (md5_file ($shadowFile) == md5 ($content)) {
+				$writeShadowFile = false;
+			}
+		}
+		
+		# Save the processed file as a shadow page, if required
+		if ($writeShadowFile) {
+			$dirname = pathinfo ($shadowFile, PATHINFO_DIRNAME);
+			$umaskBefore = umask (0);
+			if (!is_dir ($dirname)) {
+				mkdir ($dirname, 0775, true);	// rwx, rwx, rx
+			}
+			file_put_contents ($shadowFile, $content);
+			chmod ($shadowFile, 0664);	// rw, rw, r
+			umask ($umaskBefore);	// Reset
+		}
+		
+		# Run the page; the PHP enviroment, e.g. REQUEST_URI will remain unamended with the original filename
+		include ($shadowFile);
+		
+		# Include the footer then end
+		require_once ('sitetech/appended.html');
+		die;
 	}
 }
 

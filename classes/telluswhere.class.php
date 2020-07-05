@@ -417,6 +417,14 @@ class telluswhere
 		# Placeholder for categories total CSS class
 		$this->template['_categoriestotal'] = '';
 		
+		# Add support for an extra category
+		if (isSet ($_GET['extracategory'])) {
+			$extracategory = $_GET['extracategory'];
+			if (isSet ($this->categoryLabels[$extracategory])) {
+				$this->settings['categories'] .= "\n" . $extracategory;
+			}
+		}
+		
 		# Create the map application CSS
 		$this->headContent['telluswhere-css'] = '<link rel="stylesheet" href="/css/telluswhere.css?' . $this->template['revision'] . '" />';
 		

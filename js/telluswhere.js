@@ -2006,8 +2006,8 @@ var telluswhere = (function ($) {
 						parameters.since = (new Date (_settings.since).getTime ())/1000;
 					}
 					
-					// Determine export type
-					parameters.format = linkTarget.className;
+					// Determine export type, e.g. export=csv / export=geojson
+					parameters.export = linkTarget.className;
 					
 					// Add URL prefix for map location
 					parameters.urlprefix = window.location.protocol + '//' + window.location.hostname + window.location.pathname;

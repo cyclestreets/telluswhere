@@ -1975,12 +1975,14 @@ var telluswhere = (function ($) {
 			
 			// Determine the download type
 			var areaDescription = 'the visible map area';
-			if (_settings.boundaryDownloadType && _settings.boundaryDownloadId) {
+			var useBoundaryIds = (_settings.boundaryDownloadType && _settings.boundaryDownloadId);
+			if (useBoundaryIds) {
 				areaDescription = 'this ' + _settings.boundaryDownloadType;
 				if ($('#exportdescription').length) {
 					$('#exportdescription').text(areaDescription);
 				}
 				_settings.exportMinZoom = 0;
+				$('#export').show ();
 			}
 			
 			// Define the link help texts
@@ -2002,10 +2004,12 @@ var telluswhere = (function ($) {
 				}
 				
 				// Limit visibility of link to Local Authority area size, as API export at country-wide scale will give a misleading selection
-				if (map.getZoom() >= _settings.exportMinZoom) {
-					$('#export').fadeIn (2000);
-				} else {
-					$('#export').fadeOut (1000);
+				if (!useBoundaryIds) {
+					if (map.getZoom() >= _settings.exportMinZoom) {
+						$('#export').fadeIn (2000);
+					} else {
+						$('#export').fadeOut (1000);
+					}
 				}
 				
 				// Add the link for each format

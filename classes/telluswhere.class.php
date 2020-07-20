@@ -1043,12 +1043,30 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			);
 		}
 		
+		# Get the boundaries list from the API
+		#!# Need to converge this with localareas.list
+		$apiUrl = '/v2/boundaries.locations?type=county';
+		$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
+		$data = file_get_contents ($apiUrl);
+		$data = json_decode ($data, true);
+		
+		# Convert from GeoJSON to a flat array
+		foreach ($data['features'] as $area) {
+			$areas[] = array (
+				'country'	=> 'Counties',
+				'name'		=> $area['properties']['name'],
+				'url'		=> $_SERVER['_SITE_URL'] . '/' . $area['properties']['moniker'] . '/',
+				'link'		=> $_SERVER['SERVER_NAME'] . '/' . $area['properties']['moniker'],
+			);
+		}
+		
 		# Regroup by region
 		$areasByRegion = application::regroup ($areas, 'country');
 		
 		# Filter to wanted regions only
 		$filterToRegions = array (
 			'England: London Boroughs',
+			'Counties',
 			'England',
 			'Wales',
 			'Scotland',
@@ -1085,7 +1103,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	}
 	
 	
-	# City page, e.g. /cambridge, basically a wrapper to suggest
+	# City page, e.g. /cambridge or /cambridgshire, basically a wrapper to suggest
 	private function city ()
 	{
 		# Ensure there is a city moniker
@@ -1102,6 +1120,24 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$data = file_get_contents ($apiUrl);
 		$data = json_decode ($data, true);
 		
+		# Try boundary type if city not found
+		if (isSet ($data['error'])) {
+			$apiUrl = '/v2/boundaries.locations?type=county';
+			$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
+			$boundaries = file_get_contents ($apiUrl);
+			$boundaries = json_decode ($boundaries, true);
+			foreach ($boundaries['features'] as $boundary) {
+				if ($boundary['properties']['moniker'] == $id) {
+					$boundary['properties']['radius'] = 50;		// Needs to have BBOX instead; then replace the radius handling below
+					$data = array (
+						'features' => array	(
+							0 => $boundary,
+						)
+					);
+				}
+			}
+		}
+		
 		# End if no match
 		if (isSet ($data['error'])) {
 			$html = $this->page404 ();
@@ -1113,7 +1149,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$feature = $data['features'][0];
 		$this->settings['defaultLatitude'] = $feature['geometry']['coordinates'][1];
 		$this->settings['defaultLongitude'] = $feature['geometry']['coordinates'][0];
-		$this->settings['defaultZoom'] = ($feature['properties']['radius'] > 5 ? 12 : 14);
+		$this->settings['defaultZoom'] = ($feature['properties']['radius'] > 5 ? ($feature['properties']['radius'] > 25 ? 10 : 12) : 14);
 		
 		# Register the city name for the template
 		$city = $feature['properties']['name'];

@@ -1982,7 +1982,12 @@ var telluswhere = (function ($) {
 					$('#exportdescription').text(areaDescription);
 				}
 				_settings.exportMinZoom = 0;
+				
+				// Show the links
 				$('#export').show ();
+				
+				// Create the export URLs
+				telluswhere.createExportUrls (linkTargets, useBoundaryIds);
 			}
 			
 			// Define the link help texts
@@ -2012,60 +2017,68 @@ var telluswhere = (function ($) {
 					}
 				}
 				
-				// Add the link for each format
-				$.each (linkTargets, function (index, linkTarget) {
-					
-					// Set the BBOX
-					var parameters = {};
-					parameters.bbox = map.getBounds().toBBoxString();
-					
-					// Limit to date since (using since, as that matches the icons, not earliestDate, which needs to be deprecated)
-					if (_settings.since) {
-						parameters.since = (new Date (_settings.since).getTime ())/1000;
-					}
-					
-					// Determine export type, e.g. export=csv / export=geojson
-					parameters.export = linkTarget.className;
-					
-					// Add URL prefix for map location
-					parameters.urlprefix = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
-					
-					// Assemble the link
-					var url = _settings.browsingApiUrl + '&' + $.param (parameters);
-					
-					// Use default limit
-					url = url.replace (/&limit=[0-9]+/, '');
-					
-					// Include category field in multicategory mode
-					if (_settings.multiCategoryMode) {
-						url = url.replace (',caption', ',caption,categoryId');
-					}
-					
-					// Add map URL field; see also urlprefix above
-					url = url.replace (',iconUrl', ',iconUrl,mapUrl');
-					
-					// Remove unnecessary fields from export
-					url = url.replace (',iconUrl', '');
-					url = url.replace (',metacategoryId', '');
-					url = url.replace (',hasPhoto', '');
-					
-					// Do not request additionalMetadata
-					url = url.replace (',additionalMetadata', '');
-					
-					// Use larger thumbnails
-					url = url.replace (/&thumbnailsize=[0-9]+/, '&thumbnailsize=1000');
-					
-					// In boundary download mode, specify the boundary type and ID, which will override the BBOX
-					if (_settings.boundaryDownloadType && _settings.boundaryDownloadId) {
-						url += '&boundaryid=' + _settings.boundaryDownloadType + ':' + _settings.boundaryDownloadId;
-					}
-					
-					// Set the href value
-					$(linkTarget).attr ('href', url);
-					
-					// Set to open in a new window, which for CSV will be temporary
-					$(linkTarget).attr ('target', '_blank');
-				});
+				// Create the export URLs
+				telluswhere.createExportUrls (linkTargets, useBoundaryIds);
+			});
+		},
+		
+		
+		// Create the export links
+		createExportUrls: function (linkTargets, useBoundaryIds)
+		{
+			// Add the link for each format
+			$.each (linkTargets, function (index, linkTarget) {
+				
+				// Set the BBOX
+				var parameters = {};
+				parameters.bbox = map.getBounds().toBBoxString();
+				
+				// Limit to date since (using since, as that matches the icons, not earliestDate, which needs to be deprecated)
+				if (_settings.since) {
+					parameters.since = (new Date (_settings.since).getTime ())/1000;
+				}
+				
+				// Determine export type, e.g. export=csv / export=geojson
+				parameters.export = linkTarget.className;
+				
+				// Add URL prefix for map location
+				parameters.urlprefix = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
+				
+				// Assemble the link
+				var url = _settings.browsingApiUrl + '&' + $.param (parameters);
+				
+				// Use default limit
+				url = url.replace (/&limit=[0-9]+/, '');
+				
+				// Include category field in multicategory mode
+				if (_settings.multiCategoryMode) {
+					url = url.replace (',caption', ',caption,categoryId');
+				}
+				
+				// Add map URL field; see also urlprefix above
+				url = url.replace (',iconUrl', ',iconUrl,mapUrl');
+				
+				// Remove unnecessary fields from export
+				url = url.replace (',iconUrl', '');
+				url = url.replace (',metacategoryId', '');
+				url = url.replace (',hasPhoto', '');
+				
+				// Do not request additionalMetadata
+				url = url.replace (',additionalMetadata', '');
+				
+				// Use larger thumbnails
+				url = url.replace (/&thumbnailsize=[0-9]+/, '&thumbnailsize=1000');
+				
+				// In boundary download mode, specify the boundary type and ID, which will override the BBOX
+				if (useBoundaryIds) {
+					url += '&boundaryid=' + _settings.boundaryDownloadType + ':' + _settings.boundaryDownloadId;
+				}
+				
+				// Set the href value
+				$(linkTarget).attr ('href', url);
+				
+				// Set to open in a new window, which for CSV will be temporary
+				$(linkTarget).attr ('target', '_blank');
 			});
 		},
 		

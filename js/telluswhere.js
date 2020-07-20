@@ -86,7 +86,11 @@ var telluswhere = (function ($) {
 		geocoderBboxBounded: false,
 		
 		// Feedback API URL; re-use of settings values represented as placeholders {%apiBaseUrl}, {%apiKey}, are supported
-		feedbackApiUrl: '{%apiBaseUrl}/v2/feedback.add?key={%apiKey}'
+		feedbackApiUrl: '{%apiBaseUrl}/v2/feedback.add?key={%apiKey}',
+		
+		// Downloads
+		boundaryDownloadType: false,
+		boundaryDownloadId: false
 	};
 	
 	/* Class properties */
@@ -1969,10 +1973,20 @@ var telluswhere = (function ($) {
 			// Get the link targes, whose class states the format
 			var linkTargets = $('#export a');
 			
+			// Determine the download type
+			var areaDescription = 'the visible map area';
+			if (_settings.boundaryDownloadType && _settings.boundaryDownloadId) {
+				areaDescription = 'this ' + _settings.boundaryDownloadType;
+				if ($('#exportdescription').length) {
+					$('#exportdescription').text(areaDescription);
+				}
+				_settings.exportMinZoom = 0;
+			}
+			
 			// Define the link help texts
 			var helpTexts = {
-				csv:		'Data for the visible map area, as a CSV file, which will open in Excel/OpenOffice, and for analysis in programming languages.',
-				geojson:	'Data for the visible map area, as a GeoJSON file, suitable for use in a GIS program like QGIS, ArcGIS or MapInfo, or for analysis in R.'
+				csv:		'Data for ' + areaDescription + ', as a CSV file, which will open in Excel/OpenOffice, and for analysis in programming languages.',
+				geojson:	'Data for ' + areaDescription + ', as a GeoJSON file, suitable for use in a GIS program like QGIS, ArcGIS or MapInfo, or for analysis in R.'
 			};
 			$.each (linkTargets, function (index, linkTarget) {
 				$(linkTarget).attr ('title', helpTexts[linkTarget.className]);
@@ -2036,6 +2050,11 @@ var telluswhere = (function ($) {
 					
 					// Use larger thumbnails
 					url = url.replace (/&thumbnailsize=[0-9]+/, '&thumbnailsize=1000');
+					
+					// In boundary download mode, specify the boundary type and ID, which will override the BBOX
+					if (_settings.boundaryDownloadType && _settings.boundaryDownloadId) {
+						url += '&boundaryid=' + _settings.boundaryDownloadType + ':' + _settings.boundaryDownloadId;
+					}
 					
 					// Set the href value
 					$(linkTarget).attr ('href', url);

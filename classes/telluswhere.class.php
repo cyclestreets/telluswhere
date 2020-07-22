@@ -1071,6 +1071,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			'England: London Boroughs',
 			'Highway authorities',
 			'England',
+			'England: Districts of Manchester',
 			'Wales',
 			'Scotland',
 			'Northern Ireland',

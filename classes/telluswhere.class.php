@@ -249,6 +249,7 @@ class telluswhere
 	private $popupLabels = array ();
 	private $popupLabelSubsetField = false;
 	private $boundaryDownloadType = false;
+	private $boundaryDownloadSource = false;
 	private $boundaryDownloadId = false;
 	
 	
@@ -1136,7 +1137,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 							0 => $boundary,
 						)
 					);
-					$this->boundaryDownloadType = 'county';
+					$this->boundaryDownloadType = $boundary['properties']['type'];
+					$this->boundaryDownloadSource = $boundary['properties']['source'];
 					$this->boundaryDownloadId = $boundary['properties']['id'];
 					break;
 				}
@@ -2843,6 +2845,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$multiCategoryModeJs = ($this->settings['multiCategoryMode'] ? 'true' : 'false');
 		$enableOverlayJs = ($this->settings['overlayUrl'] ? 'true' : 'false');
 		$boundaryDownloadTypeJs = ($this->boundaryDownloadType ? "'{$this->boundaryDownloadType}'" : 'false');
+		$boundaryDownloadSourceJs = ($this->boundaryDownloadSource ? "'{$this->boundaryDownloadSource}'" : 'false');
 		$boundaryDownloadIdJs = ($this->boundaryDownloadId ? $this->boundaryDownloadId : 'false');
 		
 		$this->headContent['application']  = "<script src=\"/js/telluswhere.js?{$this->template['revision']}\"></script>";
@@ -2876,6 +2879,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				geocoderBboxBounded: '{$this->settings['geocoderBboxBounded']}',
 				enableInitialCookieLocation: {$enableInitialCookieLocationJs},
 				boundaryDownloadType: {$boundaryDownloadTypeJs},
+				boundaryDownloadSource: {$boundaryDownloadSourceJs},
 				boundaryDownloadId: {$boundaryDownloadIdJs}
 			};
 			

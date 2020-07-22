@@ -90,6 +90,7 @@ var telluswhere = (function ($) {
 		
 		// Downloads
 		boundaryDownloadType: false,
+		boundaryDownloadSource: false,
 		boundaryDownloadId: false
 	};
 	
@@ -1975,7 +1976,7 @@ var telluswhere = (function ($) {
 			
 			// Determine the download type
 			var areaDescription = 'the visible map area';
-			var useBoundaryIds = (_settings.boundaryDownloadType && _settings.boundaryDownloadId);
+			var useBoundaryIds = (_settings.boundaryDownloadType && _settings.boundaryDownloadSource && _settings.boundaryDownloadId);
 			if (useBoundaryIds) {
 				areaDescription = 'this ' + _settings.boundaryDownloadType;
 				if ($('#exportdescription').length) {
@@ -2071,7 +2072,7 @@ var telluswhere = (function ($) {
 				
 				// In boundary download mode, specify the boundary type and ID, which will override the BBOX
 				if (useBoundaryIds) {
-					url += '&boundaryid=' + _settings.boundaryDownloadType + ':' + _settings.boundaryDownloadId;
+					url += '&boundaryid=' + _settings.boundaryDownloadSource + ':' + _settings.boundaryDownloadId;
 				}
 				
 				// Set the href value

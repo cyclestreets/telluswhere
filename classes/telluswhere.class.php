@@ -27,6 +27,7 @@ class telluswhere
 			#!# Needs to be added to database settings
 			'geocoderBboxBounded'	=> '-6.6577,49.9370,1.7797,57.6924',	// English mainland
 			'authNamespace'			=> 'telluswhere\\',
+			'logSubmissions'		=> false,		// Or filename
 		);
 		
 		# Return the defaults
@@ -2635,6 +2636,9 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		if (isSet ($rawdata['tags']) || $this->settings['submitTag']) {
 			$data['tags'] = (isSet ($rawdata['tags']) ? $rawdata['tags'] : $this->settings['submitTag']);
 		}
+		
+		# Log submissions if required; this does not include personal data
+		file_put_contents ($this->settings['logSubmissions'], print_r ($data, true), FILE_APPEND);
 		
 		# Post the data
 		$result = application::file_post_contents ($apiUrl, $data, true, $transportError);

@@ -4214,6 +4214,15 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			$this->template['form'] = $html;
 			return;
 		}
+		
+		# Process the result
+		#!# API provisioning needed to process the result; for now, inform the admin that a password reset is needed
+		$this->template['form'] = "<p>We'll send an e-mail shortly with instructions for resetting your password.</p>";
+		$title = "Password reset link needed for the {$this->settings['applicationName']} site";
+		$message = "{$result['email']} needs a password reset link for the {$this->settings['applicationName']} site.";
+		$extraHeaders  = 'From: ' . $this->settings['administratorEmail'];
+		$extraHeaders .= "\r\nReply-To: {$result['email']}";
+		application::utf8Mail ($this->settings['administratorEmail'], $title, wordwrap ($message), $extraHeaders);
 	}
 	
 	

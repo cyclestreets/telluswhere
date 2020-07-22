@@ -1048,7 +1048,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Get the boundaries list from the API
 		#!# Need to converge this with localareas.list
-		$apiUrl = '/v2/boundaries.locations?type=county';
+		$apiUrl = '/v2/boundaries.locations?type=highwayauthorities';
 		$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
 		$data = file_get_contents ($apiUrl);
 		$data = json_decode ($data, true);
@@ -1056,7 +1056,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Convert from GeoJSON to a flat array
 		foreach ($data['features'] as $area) {
 			$areas[] = array (
-				'country'	=> 'Counties',
+				'country'	=> 'Highway authorities',
 				'name'		=> $area['properties']['name'],
 				'url'		=> $_SERVER['_SITE_URL'] . '/' . $area['properties']['moniker'] . '/',
 				'link'		=> $_SERVER['SERVER_NAME'] . '/' . $area['properties']['moniker'],
@@ -1069,7 +1069,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Filter to wanted regions only
 		$filterToRegions = array (
 			'England: London Boroughs',
-			'Counties',
+			'Highway authorities',
 			'England',
 			'Wales',
 			'Scotland',
@@ -1125,7 +1125,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Try boundary type if city not found
 		if (isSet ($data['error'])) {
-			$apiUrl = '/v2/boundaries.locations?type=county';
+			$apiUrl = '/v2/boundaries.locations?type=highwayauthorities';
 			$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
 			$boundaries = file_get_contents ($apiUrl);
 			$boundaries = json_decode ($boundaries, true);

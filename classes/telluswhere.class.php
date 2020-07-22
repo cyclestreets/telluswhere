@@ -286,9 +286,9 @@ class telluswhere
 			'title'				=> 'Wider footpaths and pavements.',
 		),
 		'closure'		=> array (
-			'plural'			=> 'Closures to through-traffic',
-			'singular'			=> 'Closure',
-			'title'				=> 'A filter prevents through-traffic, enabling walking and cycling.',
+			'plural'			=> 'Traffic filters',
+			'singular'			=> 'Traffic filter',
+			'title'				=> 'A filter prevents through-traffic such as rat-running, helping encourage walking and cycling.',
 		),
 	);
 	

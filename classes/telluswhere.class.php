@@ -1118,32 +1118,32 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		}
 		$id = $_GET['id'];
 		
-		# Request the data from the API
-		$apiUrl = '/v2/localareas.show&id=' . $id;
+		# Try match with an official boundary first
+		$apiUrl = '/v2/boundaries.locations?type=highwayauthorities';
 		$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
-		$data = file_get_contents ($apiUrl);
-		$data = json_decode ($data, true);
-		
-		# Try boundary type if city not found
-		if (isSet ($data['error'])) {
-			$apiUrl = '/v2/boundaries.locations?type=highwayauthorities';
-			$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
-			$boundaries = file_get_contents ($apiUrl);
-			$boundaries = json_decode ($boundaries, true);
-			foreach ($boundaries['features'] as $boundary) {
-				if ($boundary['properties']['moniker'] == $id) {
-					$boundary['properties']['radius'] = 50;		// Needs to have BBOX instead; then replace the radius handling below
-					$data = array (
-						'features' => array	(
-							0 => $boundary,
-						)
-					);
-					$this->boundaryDownloadType = $boundary['properties']['type'];
-					$this->boundaryDownloadSource = $boundary['properties']['source'];
-					$this->boundaryDownloadId = $boundary['properties']['id'];
-					break;
-				}
+		$boundaries = file_get_contents ($apiUrl);
+		$boundaries = json_decode ($boundaries, true);
+		foreach ($boundaries['features'] as $boundary) {
+			if ($boundary['properties']['moniker'] == $id) {
+				$boundary['properties']['radius'] = 50;		// Needs to have BBOX instead; then replace the radius handling below
+				$data = array (
+					'features' => array	(
+						0 => $boundary,
+					)
+				);
+				$this->boundaryDownloadType = $boundary['properties']['type'];
+				$this->boundaryDownloadSource = $boundary['properties']['source'];
+				$this->boundaryDownloadId = $boundary['properties']['id'];
+				break;
 			}
+		}
+		
+		# If no official boundary match, try local areas list
+		if (!$this->boundaryDownloadSource) {
+			$apiUrl = '/v2/localareas.show&id=' . $id;
+			$apiUrl = $this->settings['apiBase'] . $apiUrl . '&key=' . $this->settings['apiKey'];
+			$data = file_get_contents ($apiUrl);
+			$data = json_decode ($data, true);
 		}
 		
 		# End if no match

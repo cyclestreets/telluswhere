@@ -422,10 +422,12 @@ class telluswhere
 		$this->template['_categoriestotal'] = '';
 		
 		# Add support for an extra category
-		if (isSet ($_GET['extracategory'])) {
-			$extracategory = $_GET['extracategory'];
-			if (isSet ($this->categoryLabels[$extracategory])) {
-				$this->settings['categories'] .= "\n" . $extracategory;
+		if (isSet ($_GET['extracategory']) && strlen ($_GET['extracategory'])) {
+			$extracategories = explode (',', $_GET['extracategory']);
+			foreach ($extracategories as $extracategory) {
+				if (isSet ($this->categoryLabels[$extracategory])) {
+					$this->settings['categories'] .= "\n" . $extracategory;
+				}
 			}
 		}
 		

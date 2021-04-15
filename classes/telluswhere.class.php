@@ -3001,7 +3001,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Location submission form
-	private function locationSubmissionForm ($action, $existingData, $schema = array (), $enableInitialCookieLocation = true, &$category, &$html = '')
+	private function locationSubmissionForm ($action, $existingData, $schema, $enableInitialCookieLocation, &$category, &$html = '')
 	{
 		# Start the HTML
 		$html = '';

@@ -242,6 +242,7 @@ class telluswhere
 	private $headContent = array ();
 	private $forcedAction = false;
 	private $template = array ();	// Associative array of fragments to be replaced
+	private $isFirstRun = false;	// First-run mode
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	private $tmpFolder = '/tmp/';
 	private $userIsDownloader = false;
@@ -603,9 +604,6 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		if (!$tables = $this->databaseConnection->getTables ($settings['database'])) {
 			$this->createDatabaseStructure ();
 		}
-		
-		# Set a flag to indicate first-run mode
-		$this->isFirstRun = false;
 		
 		# Obtain the settings
 		if (!$databaseSettings = $this->databaseConnection->selectOne ($settings['database'], 'settings', array ('url' => $_SERVER['_SITE_URL']))) {

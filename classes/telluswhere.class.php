@@ -931,15 +931,17 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$html = '';
 		
 		# Add login form or status, where supported by the template
-		if ($this->user) {
-			$this->template['form']  = "<p>You are logged in.</p>";
-			$this->template['form'] .= "\n<p>You have <a href=\"{$this->baseUrl}/profile/\">{$this->gamificationActivities['total']} points</a>.</p>";
-		} else {
-			$formHtml = '';
-			if ($result = $this->loginForm ($formHtml, false)) {
-				$this->doLogin ($result);	// $result now contains the user details (username, email, name, privileges)
+		if (substr_count ($this->templateHtml, '{$form}')) {	// Check presence in template
+			if ($this->user) {
+				$this->template['form']  = "\n<p>You are logged in.</p>";
+				$this->template['form'] .= "\n<p>You have <a href=\"{$this->baseUrl}/profile/\">{$this->gamificationActivities['total']} points</a>.</p>";
+			} else {
+				$formHtml = '';
+				if ($result = $this->loginForm ($formHtml, false)) {
+					$this->doLogin ($result);	// $result now contains the user details (username, email, name, privileges)
+				}
+				$this->template['form'] = $formHtml;
 			}
-			$this->template['form'] = $formHtml;
 		}
 		
 		# Add areas drop-down if supported

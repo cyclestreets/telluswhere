@@ -242,6 +242,7 @@ class telluswhere
 	private $headContent = array ();
 	private $forcedAction = false;
 	private $template = array ();	// Associative array of fragments to be replaced
+	private $templatePath = false;	// Explicitly-set template path
 	private $isFirstRun = false;	// First-run mode
 	private $replacedPlaceholders = array ();	// Associative array of placeholder comments which have been replaced
 	private $tmpFolder = '/tmp/';
@@ -568,6 +569,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Enable feedback handler
 		$this->feedbackHandler ();
 		
+		# If the template path has been set by an action, substitute the template HTML
+		if ($this->templatePath) {
+			$this->templateHtml = $this->getTemplateHtml ($this->action, $this->templatePath);
+		}
+		
 		# Render the page
 		$html = templating::doTemplateSubstitution ($this->templateHtml, $this->template, $this->styleDirectory);
 		
@@ -755,7 +761,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	# Function to load the template
-	private function getTemplateHtml ($action)
+	private function getTemplateHtml ($action, $explicitTemplatePath = false)
 	{
 		# Do not attempt to fetch a template if no URL specified
 		if (!$this->actions[$action]['url']) {return false;}
@@ -770,6 +776,11 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		
 		# Determine the location of the template
 		$templateLocation = $this->actions[$action]['url'] . (substr ($this->actions[$action]['url'], -1) == '/' ? 'index.html' : '');	// Convert /path/ to /path/index.html
+		
+		# Use overriden template path value if set
+		if ($explicitTemplatePath) {
+			$templateLocation = $explicitTemplatePath;
+		}
 		
 		# If the template does not exist, and the action is optional, signal this by returning false
 		$templateFile = $_SERVER['DOCUMENT_ROOT'] . $this->styleDirectory . $templateLocation;

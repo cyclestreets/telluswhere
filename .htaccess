@@ -52,6 +52,18 @@ RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas|login)/$ index.
 RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas|login)$ /$1/$2/ [L,R=301]
 RewriteRule ^(admin)/(review)/page([1-9][0-9]*).html$ index.html?action=$1$2&page=$3 [L,QSA]
 
+# Schemes/visions module
+RewriteRule ^schemes/$ index.html?action=schemes&do=schemeslist [L]
+RewriteRule ^schemes$ /schemes/ [L,R=301]
+RewriteRule ^schemes/add.html$ index.html?action=schemes&do=schemeadd [L]
+RewriteRule ^schemes/([^/]+)/$ index.html?action=schemes&do=schemeshow&scheme=$1 [L]
+RewriteRule ^schemes/([^/]+)$ /schemes/$1/ [L,R=301]
+RewriteRule ^schemes/([^/]+)/edit.html$ index.html?action=schemes&do=schemeedit&scheme=$1 [L]
+RewriteRule ^schemes/([^/]+)/addvision.html$ index.html?action=schemes&do=visionadd&scheme=$1 [L]
+RewriteRule ^schemes/([^/]+)/vision([1-9][0-9]*)/$ index.html?action=schemes&do=visionshow&scheme=$1&vision=$2 [L]
+RewriteRule ^schemes/([^/]+)/vision([1-9][0-9]*)$ /schemes/$1/$2/ [L,R=301]
+RewriteRule ^schemes/([^/]+)/vision([1-9][0-9]*)/edit.html$ index.html?action=schemes&do=visionedit&scheme=$1&vision=$2 [L]
+
 # AJAX calls
 RewriteRule ^ajax/([a-z]+)$ index.html?action=ajax&call=$1 [L,QSA]
 

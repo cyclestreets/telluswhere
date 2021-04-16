@@ -220,6 +220,10 @@ class telluswhere
 				'url' => '/admin/priorityareas/',
 				'authentication' => true,
 			),
+			'schemes' => array (
+				'description' => 'Schemes',
+				'url' => '/schemes/',
+			),
 			'ajax' => array (
 				'description' => false,
 				'url' => '/ajax',
@@ -4627,6 +4631,26 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 				
 			</div>
 		';
+	}
+	
+	
+	/**
+	 * Schemes module
+	 *
+	 */
+	public function schemes ()
+	{
+		# Determine the local action
+		$do = (isSet ($_GET['do']) ? $_GET['do'] : false);
+		
+		# Set the module base URL
+		$baseUrl = $this->baseUrl . '/schemes';
+		
+		# Subclass
+		require_once ('classes/schemes.class.php');
+		$schemes = new schemes ($baseUrl, $this->databaseConnection, $this->settings, $do);
+		$this->templatePath = $schemes->getTemplatePath ();
+		$this->template += $schemes->getTemplate ();	// Merge in template values
 	}
 }
 

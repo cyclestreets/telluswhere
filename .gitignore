@@ -17,3 +17,6 @@ tmp/*
 
 # Ignore deployment-related files
 .well-known
+
+# Libraries
+libraries/streetvisions/

@@ -4635,22 +4635,27 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 	
 	
 	/**
-	 * Schemes module
+	 * Schemes module, providing an integration of the Street visions library
+	 * @see: https://github.com/cyclestreets/streetvisions/
 	 *
 	 */
 	public function schemes ()
 	{
-		# Determine the local action
-		$do = (isSet ($_GET['do']) ? $_GET['do'] : false);
+		# Forward on the local action for the library
+		$_GET['action'] = (isSet ($_GET['do']) ? $_GET['do'] : false);
+		
+		# Settings
+		$fields = array ('hostname', 'database', 'username', 'password');
+		$settings = application::arrayFields ($this->settings, $fields);
 		
 		# Set the module base URL
-		$baseUrl = $this->baseUrl . '/schemes';
+		$baseUrl = '/libraries/streetvisions';
 		
-		# Subclass
-		require_once ('classes/schemes.class.php');
-		$schemes = new schemes ($baseUrl, $this->databaseConnection, $this->settings, $do);
-		$this->templatePath = $schemes->getTemplatePath ();
-		$this->template += $schemes->getTemplate ();	// Merge in template values
+		# Load the library
+		ini_set ('include_path', ini_get ('include_path') . PATH_SEPARATOR . $_SERVER['DOCUMENT_ROOT'] . $baseUrl . '/');
+		require_once ('app/controllers/streetvisions.php');
+		$streetvisions = new streetvisions ($settings, $baseUrl);
+		$this->template['application'] = $streetvisions->getHtml ();
 	}
 }
 

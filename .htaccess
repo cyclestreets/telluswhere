@@ -52,7 +52,7 @@ RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas|login)/$ index.
 RewriteRule ^(admin)/(review|search|users|boroughs|priorityareas|login)$ /$1/$2/ [L,R=301]
 RewriteRule ^(admin)/(review)/page([1-9][0-9]*).html$ index.html?action=$1$2&page=$3 [L,QSA]
 
-# Schemes/visions module
+# Schemes/visions module; directives copied from the library
 RewriteRule ^schemes/$ index.html?action=schemes&do=schemeslist [L]
 RewriteRule ^schemes$ /schemes/ [L,R=301]
 RewriteRule ^schemes/add.html$ index.html?action=schemes&do=schemeadd [L]
@@ -91,6 +91,8 @@ RewriteCond %{REQUEST_FILENAME} !/js/telluswhere\.js$
 RewriteCond %{REQUEST_FILENAME} !/js/autocomplete\.js$
 RewriteCond %{REQUEST_FILENAME} !/images/geometrydrawing\.png$
 RewriteCond %{REQUEST_FILENAME} !/tmp/batch-[0-9a-f]+/.+.jpg$
+RewriteCond %{REQUEST_FILENAME} !/libraries/streetvisions/css/
+RewriteCond %{REQUEST_FILENAME} !/libraries/streetvisions/js/
 RewriteRule ^(.*)$ index.html?file=/$1 [L]
 
 

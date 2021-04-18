@@ -4647,6 +4647,8 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		# Settings
 		$fields = array ('hostname', 'database', 'username', 'password');
 		$settings = application::arrayFields ($this->settings, $fields);
+		$settings['cyclestreetsApiBaseUrl']	= $this->settings['apiBase'];
+		$settings['cyclestreetsApiKey']	= $this->settings['apiKey'];
 		
 		# Set the module base URL and application path
 		$baseUrl = $this->baseUrl . '/schemes';

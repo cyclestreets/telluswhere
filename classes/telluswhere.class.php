@@ -4648,13 +4648,14 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$fields = array ('hostname', 'database', 'username', 'password');
 		$settings = application::arrayFields ($this->settings, $fields);
 		
-		# Set the module base URL
-		$baseUrl = '/libraries/streetvisions';
+		# Set the module base URL and application path
+		$baseUrl = $this->baseUrl . '/schemes';
+		$applicationPath = '/libraries/streetvisions';
 		
 		# Load the library
-		ini_set ('include_path', ini_get ('include_path') . PATH_SEPARATOR . $_SERVER['DOCUMENT_ROOT'] . $baseUrl . '/');
+		ini_set ('include_path', ini_get ('include_path') . PATH_SEPARATOR . $_SERVER['DOCUMENT_ROOT'] . $applicationPath . '/');
 		require_once ('app/controllers/streetvisions.php');
-		$streetvisions = new streetvisions ($settings, $baseUrl);
+		$streetvisions = new streetvisions ($settings, $baseUrl, $applicationPath);
 		$this->template['application'] = $streetvisions->getHtml ();
 	}
 }

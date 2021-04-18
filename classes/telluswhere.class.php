@@ -4645,7 +4645,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$_GET['action'] = (isSet ($_GET['do']) ? $_GET['do'] : false);
 		
 		# Settings
-		$fields = array ('hostname', 'database', 'username', 'password');
+		$fields = array ('hostname', 'database', 'username', 'password', 'defaultLatitude', 'defaultLongitude', 'defaultZoom');
 		$settings = application::arrayFields ($this->settings, $fields);
 		$settings['cyclestreetsApiBaseUrl']	= $this->settings['apiBase'];
 		$settings['cyclestreetsApiKey']	= $this->settings['apiKey'];

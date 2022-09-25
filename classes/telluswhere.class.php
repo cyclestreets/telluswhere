@@ -297,6 +297,11 @@ class telluswhere
 			'singular'			=> 'Traffic filter',
 			'title'				=> 'A filter prevents through-traffic such as rat-running, helping encourage walking and cycling.',
 		),
+		'congestion'		=> array (
+			'plural'			=> 'Traffic',
+			'singular'			=> 'Traffic',
+			'title'				=> 'Dealing with congestion, causing delays and road danger.',
+		),
 	);
 	
 	# Labels for metadata fields

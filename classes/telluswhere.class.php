@@ -265,7 +265,7 @@ class telluswhere
 		'cycleparking'		=> array (
 			'plural'			=> 'Cycle parking',
 			'singular'			=> 'Cycle parking',
-			'title'				=> false,
+			'title'				=> 'Providing secure cycle parking for convenience and security.',
 		),
 		'bikeshare'		=> array (
 			'plural'			=> 'Bikeshare locations',

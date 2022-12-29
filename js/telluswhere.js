@@ -1999,37 +1999,41 @@ var telluswhere = (function ($) {
 				$(linkTarget).attr ('title', helpTexts[linkTarget.className]);
 			});
 			
-			// Handle boundary area -based downloads
-			if (useBoundaryIds) {
-				
-				// Show the links
-				$('#export').show ();
-				
-				// Create the export URLs
-				telluswhere.createExportUrls (linkTargets, useBoundaryIds);
+			
+			// Display links, if relevant
+			telluswhere.exportLinksDisplay (useBoundaryIds, linkTargets, true);
+			
+			// Update links / their visibility also on map move, which will include screen resize as that moves the map
+			map.on ('moveend', function (e) {
+				telluswhere.exportLinksDisplay (useBoundaryIds, linkTargets);
+			});
+		},
+		
+		
+		// Function to display/hide the export links
+		exportLinksDisplay: function (useBoundaryIds, linkTargets, initialDisplay)
+		{
+			// Avoid ever showing the export links on mobile, irrespective of boundary mode
+			var browserWidth = $(window).width ();
+			if (browserWidth < 768) {
+				return false;
 			}
 			
-			// Adjust links on map move
-			map.on ('moveend', function (e) {
-				
-				// Avoid ever showing the export links on mobile
-				var browserWidth = $(window).width ();
-				if (browserWidth < 768) {
-					return false;
+			// Handle link visibility:
+			// - In boundary mode, always show the link, irrespective of map position, as the whole boundary for the matching URL area will be downloaded
+			// - In map browsing mode, limit visibility of link to Local Authority area size, as API export at country-wide scale will give a misleading selection
+			if (useBoundaryIds) {
+				$('#export').show ();
+			} else {
+				if (map.getZoom () >= _settings.exportMinZoom) {
+					$('#export').fadeIn ((initialDisplay ? 0 : 2000));		// First time, do not fade in but show immediately on load
+				} else {
+					$('#export').fadeOut (1000);
 				}
-				
-				// Limit visibility of link to Local Authority area size, as API export at country-wide scale will give a misleading selection
-				if (!useBoundaryIds) {
-					if (map.getZoom () >= _settings.exportMinZoom) {
-						$('#export').fadeIn (2000);
-					} else {
-						$('#export').fadeOut (1000);
-					}
-				}
-				
-				// Create the export URLs
-				telluswhere.createExportUrls (linkTargets, useBoundaryIds);
-			});
+			}
+			
+			// Create the export URLs
+			telluswhere.createExportUrls (linkTargets, useBoundaryIds);
 		},
 		
 		

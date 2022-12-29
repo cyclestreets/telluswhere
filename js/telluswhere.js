@@ -1974,24 +1974,23 @@ var telluswhere = (function ($) {
 			// Get the link targes, whose class states the format
 			var linkTargets = $('#export a');
 			
-			// Determine the download type
-			var areaDescription = 'the visible map area';
+			// Determine whether download type should be (i) a complete explicit boundary or (ii) the visible map area
 			var useBoundaryIds = (_settings.boundaryDownloadType && _settings.boundaryDownloadSource && _settings.boundaryDownloadId);
+			
+			// Determine the area description for the help texts
+			var areaDescription = 'the visible map area';
 			if (useBoundaryIds) {
 				areaDescription = 'this ' + _settings.boundaryDownloadType;
-				if ($('#exportdescription').length) {
-					$('#exportdescription').text(areaDescription);
-				}
-				_settings.exportMinZoom = 0;
-				
-				// Show the links
-				$('#export').show ();
-				
-				// Create the export URLs
-				telluswhere.createExportUrls (linkTargets, useBoundaryIds);
 			}
 			
-			// Define the link help texts
+			// In boundary mode, overwrite the visible text to the fuller description
+			if (useBoundaryIds) {
+				if ($('#exportdescription').length) {
+					$('#exportdescription').text (areaDescription);
+				}
+			}
+			
+			// Set the link hover help texts
 			var helpTexts = {
 				csv:		'Data for ' + areaDescription + ', as a CSV file, which will open in Excel/OpenOffice, and for analysis in programming languages.',
 				geojson:	'Data for ' + areaDescription + ', as a GeoJSON file, suitable for use in a GIS program like QGIS, ArcGIS or MapInfo, or for analysis in R.'
@@ -1999,6 +1998,16 @@ var telluswhere = (function ($) {
 			$.each (linkTargets, function (index, linkTarget) {
 				$(linkTarget).attr ('title', helpTexts[linkTarget.className]);
 			});
+			
+			// Handle boundary area -based downloads
+			if (useBoundaryIds) {
+				
+				// Show the links
+				$('#export').show ();
+				
+				// Create the export URLs
+				telluswhere.createExportUrls (linkTargets, useBoundaryIds);
+			}
 			
 			// Adjust links on map move
 			map.on ('moveend', function (e) {
@@ -2011,7 +2020,7 @@ var telluswhere = (function ($) {
 				
 				// Limit visibility of link to Local Authority area size, as API export at country-wide scale will give a misleading selection
 				if (!useBoundaryIds) {
-					if (map.getZoom() >= _settings.exportMinZoom) {
+					if (map.getZoom () >= _settings.exportMinZoom) {
 						$('#export').fadeIn (2000);
 					} else {
 						$('#export').fadeOut (1000);

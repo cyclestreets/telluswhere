@@ -2069,8 +2069,8 @@ var telluswhere = (function ($) {
 					url = url.replace (',caption', ',caption,categoryId');
 				}
 				
-				// Add map URL field; see also urlprefix above
-				url = url.replace (',iconUrl', ',iconUrl,mapUrl');
+				// Add map URL and datetime fields; see also urlprefix above
+				url = url.replace (',iconUrl', ',iconUrl,mapUrl,datetime');
 				
 				// Remove unnecessary fields from export
 				url = url.replace (',iconUrl', '');
@@ -2087,6 +2087,9 @@ var telluswhere = (function ($) {
 				if (useBoundaryIds) {
 					url += '&boundaryid=' + _settings.boundaryDownloadSource + ':' + _settings.boundaryDownloadId;
 				}
+				
+				// Use SQL datetime rather than UNIX timestamp
+				url += '&datetime=sqldatetime';
 				
 				// Set the href value
 				$(linkTarget).attr ('href', url);

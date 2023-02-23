@@ -1317,7 +1317,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 		$this->actions[$this->action]['apiUrl2'] = str_replace ('%dataset', $this->settings['auditDataset'], $this->actions[$this->action]['apiUrl2']);
 		
 		# Create the map HTML
-		$html .= $this->mapPanel ($this->action, false, false, $viewOnlyMode = true);
+		$html = $this->mapPanel ($this->action, false, false, $viewOnlyMode = true);
 		
 		# Register the HTML
 		$this->template['map'] = $html;

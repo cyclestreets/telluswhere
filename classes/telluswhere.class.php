@@ -77,13 +77,13 @@ class telluswhere
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/',
 				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400&simplify=1&latest=1',
-				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
+				'apiUrl2' => '/v2/infrastructure.priorityareas.locations?dataset=%dataset',
 			),
 			'auditadd' => array (
 				'description' => 'Audit %categoryLabel',
 				'url' => '/audit/add/',
 				'apiUrl' => '/v2/infrastructure.locations?dataset=%dataset&limit=400&simplify=1&latest=1',
-				'apiUrl2' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
+				'apiUrl2' => '/v2/infrastructure.priorityareas.locations?dataset=%dataset',
 			),
 			'auditaddlocation' => array (
 				'description' => 'Audit %categoryLabel',
@@ -94,13 +94,13 @@ class telluswhere
 			'auditlocation' => array (
 				'description' => 'Audit location',
 				'url' => '/audit/location/',	// Will be /audit/location/%id/
-				'apiUrl' => '/v2/infrastructure.location&dataset=%dataset&id=%id&latest=1',
+				'apiUrl' => '/v2/infrastructure.location?dataset=%dataset&id=%id&latest=1',
 				'authentication' => true,
 			),
 			'priorityareas' => array (
 				'description' => 'Priority areas',
 				'url' => '/audit/priorityareas/',
-				'apiUrl' => '/v2/infrastructure.priorityareas.locations&dataset=%dataset',
+				'apiUrl' => '/v2/infrastructure.priorityareas.locations?dataset=%dataset',
 				'authentication' => true,
 			),
 			'embed' => array (
@@ -2826,7 +2826,7 @@ $this->template['loginLink'] = ltrim ($this->template['loginLink'], '/');
 			if (preg_match ('|^https?://|', $this->actions[$showLayer]['apiUrl2'])) {
 				$browsingApiUrl2 = $this->actions[$showLayer]['apiUrl2'];
 			} else {
-				$browsingApiUrl2 = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . '&key=' . $this->settings['apiKey'];
+				$browsingApiUrl2 = $this->settings['apiBase'] . $this->actions[$showLayer]['apiUrl2'] . (substr_count ($this->actions[$showLayer]['apiUrl2'], '?') ? '&' : '?') . 'key=' . $this->settings['apiKey'];
 			}
 			$browsingApiUrl2 = "'" . $browsingApiUrl2 . "'";
 		} else {
